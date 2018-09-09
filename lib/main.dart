@@ -40,8 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List entities = [];
 
   void _getHassStates() async {
-    String dataURL = "https://edwin-home.duckdns.org:8123/api/states";
-    http.Response response = await http.get(dataURL, headers: {"X-HA-Access": "7415963"});
+    String dataURL = "https://homeassistant:8123/api/states";
+    http.Response response = await http.get(dataURL, headers: {"X-HA-Access": "password"});
     setState(() {
       entities = json.decode(response.body);
     });
