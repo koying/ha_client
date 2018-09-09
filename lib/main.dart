@@ -90,6 +90,22 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
       ),
+      drawer: new Drawer(
+        child: ListView(
+          children: <Widget>[
+            new DrawerHeader(child: Text("Menu")),
+            new ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+            ),
+            new AboutListTile(
+              applicationName: "Hass Client",
+              applicationVersion: "0.1",
+              applicationLegalese: "Keyboard Crumbs",
+            )
+          ],
+        ),
+      ),
       body: ListView.builder(
           itemCount: entities.length,
           itemBuilder: (BuildContext context, int position) {
