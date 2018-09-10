@@ -44,8 +44,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List _entities = [];
-  String _hassioUrl = "";
+  List _composedEntitiesData = [];
+  String _hassioAPIEndpoint = "";
   String _hassioPassword = "";
 
   @override
@@ -57,17 +57,56 @@ class _MainPageState extends State<MainPage> {
   _loadSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _hassioUrl = "https://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/states";
+      _hassioAPIEndpoint = "https://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/";
       _hassioPassword = prefs.getString('hassio-password');
     });
   }
 
-  void _getHassioEntities() async {
+  void _loadHassioData() async {
     await _loadSettings();
-    http.Response response = await http.get(_hassioUrl, headers: {"X-HA-Access": _hassioPassword});
-    setState(() {
-      _entities = json.decode(response.body);
+    http.Response entitiesResponse = await http.get(_hassioAPIEndpoint + "states", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
+    http.Response servicesResponse = await http.get(_hassioAPIEndpoint + "services", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
+    http.Response configResponse = await http.get(_hassioAPIEndpoint + "config", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
+    List _entities = json.decode(entitiesResponse.body);
+    List _services = json.decode(servicesResponse.body);
+    Map _config = json.decode(configResponse.body);
+    List result = [];
+    _entities.forEach((entity) {
+      var composedEntity = Map();
+      composedEntity["entity_id"] = entity["entity_id"];
+      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
+      composedEntity["state"] = entity["state"];
+      composedEntity["last_changed"] = entity["last_changed"];
+      String entityDomain = entity["entity_id"].split(".")[0];
+      composedEntity["domain"] = entityDomain;
+
+      _services.forEach((service) {
+        if (service["domain"] == entityDomain) {
+          composedEntity["services"] = new Map.from(service["services"]);
+        }
+      });
+
+      result.add(composedEntity);
     });
+    setState(() {
+      _composedEntitiesData = result;
+    });
+  }
+
+  Widget buildEntityButtons(int i) {
+    if (_composedEntitiesData[i]["services"] == null || _composedEntitiesData[i]["services"].length == 0) {
+      return new Container(width: 0.0, height: 0.0);
+    }
+    List<Widget> buttons = [];
+    _composedEntitiesData[i]["services"].forEach((key, value) {
+      buttons.add(new FlatButton(
+        child: Text(_composedEntitiesData[i]["domain"] + ".$key"),
+        onPressed: () {/*......*/},
+      ));
+    });
+    return ButtonBar(
+      children: buttons
+    );
   }
 
   Widget parseEntity(int i) {
@@ -77,8 +116,12 @@ class _MainPageState extends State<MainPage> {
         children: <Widget>[
           new ListTile(
             leading: const Icon(Icons.device_hub),
-            title: Text("${_entities[i]["entity_id"]}"),
-            subtitle: Text("${_entities[i]["state"]}"),
+            subtitle: Text("${_composedEntitiesData[i]["entity_id"]}"),
+            trailing: Text("${_composedEntitiesData[i]["state"]}"),
+            title: Text("${_composedEntitiesData[i]["display_name"]}"),
+          ),
+          new ButtonTheme.bar( // make buttons use the appropriate styles for cards
+            child: buildEntityButtons(i),
           ),
         ],
       ),
@@ -88,7 +131,7 @@ class _MainPageState extends State<MainPage> {
 
     return Padding(
         padding: EdgeInsets.all(10.0),
-        child: Text("Row ${_entities[i]["entity_id"]}")
+        child: Text("Row ${_composedEntitiesData[i]["entity_id"]}")
     );
   }
 
@@ -132,12 +175,12 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
       body: ListView.builder(
-          itemCount: _entities.length,
+          itemCount: _composedEntitiesData.length,
           itemBuilder: (BuildContext context, int position) {
             return parseEntity(position);
           }),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _getHassioEntities,
+        onPressed: _loadHassioData,
         tooltip: 'Increment',
         child: new Icon(Icons.refresh),
       ), // This trailing comma makes auto-formatting nicer for build methods.
