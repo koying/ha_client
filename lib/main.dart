@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+part 'settings.dart';
 
 void main() => runApp(new MyApp());
 
@@ -13,13 +16,17 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Hass main'),
+      initialRoute: "/",
+      routes: {
+        "/": (context) => MainPage(title: 'Hass Client'),
+        "/settings": (context) => SettingsPage(title: "Settings")
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class MainPage extends StatefulWidget {
+  MainPage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -33,24 +40,33 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  _MainPageState createState() => new _MainPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  List entities = [];
+class _MainPageState extends State<MainPage> {
+  List _entities = [];
+  String _hassioUrl = "";
+  String _hassioPassword = "";
 
-  void _getHassStates() async {
-    String dataURL = "https://homeassistant:8123/api/states";
-    http.Response response = await http.get(dataURL, headers: {"X-HA-Access": "password"});
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  _loadSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      entities = json.decode(response.body);
+      _hassioUrl = "https://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/states";
+      _hassioPassword = prefs.getString('hassio-password');
     });
+  }
+
+  void _getHassioEntities() async {
+    await _loadSettings();
+    http.Response response = await http.get(_hassioUrl, headers: {"X-HA-Access": _hassioPassword});
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
+      _entities = json.decode(response.body);
     });
   }
 
@@ -61,8 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           new ListTile(
             leading: const Icon(Icons.device_hub),
-            title: Text("${entities[i]["entity_id"]}"),
-            subtitle: Text("${entities[i]["state"]}"),
+            title: Text("${_entities[i]["entity_id"]}"),
+            subtitle: Text("${_entities[i]["state"]}"),
           ),
         ],
       ),
@@ -72,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Padding(
         padding: EdgeInsets.all(10.0),
-        child: Text("Row ${entities[i]["entity_id"]}")
+        child: Text("Row ${_entities[i]["entity_id"]}")
     );
   }
 
@@ -93,10 +109,19 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: new Drawer(
         child: ListView(
           children: <Widget>[
-            new DrawerHeader(child: Text("Menu")),
+            new UserAccountsDrawerHeader(
+                accountName: Text("Edwin Home"),
+                accountEmail: Text("edwin-home.duckdns.org"),
+                currentAccountPicture: new CircleAvatar(
+                  backgroundImage: new NetworkImage("https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
+                ),
+            ),
             new ListTile(
               leading: Icon(Icons.settings),
               title: Text("Settings"),
+              onTap: () {
+                Navigator.pushNamed(context, '/settings');
+              },
             ),
             new AboutListTile(
               applicationName: "Hass Client",
@@ -107,12 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: ListView.builder(
-          itemCount: entities.length,
+          itemCount: _entities.length,
           itemBuilder: (BuildContext context, int position) {
             return parseEntity(position);
           }),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _getHassStates,
+        onPressed: _getHassioEntities,
         tooltip: 'Increment',
         child: new Icon(Icons.refresh),
       ), // This trailing comma makes auto-formatting nicer for build methods.
