@@ -7,3 +7,4 @@ to get updated when there will be something to try.
 
 ### v.0.1
 * Getting the list of entities and displaying it as a list of cards
+* Settings page with Home Assistant url and password
