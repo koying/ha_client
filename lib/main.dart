@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as socketStatus;
 
 part 'settings.dart';
 
-void main() => runApp(new MyApp());
+void main() => runApp(new HassClientApp());
 
-class MyApp extends StatelessWidget {
+class HassClientApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -44,64 +46,130 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List _composedEntitiesData = [];
+  List _entitiesData = [];
+  Map _servicesData = {};
   String _hassioAPIEndpoint = "";
   String _hassioPassword = "";
+  IOWebSocketChannel _hassioChannel;
+  int _entitiesMessageId = 0;
+  int _servicesMessageId = 1;
+  int _servicCallMessageId = 2;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    _initClient();
   }
 
-  _loadSettings() async {
+  _initClient() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _hassioAPIEndpoint = "https://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/";
+      _hassioAPIEndpoint = "wss://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/websocket";
       _hassioPassword = prefs.getString('hassio-password');
+    });
+    _connectSocket();
+  }
+
+  _connectSocket() async {
+    _hassioChannel = await IOWebSocketChannel.connect(_hassioAPIEndpoint);
+    _hassioChannel.stream.listen((message) {
+      _handleSocketMessage(message);
+    });
+    debugPrint("Socket connected!");
+
+  }
+
+  _handleSocketMessage(message) {
+    debugPrint("<== Message from Home Assistant:");
+    debugPrint(message);
+    var data = json.decode(message);
+    if (data["type"] == "auth_required") {
+      _sendHassioAuth();
+    } else if (data["type"] == "auth_ok") {
+      debugPrint("Auth done!");
+      _startDataFetching();
+    } else if (data["type"] == "result") {
+      if (data["success"] == true) {
+        if (data["id"] == _entitiesMessageId) {
+          _loadEntities(data["result"]);
+          _sendRawMessage('{"id": $_servicesMessageId, "type": "get_services"}');
+        } else if (data["id"] == _servicesMessageId) {
+          _loadServices(data["result"]);
+        }
+      } else {
+        /*
+        Handle error here
+         */
+      }
+    }
+  }
+
+  _incrementMessageId() {
+    _entitiesMessageId = _servicCallMessageId + 1;
+    _servicesMessageId = _entitiesMessageId + 1;
+    _servicCallMessageId = _servicesMessageId + 1;
+  }
+
+  _sendHassioAuth() {
+    _sendRawMessage('{"type": "auth","api_password": "$_hassioPassword"}');
+  }
+
+  _startDataFetching() {
+    _incrementMessageId();
+    _sendRawMessage('{"id": $_entitiesMessageId, "type": "get_states"}');
+  }
+
+  _sendRawMessage(message) {
+    debugPrint("==> Sending to Home Assistant:");
+    debugPrint(message);
+    _hassioChannel.sink.add(message);
+  }
+
+  _sendServiceCall(String domain, String service, String entityId) {
+    _incrementMessageId();
+    _sendRawMessage('{"id": $_servicCallMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"}}');
+  }
+
+  void _loadServices(Map data) {
+    setState(() {
+      _servicesData = Map.from(data);
     });
   }
 
-  void _loadHassioData() async {
-    await _loadSettings();
-    http.Response entitiesResponse = await http.get(_hassioAPIEndpoint + "states", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
-    http.Response servicesResponse = await http.get(_hassioAPIEndpoint + "services", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
-    http.Response configResponse = await http.get(_hassioAPIEndpoint + "config", headers: {"X-HA-Access": _hassioPassword, "Content-Type": "application/json"});
-    List _entities = json.decode(entitiesResponse.body);
-    List _services = json.decode(servicesResponse.body);
-    Map _config = json.decode(configResponse.body);
-    List result = [];
-    _entities.forEach((entity) {
-      var composedEntity = Map();
-      composedEntity["entity_id"] = entity["entity_id"];
+  void _loadEntities(List data) {
+    Map switchServices = {
+      "turn_on": {},
+      "turn_off": {},
+      "toggle": {}
+    };
+    debugPrint("Getting Home Assistant entities: ${data.length}");
+    data.forEach((entity) {
+      var composedEntity = Map.from(entity);
       composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
-      composedEntity["state"] = entity["state"];
-      composedEntity["last_changed"] = entity["last_changed"];
       String entityDomain = entity["entity_id"].split(".")[0];
       composedEntity["domain"] = entityDomain;
 
-      _services.forEach((service) {
-        if (service["domain"] == entityDomain) {
-          composedEntity["services"] = new Map.from(service["services"]);
-        }
-      });
+      if ((entityDomain == "automation") || (entityDomain == "light") || (entityDomain == "switch") || (entityDomain == "script")) {
+        composedEntity["services"] = Map.from(switchServices);
+      }
 
-      result.add(composedEntity);
-    });
-    setState(() {
-      _composedEntitiesData = result;
+      setState(() {
+        _entitiesData.add(composedEntity);
+      });
     });
   }
 
   Widget buildEntityButtons(int i) {
-    if (_composedEntitiesData[i]["services"] == null || _composedEntitiesData[i]["services"].length == 0) {
+    if (_entitiesData[i]["services"] == null || _entitiesData[i]["services"].length == 0) {
       return new Container(width: 0.0, height: 0.0);
     }
     List<Widget> buttons = [];
-    _composedEntitiesData[i]["services"].forEach((key, value) {
+    _entitiesData[i]["services"].forEach((key, value) {
       buttons.add(new FlatButton(
-        child: Text(_composedEntitiesData[i]["domain"] + ".$key"),
-        onPressed: () {/*......*/},
+        child: Text(_entitiesData[i]["domain"] + ".$key"),
+        onPressed: () {
+          _sendServiceCall(_entitiesData[i]["domain"], key, _entitiesData[i]["entity_id"]);
+        },
       ));
     });
     return ButtonBar(
@@ -109,16 +177,16 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget parseEntity(int i) {
+  Widget buildEntityCard(int i) {
     return Card(
       child: new Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           new ListTile(
             leading: const Icon(Icons.device_hub),
-            subtitle: Text("${_composedEntitiesData[i]["entity_id"]}"),
-            trailing: Text("${_composedEntitiesData[i]["state"]}"),
-            title: Text("${_composedEntitiesData[i]["display_name"]}"),
+            subtitle: Text("${_entitiesData[i]["entity_id"]}"),
+            trailing: Text("${_entitiesData[i]["state"]}"),
+            title: Text("${_entitiesData[i]["display_name"]}"),
           ),
           new ButtonTheme.bar( // make buttons use the appropriate styles for cards
             child: buildEntityButtons(i),
@@ -131,7 +199,7 @@ class _MainPageState extends State<MainPage> {
 
     return Padding(
         padding: EdgeInsets.all(10.0),
-        child: Text("Row ${_composedEntitiesData[i]["entity_id"]}")
+        child: Text("Row ${_entitiesData[i]["entity_id"]}")
     );
   }
 
@@ -175,15 +243,21 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
       body: ListView.builder(
-          itemCount: _composedEntitiesData.length,
+          itemCount: _entitiesData.length,
           itemBuilder: (BuildContext context, int position) {
-            return parseEntity(position);
+            return buildEntityCard(position);
           }),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _loadHassioData,
+        onPressed: _startDataFetching,
         tooltip: 'Increment',
         child: new Icon(Icons.refresh),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  @override
+  void dispose() {
+    _hassioChannel.sink.close();
+    super.dispose();
   }
 }
