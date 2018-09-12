@@ -46,7 +46,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List _entitiesData = [];
+  Map _entitiesData = {};
   Map _servicesData = {};
   String _hassioAPIEndpoint = "";
   String _hassioPassword = "";
@@ -71,6 +71,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   _connectSocket() async {
+    debugPrint("Socket connecting...");
     _hassioChannel = await IOWebSocketChannel.connect(_hassioAPIEndpoint);
     _hassioChannel.stream.listen((message) {
       _handleSocketMessage(message);
@@ -120,6 +121,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   _sendRawMessage(message) {
+    if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+      debugPrint("Socket is closed");
+    }
     debugPrint("==> Sending to Home Assistant:");
     debugPrint(message);
     _hassioChannel.sink.add(message);
@@ -131,8 +135,17 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _loadServices(Map data) {
+    Map result = {};
+    data.forEach((domain, services){
+      result[domain] = Map.from(services);
+      services.forEach((serviceName, serviceData){
+        if (_entitiesData["$domain.$serviceName"] != null) {
+          result[domain].remove(serviceName);
+        }
+      });
+    });
     setState(() {
-      _servicesData = Map.from(data);
+      _servicesData = result;
     });
   }
 
@@ -145,8 +158,10 @@ class _MainPageState extends State<MainPage> {
     debugPrint("Getting Home Assistant entities: ${data.length}");
     data.forEach((entity) {
       var composedEntity = Map.from(entity);
-      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
       String entityDomain = entity["entity_id"].split(".")[0];
+      String entityId = entity["entity_id"];
+
+      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
       composedEntity["domain"] = entityDomain;
 
       if ((entityDomain == "automation") || (entityDomain == "light") || (entityDomain == "switch") || (entityDomain == "script")) {
@@ -154,21 +169,21 @@ class _MainPageState extends State<MainPage> {
       }
 
       setState(() {
-        _entitiesData.add(composedEntity);
+        _entitiesData[entityId] = Map.from(composedEntity);
       });
     });
   }
 
-  Widget buildEntityButtons(int i) {
-    if (_entitiesData[i]["services"] == null || _entitiesData[i]["services"].length == 0) {
+  Widget buildEntityButtons(String entityId) {
+    if (_entitiesData[entityId]["services"] == null || _entitiesData[entityId]["services"].length == 0) {
       return new Container(width: 0.0, height: 0.0);
     }
     List<Widget> buttons = [];
-    _entitiesData[i]["services"].forEach((key, value) {
+    _entitiesData[entityId]["services"].forEach((key, value) {
       buttons.add(new FlatButton(
-        child: Text(_entitiesData[i]["domain"] + ".$key"),
+        child: Text(_entitiesData[entityId]["domain"] + ".$key"),
         onPressed: () {
-          _sendServiceCall(_entitiesData[i]["domain"], key, _entitiesData[i]["entity_id"]);
+          _sendServiceCall(_entitiesData[entityId]["domain"], key, _entitiesData[entityId]["entity_id"]);
         },
       ));
     });
@@ -177,30 +192,31 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget buildEntityCard(int i) {
+  Widget buildEntityCard(String entityId) {
     return Card(
       child: new Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           new ListTile(
             leading: const Icon(Icons.device_hub),
-            subtitle: Text("${_entitiesData[i]["entity_id"]}"),
-            trailing: Text("${_entitiesData[i]["state"]}"),
-            title: Text("${_entitiesData[i]["display_name"]}"),
+            subtitle: Text("$entityId"),
+            trailing: Text("${_entitiesData[entityId]["state"]}"),
+            title: Text("${_entitiesData[entityId]["display_name"]}"),
           ),
           new ButtonTheme.bar( // make buttons use the appropriate styles for cards
-            child: buildEntityButtons(i),
+            child: buildEntityButtons(entityId),
           ),
         ],
       ),
     );
+  }
 
-
-
-    return Padding(
-        padding: EdgeInsets.all(10.0),
-        child: Text("Row ${_entitiesData[i]["entity_id"]}")
-    );
+  List<Widget> buildEntitiesView() {
+    List<Widget> result = [];
+    _entitiesData.forEach((key, data){
+      result.add(buildEntityCard(key));
+    });
+    return result;
   }
 
   @override
@@ -242,11 +258,9 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-      body: ListView.builder(
-          itemCount: _entitiesData.length,
-          itemBuilder: (BuildContext context, int position) {
-            return buildEntityCard(position);
-          }),
+      body: ListView(
+        children: buildEntitiesView(),
+      ),
       floatingActionButton: new FloatingActionButton(
         onPressed: _startDataFetching,
         tooltip: 'Increment',
