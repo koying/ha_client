@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as socketStatus;
+import 'package:progress_indicators/progress_indicators.dart';
 
 part 'settings.dart';
+part 'data_model.dart';
 
 void main() => runApp(new HassClientApp());
 
@@ -30,15 +33,6 @@ class HassClientApp extends StatelessWidget {
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -46,14 +40,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  Map _entitiesData = {};
-  Map _servicesData = {};
-  String _hassioAPIEndpoint = "";
-  String _hassioPassword = "";
-  IOWebSocketChannel _hassioChannel;
-  int _entitiesMessageId = 0;
-  int _servicesMessageId = 1;
-  int _servicCallMessageId = 2;
+
+  HassioDataModel _dataModel;
+  Map _entitiesData;
+  String _dataModelErrorMessage = "";
+  bool loading = true;
 
   @override
   void initState() {
@@ -63,115 +54,30 @@ class _MainPageState extends State<MainPage> {
 
   _initClient() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    String _hassioAPIEndpoint = "wss://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/websocket";
+    String _hassioPassword = prefs.getString('hassio-password');
+    _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
+    await _refreshData();
+  }
+
+  _refreshData() async {
     setState(() {
-      _hassioAPIEndpoint = "wss://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/websocket";
-      _hassioPassword = prefs.getString('hassio-password');
+      loading = true;
     });
-    _connectSocket();
-  }
-
-  _connectSocket() async {
-    debugPrint("Socket connecting...");
-    _hassioChannel = await IOWebSocketChannel.connect(_hassioAPIEndpoint);
-    _hassioChannel.stream.listen((message) {
-      _handleSocketMessage(message);
-    });
-    debugPrint("Socket connected!");
-
-  }
-
-  _handleSocketMessage(message) {
-    debugPrint("<== Message from Home Assistant:");
-    debugPrint(message);
-    var data = json.decode(message);
-    if (data["type"] == "auth_required") {
-      _sendHassioAuth();
-    } else if (data["type"] == "auth_ok") {
-      debugPrint("Auth done!");
-      _startDataFetching();
-    } else if (data["type"] == "result") {
-      if (data["success"] == true) {
-        if (data["id"] == _entitiesMessageId) {
-          _loadEntities(data["result"]);
-          _sendRawMessage('{"id": $_servicesMessageId, "type": "get_services"}');
-        } else if (data["id"] == _servicesMessageId) {
-          _loadServices(data["result"]);
-        }
-      } else {
-        /*
-        Handle error here
-         */
-      }
-    }
-  }
-
-  _incrementMessageId() {
-    _entitiesMessageId = _servicCallMessageId + 1;
-    _servicesMessageId = _entitiesMessageId + 1;
-    _servicCallMessageId = _servicesMessageId + 1;
-  }
-
-  _sendHassioAuth() {
-    _sendRawMessage('{"type": "auth","api_password": "$_hassioPassword"}');
-  }
-
-  _startDataFetching() {
-    _incrementMessageId();
-    _sendRawMessage('{"id": $_entitiesMessageId, "type": "get_states"}');
-  }
-
-  _sendRawMessage(message) {
-    if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
-      debugPrint("Socket is closed");
-    }
-    debugPrint("==> Sending to Home Assistant:");
-    debugPrint(message);
-    _hassioChannel.sink.add(message);
-  }
-
-  _sendServiceCall(String domain, String service, String entityId) {
-    _incrementMessageId();
-    _sendRawMessage('{"id": $_servicCallMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"}}');
-  }
-
-  void _loadServices(Map data) {
-    Map result = {};
-    data.forEach((domain, services){
-      result[domain] = Map.from(services);
-      services.forEach((serviceName, serviceData){
-        if (_entitiesData["$domain.$serviceName"] != null) {
-          result[domain].remove(serviceName);
-        }
+    _dataModelErrorMessage = "";
+    if (_dataModel != null) {
+      await _dataModel.fetch().then((result) {
+        setState(() {
+          _entitiesData = _dataModel._uiStructure;
+          loading = false;
+        });
+      }).catchError((e) {
+        setState(() {
+          _dataModelErrorMessage = e.toString();
+          loading = false;
+        });
       });
-    });
-    setState(() {
-      _servicesData = result;
-    });
-  }
-
-  void _loadEntities(List data) {
-    Map switchServices = {
-      "turn_on": {},
-      "turn_off": {},
-      "toggle": {}
-    };
-    debugPrint("Getting Home Assistant entities: ${data.length}");
-    data.forEach((entity) {
-      var composedEntity = Map.from(entity);
-      String entityDomain = entity["entity_id"].split(".")[0];
-      String entityId = entity["entity_id"];
-
-      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
-      composedEntity["domain"] = entityDomain;
-
-      if ((entityDomain == "automation") || (entityDomain == "light") || (entityDomain == "switch") || (entityDomain == "script")) {
-        composedEntity["services"] = Map.from(switchServices);
-      }
-
-      setState(() {
-        _entitiesData[entityId] = Map.from(composedEntity);
-      });
-    });
+    }
   }
 
   Widget buildEntityButtons(String entityId) {
@@ -181,9 +87,9 @@ class _MainPageState extends State<MainPage> {
     List<Widget> buttons = [];
     _entitiesData[entityId]["services"].forEach((key, value) {
       buttons.add(new FlatButton(
-        child: Text(_entitiesData[entityId]["domain"] + ".$key"),
+        child: Text('$key'),
         onPressed: () {
-          _sendServiceCall(_entitiesData[entityId]["domain"], key, _entitiesData[entityId]["entity_id"]);
+          _dataModel.callService(_entitiesData[entityId]["domain"], key, _entitiesData[entityId]["entity_id"]);
         },
       ));
     });
@@ -192,19 +98,19 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget buildEntityCard(String entityId) {
+  Widget buildEntityCard(data) {
     return Card(
       child: new Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           new ListTile(
             leading: const Icon(Icons.device_hub),
-            subtitle: Text("$entityId"),
-            trailing: Text("${_entitiesData[entityId]["state"]}"),
-            title: Text("${_entitiesData[entityId]["display_name"]}"),
+            subtitle: Text("${data['entity_id']}"),
+            trailing: Text("${data["state"]}"),
+            title: Text("${data["display_name"]}"),
           ),
           new ButtonTheme.bar( // make buttons use the appropriate styles for cards
-            child: buildEntityButtons(entityId),
+            child: buildEntityButtons(data['entity_id']),
           ),
         ],
       ),
@@ -212,11 +118,42 @@ class _MainPageState extends State<MainPage> {
   }
 
   List<Widget> buildEntitiesView() {
-    List<Widget> result = [];
-    _entitiesData.forEach((key, data){
-      result.add(buildEntityCard(key));
-    });
-    return result;
+    if (_entitiesData != null) {
+      List<Widget> result = [];
+      if (_dataModelErrorMessage.length == 0) {
+        _entitiesData.forEach((key, data) {
+          if (data != null) {
+            result.add(buildEntityCard(data));
+          } else {
+            debugPrint("Unknown entity: $key");
+          }
+        });
+      } else {
+        result.add(Text(_dataModelErrorMessage));
+      }
+      return result;
+    } else {
+      return [Container(width: 0.0, height: 0.0)];
+    }
+  }
+
+  Widget _buildTitle() {
+    Row titleRow = Row(
+      children: <Widget>[
+        Text(widget.title)
+      ],
+    );
+    if (loading) {
+      titleRow.children.add(Padding(
+        child: JumpingDotsProgressIndicator(
+          fontSize: 30.0,
+          color: Colors.white,
+        ),
+        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 40.0),
+        )
+      );
+    }
+    return titleRow;
   }
 
   @override
@@ -231,7 +168,7 @@ class _MainPageState extends State<MainPage> {
       appBar: new AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
+        title: _buildTitle(),
       ),
       drawer: new Drawer(
         child: ListView(
@@ -262,16 +199,17 @@ class _MainPageState extends State<MainPage> {
         children: buildEntitiesView(),
       ),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _startDataFetching,
+        onPressed: _refreshData,
         tooltip: 'Increment',
         child: new Icon(Icons.refresh),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 
   @override
   void dispose() {
-    _hassioChannel.sink.close();
+    //TODO
+    //_hassioChannel.sink.close();
     super.dispose();
   }
 }
