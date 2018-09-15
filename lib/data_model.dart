@@ -13,6 +13,18 @@ class HassioDataModel {
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
+  Map _icons = {
+    "light": 0xf335,
+    "switch": 0xf241,
+    "binary_sensor": 0xf130,
+    "group": 0xf2b1,
+    "sensor": 0xf208,
+    "automation": 0xf411,
+    "script": 0xf219,
+    "input_boolean": 0xf1de,
+    "input_datetime": 0xf953,
+    "sun": 0xf5a8
+  };
 
   Map get entities => _entitiesData;
   Map get services => _servicesData;
@@ -159,15 +171,14 @@ class HassioDataModel {
       composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
       composedEntity["domain"] = entityDomain;
 
-      if ((entityDomain == "automation") || (entityDomain == "switch")) {
+      if ((entityDomain == "automation") || (entityDomain == "switch") || (entityDomain == "light")) {
         composedEntity["actionType"] = "switch";
-      } else if (entityDomain == "light") {
-        composedEntity["actionType"] = "stateIcon";
       } else if ((entityDomain == "script") || (entityDomain == "scene")) {
         composedEntity["actionType"] = "statelessIcon";
       } else {
         composedEntity["actionType"] = "stateText";
       }
+      composedEntity["iconCode"] = _icons[entityDomain] ?? 0xf485;
 
       _entitiesData[entityId] = Map.from(composedEntity);
     });

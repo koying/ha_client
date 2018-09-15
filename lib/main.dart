@@ -41,12 +41,18 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-
   HassioDataModel _dataModel;
   Map _entitiesData;
   Map _uiStructure;
   String _dataModelErrorMessage = "";
   bool loading = true;
+  Map _stateIconColors = {
+    "on": Colors.amber,
+    "off": Colors.blueGrey,
+    "unavailable": Colors.black12,
+    "unknown": Colors.black12,
+    "playing": Colors.amber
+  };
 
   @override
   void initState() {
@@ -56,7 +62,11 @@ class _MainPageState extends State<MainPage> {
 
   _initClient() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String _hassioAPIEndpoint = "wss://" + prefs.getString('hassio-domain') +":" + prefs.getString('hassio-port') + "/api/websocket";
+    String _hassioAPIEndpoint = "wss://" +
+        prefs.getString('hassio-domain') +
+        ":" +
+        prefs.getString('hassio-port') +
+        "/api/websocket";
     String _hassioPassword = prefs.getString('hassio-password');
     _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
     await _refreshData();
@@ -85,65 +95,55 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildEntityAction(String entityId) {
     var entity = _entitiesData[entityId];
+    Widget result;
     if (entity["actionType"] == "switch") {
-      return Switch(
+      result = Switch(
         value: (entity["state"] == "on"),
         onChanged: ((state) {
-          _dataModel.callService(entity["domain"], state ? "turn_on" : "turn_off", entityId);
+          _dataModel.callService(
+              entity["domain"], state ? "turn_on" : "turn_off", entityId);
           setState(() {
             _entitiesData[entityId]["state"] = state ? "on" : "off";
           });
         }),
       );
+    } else if (entity["actionType"] == "statelessIcon") {
+      result = SizedBox(
+          width: 60.0,
+          child: FlatButton(
+            onPressed: (() {
+              _dataModel.callService(entity["domain"], "turn_on", entityId);
+            }),
+            child: Text(
+              "Run",
+              textAlign: TextAlign.right,
+              style: new TextStyle(fontSize: 16.0, color: Colors.blue),
+            ),
+          ));
     } else {
-      return Text(
-          "${entity["state"]}"
-      );
+      result = Padding(
+          padding: EdgeInsets.fromLTRB(0.0, 0.0, 16.0, 0.0),
+          child: Text(
+              "${entity["state"]}${(entity["attributes"] != null && entity["attributes"]["unit_of_measurement"] != null) ? entity["attributes"]["unit_of_measurement"] : ''}",
+              textAlign: TextAlign.right,
+              style: new TextStyle(
+                fontSize: 16.0,
+              )));
     }
+    /*return SizedBox(
+      width: 60.0,
+      // height: double.infinity,
+      child: result
+    );*/
+    return result;
   }
-
-/*  Widget buildEntityCard(String entityId) {
-    var data = _entitiesData[entityId];
-    if (data != null) {
-      return Card(
-        child: new Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            new ListTile(
-              leading: const Icon(Icons.device_hub),
-              subtitle: Text("${data['entity_id']}"),
-              trailing: Text("${data["state"]}"),
-              title: Text("${data["display_name"]}"),
-            ),
-            new ButtonTheme
-                .bar( // make buttons use the appropriate styles for cards
-              child: buildEntityButtons(data['entity_id']),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return Card(
-        child: new Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            new Text("Unknown entity: $entityId")
-          ],
-        ),
-      );
-    }
-  }*/
 
   Card _buildEntityGroup(List<String> ids, String name) {
     List<Widget> body = [];
     body.add(_buildEntityGroupHeader(name));
     body.addAll(_buildEntityGroupBody(ids));
-    Card result = Card(
-        child: new Column(
-            mainAxisSize: MainAxisSize.min,
-            children: body
-        )
-    );
+    Card result =
+        Card(child: new Column(mainAxisSize: MainAxisSize.min, children: body));
     return result;
   }
 
@@ -154,12 +154,10 @@ class _MainPageState extends State<MainPage> {
         //leading: const Icon(Icons.device_hub),
         //subtitle: Text(".."),
         //trailing: Text("${data["state"]}"),
-        title: Text(
-            "$name",
+        title: Text("$name",
             textAlign: TextAlign.left,
             overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)
-        ),
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
       );
     } else {
       result = new Container(width: 0.0, height: 0.0);
@@ -169,32 +167,34 @@ class _MainPageState extends State<MainPage> {
 
   List<Widget> _buildEntityGroupBody(List<String> ids) {
     List<Widget> entities = [];
-    ids.forEach((id){
+    ids.forEach((id) {
       var data = _entitiesData[id];
-      entities.add(
-          new ListTile(
-            leading: const Icon(Icons.device_hub),
-            //subtitle: Text("${data['entity_id']}"),
-            trailing: _buildEntityAction(id),
-            title: Text(
-              "${data["display_name"]}",
-              overflow: TextOverflow.ellipsis,
-            ),
-          )
-      );
+      entities.add(new ListTile(
+        leading: Icon(
+          IconData(data["iconCode"], fontFamily: 'Material Design Icons'),
+          color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
+        ),
+        //subtitle: Text("${data['entity_id']}"),
+        trailing: _buildEntityAction(id),
+        title: Text(
+          "${data["display_name"]}",
+          overflow: TextOverflow.ellipsis,
+        ),
+      ));
     });
     return entities;
   }
 
   List<Widget> buildEntitiesView() {
-    if ((_entitiesData != null)&&(_uiStructure != null)) {
+    if ((_entitiesData != null) && (_uiStructure != null)) {
       List<Widget> result = [];
       if (_dataModelErrorMessage.length == 0) {
         _uiStructure["standalone"].forEach((entityId) {
           result.add(_buildEntityGroup([entityId], ""));
         });
         _uiStructure["groups"].forEach((group) {
-          result.add(_buildEntityGroup(group["children"], group["friendly_name"].toString()));
+          result.add(_buildEntityGroup(
+              group["children"], group["friendly_name"].toString()));
         });
       } else {
         //TODO
@@ -209,9 +209,7 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildTitle() {
     Row titleRow = Row(
-      children: <Widget>[
-        Text(widget.title)
-      ],
+      children: <Widget>[Text(widget.title)],
     );
     if (loading) {
       titleRow.children.add(Padding(
@@ -220,8 +218,7 @@ class _MainPageState extends State<MainPage> {
           color: Colors.white,
         ),
         padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 40.0),
-        )
-      );
+      ));
     }
     return titleRow;
   }
@@ -244,11 +241,12 @@ class _MainPageState extends State<MainPage> {
         child: ListView(
           children: <Widget>[
             new UserAccountsDrawerHeader(
-                accountName: Text("Edwin Home"),
-                accountEmail: Text("edwin-home.duckdns.org"),
-                currentAccountPicture: new CircleAvatar(
-                  backgroundImage: new NetworkImage("https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
-                ),
+              accountName: Text("Edwin Home"),
+              accountEmail: Text("edwin-home.duckdns.org"),
+              currentAccountPicture: new CircleAvatar(
+                backgroundImage: new NetworkImage(
+                    "https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
+              ),
             ),
             new ListTile(
               leading: Icon(Icons.settings),
@@ -265,9 +263,7 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
-      body: ListView(
-        children: buildEntitiesView()
-      ),
+      body: ListView(children: buildEntitiesView()),
       floatingActionButton: new FloatingActionButton(
         onPressed: _refreshData,
         tooltip: 'Increment',
