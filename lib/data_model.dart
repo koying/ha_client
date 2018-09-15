@@ -150,11 +150,6 @@ class HassioDataModel {
   }
 
   void _parseEntities(List data) async {
-    Map switchServices = {
-      "turn_on": {},
-      "turn_off": {},
-      "toggle": {}
-    };
     debugPrint("Parsing ${data.length} Home Assistant entities");
     data.forEach((entity) {
       var composedEntity = Map.from(entity);
@@ -164,22 +159,38 @@ class HassioDataModel {
       composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
       composedEntity["domain"] = entityDomain;
 
-      if ((entityDomain == "automation") || (entityDomain == "light") || (entityDomain == "switch") || (entityDomain == "script")) {
-        composedEntity["services"] = Map.from(switchServices);
+      if ((entityDomain == "automation") || (entityDomain == "switch")) {
+        composedEntity["actionType"] = "switch";
+      } else if (entityDomain == "light") {
+        composedEntity["actionType"] = "stateIcon";
+      } else if ((entityDomain == "script") || (entityDomain == "scene")) {
+        composedEntity["actionType"] = "statelessIcon";
+      } else {
+        composedEntity["actionType"] = "stateText";
       }
 
       _entitiesData[entityId] = Map.from(composedEntity);
     });
+
+    //Gethering information for UI
     var defaultView = _entitiesData["group.default_view"];
     debugPrint("Gethering default view");
     if (defaultView!= null) {
+      _uiStructure["standalone"] = [];
+      _uiStructure["groups"] = [];
       defaultView["attributes"]["entity_id"].forEach((entityId) {
         if (_entitiesData[entityId]["domain"] != "group") {
-          _uiStructure[entityId] = _entitiesData[entityId];
+          _uiStructure["standalone"].add(entityId);
         } else {
+          Map newGroup = {};
+          newGroup["entity_id"] = entityId;
+          newGroup["friendly_name"] = (_entitiesData[entityId]['attributes']!=null) ? (_entitiesData[entityId]['attributes']['friendly_name'] ?? "") : "";
+          newGroup["children"] = List<String>();
           _entitiesData[entityId]["attributes"]["entity_id"].forEach((groupedEntityId) {
-            _uiStructure[groupedEntityId] = _entitiesData[groupedEntityId];
+            newGroup["children"].add(groupedEntityId);
+
           });
+          _uiStructure["groups"].add(Map.from(newGroup));
         }
       });
     }
