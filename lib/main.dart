@@ -76,7 +76,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String _hassioAPIEndpoint = "wss://" +
+    String _hassioAPIEndpoint = prefs.getString('hassio-protocol')+"://" +
         prefs.getString('hassio-domain') +
         ":" +
         prefs.getString('hassio-port') +
@@ -318,6 +318,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 child: Icon(
                     _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
                     size: 40.0,
+                    color: _dataModelErrorMessage == null ? Colors.blue : Colors.redAccent,
                 ),
               ),
             ]

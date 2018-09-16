@@ -13,6 +13,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _hassioDomain = "";
   String _hassioPort = "";
   String _hassioPassword = "";
+  String _socketProtocol = "wss";
 
   @override
   void initState() {
@@ -27,28 +28,22 @@ class _SettingsPageState extends State<SettingsPage> {
       _hassioDomain = prefs.getString("hassio-domain");
       _hassioPort = prefs.getString("hassio-port");
       _hassioPassword = prefs.getString("hassio-password");
+      _socketProtocol = prefs.getString("hassio-protocol");
     });
   }
 
   _saveSettings() async {
+    debugPrint("Saving settings....");
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      prefs.setString("hassio-domain", _hassioDomain);
-      prefs.setString("hassio-port", _hassioPort);
-      prefs.setString("hassio-password", _hassioPassword);
-      _hassioPassword = prefs.getString('hassio-password');
-    });
+    prefs.setString("hassio-domain", _hassioDomain);
+    prefs.setString("hassio-port", _hassioPort);
+    prefs.setString("hassio-password", _hassioPassword);
+    prefs.setString("hassio-protocol", _socketProtocol);
+    debugPrint("Done saving settings....");
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return new Scaffold(
       appBar: new AppBar(
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
@@ -62,6 +57,20 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
+          new Row(
+            children: [
+              Text("HTTPS"),
+              Switch(
+                value: (_socketProtocol == "wss"),
+                onChanged: (value) {
+                  setState(() {
+                    _socketProtocol = value ? "wss" : "ws";
+                  });
+                  _saveSettings();
+                },
+              )
+            ],
+          ),
           new TextField(
             decoration: InputDecoration(
               labelText: "Home Assistant domain or ip address"
@@ -71,6 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             onChanged: (value) {
               _hassioDomain = value;
+              _saveSettings();
             },
           ),
           new TextField(
@@ -82,6 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             onChanged: (value) {
               _hassioPort = value;
+              _saveSettings();
             },
           ),
           new TextField(
@@ -93,6 +104,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             onChanged: (value) {
               _hassioPassword = value;
+              _saveSettings();
             },
           )
         ],

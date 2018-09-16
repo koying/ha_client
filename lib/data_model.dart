@@ -37,8 +37,8 @@ class HassioDataModel {
     } else {
       //Fetch timeout timer
       _fetchingTimer = Timer(Duration(seconds: 10), () {
-        _fetchCompleter.completeError({"message": "Data fetching timeout."});
         closeConnection();
+        _fetchCompleter.completeError({"message": "Data fetching timeout."});
       });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {
@@ -51,11 +51,11 @@ class HassioDataModel {
     return _fetchCompleter.future;
   }
 
-  void closeConnection() {
-    if (_hassioChannel != null) {
-      _hassioChannel.sink.close();
-      _hassioChannel = null;
+  closeConnection() {
+    if (_hassioChannel?.closeCode == null) {
+      _hassioChannel.sink?.close();
     }
+    _hassioChannel = null;
   }
 
   Future _reConnectSocket() {
@@ -64,7 +64,7 @@ class HassioDataModel {
       debugPrint("Socket connecting...");
       _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
       _hassioChannel.stream.handleError((e) {
-        debugPrint("Socket error: ${e.toString()}");
+        debugPrint("Unhandled socket error: ${e.toString()}");
       });
       _hassioChannel.stream.listen((message) =>
           _handleMessage(_connectionCompleter, message));
@@ -93,11 +93,8 @@ class HassioDataModel {
     var data = json.decode(message);
     debugPrint("[Received]Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
-      debugPrint("   sending auth!");
       _sendMessageRaw('{"type": "auth","api_password": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
-      debugPrint("   auth done");
-      debugPrint("Connection done.");
       _sendSubscribe();
       connectionCompleter.complete();
     } else if (data["type"] == "auth_invalid") {
