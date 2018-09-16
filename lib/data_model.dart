@@ -30,6 +30,8 @@ class HassioDataModel {
     } else {
       _fetchingTimer = new Timer(new Duration(seconds: 10), () {
         _fetchCompleter.completeError({"message": "Data fetching timeout."});
+        _hassioChannel.sink.close();
+        _hassioChannel = null;
       });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {
@@ -139,7 +141,7 @@ class HassioDataModel {
       debugPrint("   $message");
       _hassioChannel.sink.add(message);
     }).catchError((e){
-      debugPrint("Unable to connect for sending =(");
+      debugPrint("Unable to connect for sending: $e");
     });
   }
 

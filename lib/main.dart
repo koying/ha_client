@@ -279,7 +279,7 @@ class _MainPageState extends State<MainPage> {
           title: _buildTitle()
         ),
         drawer: _buildAppDrawer(),
-        body: Text(_dataModelErrorMessage != null ? "Well... no. There was an error: $_dataModelErrorMessage" : "Loading... or not..."),
+        body: Text(_dataModelErrorMessage != null ? "Well... no.\n\nThere was an error:\n$_dataModelErrorMessage" : "Loading... or not...\n\nJust wait 10 seconds"),
         floatingActionButton: new FloatingActionButton(
           onPressed: _refreshData,
           tooltip: 'Increment',
