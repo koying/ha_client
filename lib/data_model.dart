@@ -13,6 +13,7 @@ class HassioDataModel {
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
+  Timer _fetchingTimer;
 
   Map get entities => _entitiesData;
   Map get services => _servicesData;
@@ -27,10 +28,14 @@ class HassioDataModel {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       debugPrint("Previous fetch is not complited");
     } else {
+      _fetchingTimer = new Timer(new Duration(seconds: 10), () {
+        _fetchCompleter.completeError({"message": "Data fetching timeout."});
+      });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {
         _getData();
       }).catchError((e) {
+        _fetchingTimer.cancel();
         _fetchCompleter.completeError(e);
       });
     }
@@ -56,11 +61,14 @@ class HassioDataModel {
   _getData() {
     _getStates().then((result) {
       _getServices().then((result) {
+        _fetchingTimer.cancel();
         _fetchCompleter.complete();
       }).catchError((e) {
+        _fetchingTimer.cancel();
         _fetchCompleter.completeError(e);
       });
     }).catchError((e) {
+      _fetchingTimer.cancel();
       _fetchCompleter.completeError(e);
     });
   }
@@ -133,8 +141,6 @@ class HassioDataModel {
     }).catchError((e){
       debugPrint("Unable to connect for sending =(");
     });
-
-
   }
 
   void _parseServices(Map data) {
@@ -234,16 +240,16 @@ class HassioDataModel {
 
 class MaterialDesignIcons {
   static Map _defaultIconsByDomains = {
-    "light": 0xf335,
-    "switch": 0xf241,
-    "binary_sensor": 0xf130,
-    "group": 0xf2b1,
-    "sensor": 0xf208,
-    "automation": 0xf411,
-    "script": 0xf219,
-    "input_boolean": 0xf1de,
-    "input_datetime": 0xf953,
-    "sun": 0xf5a8
+    "light": "mdi:lightbulb",
+    "switch": "mdi:flash",
+    "binary_sensor": "mdi:checkbox-blank-circle-outline",
+    "group": "mdi:google-circles-communities",
+    "sensor": "mdi:eye",
+    "automation": "mdi:playlist-play",
+    "script": "mdi:file-document",
+    "input_boolean": "mdi:drawing",
+    "input_datetime": "mdi:clock",
+    "sun": "mdi:white-balance-sunny"
   };
   static Map _iconsDataMap = {
     "mdi:access-point": 0xf002,

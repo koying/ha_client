@@ -77,7 +77,7 @@ class _MainPageState extends State<MainPage> {
     setState(() {
       loading = true;
     });
-    _dataModelErrorMessage = "";
+    _dataModelErrorMessage = null;
     if (_dataModel != null) {
       await _dataModel.fetch().then((result) {
         setState(() {
@@ -189,18 +189,14 @@ class _MainPageState extends State<MainPage> {
 
   List<Widget> buildSingleView(structure) {
       List<Widget> result = [];
-      if (_dataModelErrorMessage.length == 0) {
-        structure["standalone"].forEach((entityId) {
-          result.add(_buildCard([entityId], ""));
-        });
-        structure["groups"].forEach((group) {
-          result.add(_buildCard(
-              group["children"], group["friendly_name"].toString()));
-        });
-      } else {
-        //TODO
-        //result.add(Text(_dataModelErrorMessage));
-      }
+      structure["standalone"].forEach((entityId) {
+        result.add(_buildCard([entityId], ""));
+      });
+      structure["groups"].forEach((group) {
+        result.add(_buildCard(
+            group["children"], group["friendly_name"].toString()));
+      });
+
       return result;
   }
 
@@ -283,7 +279,7 @@ class _MainPageState extends State<MainPage> {
           title: _buildTitle()
         ),
         drawer: _buildAppDrawer(),
-        body: Text("Loading... or not...\n\nPlease, restart the app in case of three dots in header starts to freaking you out."),
+        body: Text(_dataModelErrorMessage != null ? "Well... no. There was an error: $_dataModelErrorMessage" : "Loading... or not..."),
         floatingActionButton: new FloatingActionButton(
           onPressed: _refreshData,
           tooltip: 'Increment',
