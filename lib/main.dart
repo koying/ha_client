@@ -29,7 +29,7 @@ class HassClientApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => MainPage(title: 'Hass Client'),
-        "/settings": (context) => SettingsPage(title: "Settings")
+        "/connection-settings": (context) => ConnectionSettingsPage(title: "Connection Settings")
       },
     );
   }
@@ -48,8 +48,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   HassioDataModel _dataModel;
   Map _entitiesData;
   Map _uiStructure;
+  Map _instanceConfig;
   int _uiViewsCount = 0;
   String _dataModelErrorMessage = "";
+  String _instanceHost;
   bool loading = true;
   Map _stateIconColors = {
     "on": Colors.amber,
@@ -76,10 +78,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    String domain = prefs.getString('hassio-domain');
+    String port = prefs.getString('hassio-port');
+    _instanceHost = domain+":"+port;
     String _hassioAPIEndpoint = prefs.getString('hassio-protocol')+"://" +
-        prefs.getString('hassio-domain') +
+        domain +
         ":" +
-        prefs.getString('hassio-port') +
+        port +
         "/api/websocket";
     String _hassioPassword = prefs.getString('hassio-password');
     _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
@@ -100,6 +105,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_dataModel != null) {
       await _dataModel.fetch().then((result) {
         setState(() {
+          _instanceConfig = _dataModel.instanceConfig;
           _entitiesData = _dataModel.entities;
           _uiStructure = _dataModel.uiStructure;
           _uiViewsCount = _uiStructure.length;
@@ -249,15 +255,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildTitle() {
     Row titleRow = Row(
-      children: <Widget>[Text(widget.title)],
+      children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "...")],
     );
     if (loading) {
       titleRow.children.add(Padding(
         child: JumpingDotsProgressIndicator(
-          fontSize: 30.0,
+          fontSize: 26.0,
           color: Colors.white,
         ),
-        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 40.0),
+        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 30.0),
       ));
     }
     return titleRow;
@@ -268,18 +274,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: ListView(
         children: <Widget>[
           new UserAccountsDrawerHeader(
-            accountName: Text("Edwin Home"),
-            accountEmail: Text("edwin-home.duckdns.org"),
-            currentAccountPicture: new CircleAvatar(
-              backgroundImage: new NetworkImage(
-                  "https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
-            ),
+            accountName: Text(_instanceConfig != null ? _instanceConfig["location_name"] : "Unknown"),
+            accountEmail: Text(_instanceHost ?? "Not configured"),
+            currentAccountPicture: new Image.asset('images/hassio-192x192.png'),
           ),
           new ListTile(
             leading: Icon(Icons.settings),
-            title: Text("Settings"),
+            title: Text("Connection settings"),
             onTap: () {
-              Navigator.pushNamed(context, '/settings');
+              Navigator.pushNamed(context, '/connection-settings');
             },
           ),
           new AboutListTile(
@@ -309,7 +312,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               Padding(
                 padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
                 child: Text(
-                    _dataModelErrorMessage != null ? "Well... no.\n\nThere was an error: $_dataModelErrorMessage\n\nCheck your internet connection or something" : "Loading... or not...\n\nJust wait 10 seconds",
+                    _dataModelErrorMessage != null ? "Well... no.\n\nThere was an error: $_dataModelErrorMessage\n\nCheck your internet connection or restart the app" : "Loading... I hope...",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16.0),
                 ),

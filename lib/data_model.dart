@@ -14,17 +14,21 @@ class HassioDataModel {
   int _statesMessageId = 0;
   int _servicesMessageId = 0;
   int _subscriptionMessageId = 0;
+  int _configMessageId = 0;
   Map _entitiesData = {};
   Map _servicesData = {};
   Map _uiStructure = {};
+  Map _instanceConfig = {};
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
+  Completer _configCompleter;
   Timer _fetchingTimer;
 
   Map get entities => _entitiesData;
   Map get services => _servicesData;
   Map get uiStructure => _uiStructure;
+  Map get instanceConfig => _instanceConfig;
 
   HassioDataModel(String url, String password) {
     _hassioAPIEndpoint = url;
@@ -75,18 +79,28 @@ class HassioDataModel {
   }
 
   _getData() {
-    _getStates().then((result) {
-      _getServices().then((result) {
-        _fetchingTimer.cancel();
-        _fetchCompleter.complete();
+    _getConfig().then((result) {
+      _getStates().then((result) {
+        _getServices().then((result) {
+          _finishFetching(null);
+        }).catchError((e) {
+          _finishFetching(e);
+        });
       }).catchError((e) {
-        _fetchingTimer.cancel();
-        _fetchCompleter.completeError(e);
+        _finishFetching(e);
       });
     }).catchError((e) {
-      _fetchingTimer.cancel();
-      _fetchCompleter.completeError(e);
+      _finishFetching(e);
     });
+  }
+
+  _finishFetching(error) {
+    _fetchingTimer.cancel();
+    if (error != null) {
+      _fetchCompleter.completeError(error);
+    } else {
+      _fetchCompleter.complete();
+    }
   }
 
   _handleMessage(Completer connectionCompleter, String message) {
@@ -101,7 +115,10 @@ class HassioDataModel {
       connectionCompleter.completeError({message: "Auth error: ${data["message"]}"});
     } else if (data["type"] == "result") {
       if (data["success"] == true) {
-        if (data["id"] == _statesMessageId) {
+        if (data["id"] == _configMessageId) {
+          _parseConfig(data["result"]);
+          _configCompleter.complete();
+        } else if (data["id"] == _statesMessageId) {
           _parseEntities(data["result"]);
           _statesCompleter.complete();
         } else if (data["id"] == _servicesMessageId) {
@@ -142,11 +159,20 @@ class HassioDataModel {
     _sendMessageRaw('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}');
   }
 
+  Future _getConfig() {
+    _configCompleter = new Completer();
+    _incrementMessageId();
+    _configMessageId = _currentMssageId;
+    _sendMessageRaw('{"id": $_configMessageId, "type": "get_config"}');
+
+    return _configCompleter.future;
+  }
+
   Future _getStates() {
     _statesCompleter = new Completer();
     _incrementMessageId();
     _statesMessageId = _currentMssageId;
-    _sendMessageRaw('{"id": $_currentMssageId, "type": "get_states"}');
+    _sendMessageRaw('{"id": $_statesMessageId, "type": "get_states"}');
 
     return _statesCompleter.future;
   }
@@ -155,7 +181,7 @@ class HassioDataModel {
     _servicesCompleter = new Completer();
     _incrementMessageId();
     _servicesMessageId = _currentMssageId;
-    _sendMessageRaw('{"id": $_currentMssageId, "type": "get_services"}');
+    _sendMessageRaw('{"id": $_servicesMessageId, "type": "get_services"}');
 
     return _servicesCompleter.future;
   }
@@ -171,8 +197,16 @@ class HassioDataModel {
 
   void _handleEntityStateChange(Map eventData) {
     String entityId = eventData["entity_id"];
-    _entitiesData[entityId].addAll(eventData["new_state"]);
-    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
+    if (_entitiesData[entityId] != null) {
+      _entitiesData[entityId].addAll(eventData["new_state"]);
+      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
+    } else {
+      debugPrint("Unknown enity $entityId");
+    }
+  }
+
+  void _parseConfig(Map data) {
+    _instanceConfig = Map.from(data);
   }
 
   void _parseServices(Map data) {

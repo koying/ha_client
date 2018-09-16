@@ -1,15 +1,15 @@
 part of 'main.dart';
 
-class SettingsPage extends StatefulWidget {
-  SettingsPage({Key key, this.title}) : super(key: key);
+class ConnectionSettingsPage extends StatefulWidget {
+  ConnectionSettingsPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _SettingsPageState createState() => new _SettingsPageState();
+  _ConnectionSettingsPageState createState() => new _ConnectionSettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioDomain = "";
   String _hassioPort = "";
   String _hassioPassword = "";
