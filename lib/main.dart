@@ -44,6 +44,7 @@ class _MainPageState extends State<MainPage> {
   HassioDataModel _dataModel;
   Map _entitiesData;
   Map _uiStructure;
+  int _uiViewsCount = 0;
   String _dataModelErrorMessage = "";
   bool loading = true;
   Map _stateIconColors = {
@@ -82,6 +83,7 @@ class _MainPageState extends State<MainPage> {
         setState(() {
           _entitiesData = _dataModel.entities;
           _uiStructure = _dataModel.uiStructure;
+          _uiViewsCount = _uiStructure.length;
           loading = false;
         });
       }).catchError((e) {
@@ -138,16 +140,16 @@ class _MainPageState extends State<MainPage> {
     return result;
   }
 
-  Card _buildEntityGroup(List<String> ids, String name) {
+  Card _buildCard(List<String> ids, String name) {
     List<Widget> body = [];
-    body.add(_buildEntityGroupHeader(name));
-    body.addAll(_buildEntityGroupBody(ids));
+    body.add(_buildCardHeader(name));
+    body.addAll(_buildCardBody(ids));
     Card result =
         Card(child: new Column(mainAxisSize: MainAxisSize.min, children: body));
     return result;
   }
 
-  Widget _buildEntityGroupHeader(String name) {
+  Widget _buildCardHeader(String name) {
     var result;
     if (name.length > 0) {
       result = new ListTile(
@@ -165,7 +167,7 @@ class _MainPageState extends State<MainPage> {
     return result;
   }
 
-  List<Widget> _buildEntityGroupBody(List<String> ids) {
+  List<Widget> _buildCardBody(List<String> ids) {
     List<Widget> entities = [];
     ids.forEach((id) {
       var data = _entitiesData[id];
@@ -185,15 +187,14 @@ class _MainPageState extends State<MainPage> {
     return entities;
   }
 
-  List<Widget> buildEntitiesView() {
-    if ((_entitiesData != null) && (_uiStructure != null)) {
+  List<Widget> buildSingleView(structure) {
       List<Widget> result = [];
       if (_dataModelErrorMessage.length == 0) {
-        _uiStructure["standalone"].forEach((entityId) {
-          result.add(_buildEntityGroup([entityId], ""));
+        structure["standalone"].forEach((entityId) {
+          result.add(_buildCard([entityId], ""));
         });
-        _uiStructure["groups"].forEach((group) {
-          result.add(_buildEntityGroup(
+        structure["groups"].forEach((group) {
+          result.add(_buildCard(
               group["children"], group["friendly_name"].toString()));
         });
       } else {
@@ -201,10 +202,30 @@ class _MainPageState extends State<MainPage> {
         //result.add(Text(_dataModelErrorMessage));
       }
       return result;
-    } else {
-      //TODO
-      return [];
+  }
+
+  List<ListView> buildUIViews() {
+    List<ListView> result = [];
+    if ((_entitiesData != null) && (_uiStructure != null)) {
+      _uiStructure.forEach((viewId, structure) {
+        result.add(ListView(
+          children: buildSingleView(structure),
+        ));
+      });
     }
+    return result;
+  }
+
+  List<Tab> buildUIViewTabs() {
+    List<Tab> result = [];
+    if ((_entitiesData != null) && (_uiStructure != null)) {
+      _uiStructure.forEach((viewId, structure) {
+        result.add(
+            Tab(icon: Icon(IconData(structure["iconCode"], fontFamily: 'Material Design Icons')))
+        );
+      });
+    }
+    return result;
   }
 
   Widget _buildTitle() {
@@ -223,53 +244,76 @@ class _MainPageState extends State<MainPage> {
     return titleRow;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return new Scaffold(
-      appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: _buildTitle(),
-      ),
-      drawer: new Drawer(
-        child: ListView(
-          children: <Widget>[
-            new UserAccountsDrawerHeader(
-              accountName: Text("Edwin Home"),
-              accountEmail: Text("edwin-home.duckdns.org"),
-              currentAccountPicture: new CircleAvatar(
-                backgroundImage: new NetworkImage(
-                    "https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
-              ),
+  Drawer _buildAppDrawer() {
+    return new Drawer(
+      child: ListView(
+        children: <Widget>[
+          new UserAccountsDrawerHeader(
+            accountName: Text("Edwin Home"),
+            accountEmail: Text("edwin-home.duckdns.org"),
+            currentAccountPicture: new CircleAvatar(
+              backgroundImage: new NetworkImage(
+                  "https://edwin-home.duckdns.org:8123/static/icons/favicon-192x192.png"),
             ),
-            new ListTile(
-              leading: Icon(Icons.settings),
-              title: Text("Settings"),
-              onTap: () {
-                Navigator.pushNamed(context, '/settings');
-              },
-            ),
-            new AboutListTile(
-              applicationName: "Hass Client",
-              applicationVersion: "0.1",
-              applicationLegalese: "Keyboard Crumbs",
-            )
-          ],
-        ),
-      ),
-      body: ListView(children: buildEntitiesView()),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _refreshData,
-        tooltip: 'Increment',
-        child: new Icon(Icons.refresh),
+          ),
+          new ListTile(
+            leading: Icon(Icons.settings),
+            title: Text("Settings"),
+            onTap: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+          new AboutListTile(
+            applicationName: "Hass Client",
+            applicationVersion: "0.1",
+            applicationLegalese: "Keyboard Crumbs",
+          )
+        ],
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called.
+    //
+    if (_entitiesData == null) {
+      return new Scaffold(
+        appBar: new AppBar(
+          title: _buildTitle()
+        ),
+        drawer: _buildAppDrawer(),
+        body: Text("Loading... or not...\n\nPlease, restart the app in case of three dots in header starts to freaking you out."),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: _refreshData,
+          tooltip: 'Increment',
+          child: new Icon(Icons.refresh),
+        ),
+      );
+    } else {
+      return DefaultTabController(
+          length: _uiViewsCount,
+          child: new Scaffold(
+            appBar: new AppBar(
+              // Here we take the value from the MyHomePage object that was created by
+              // the App.build method, and use it to set our appbar title.
+              title: _buildTitle(),
+              bottom: TabBar(
+                  tabs: buildUIViewTabs()
+              ),
+            ),
+            drawer: _buildAppDrawer(),
+            body: TabBarView(
+                children: buildUIViews()
+            ),
+            floatingActionButton: new FloatingActionButton(
+              onPressed: _refreshData,
+              tooltip: 'Increment',
+              child: new Icon(Icons.refresh),
+            ),
+          )
+      );
+    }
   }
 
   @override
