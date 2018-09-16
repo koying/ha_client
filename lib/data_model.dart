@@ -1,5 +1,11 @@
 part of 'main.dart';
 
+class StateChangedEvent {
+  String entityId;
+
+  StateChangedEvent(this.entityId);
+}
+
 class HassioDataModel {
   String _hassioAPIEndpoint;
   String _hassioPassword;
@@ -28,7 +34,8 @@ class HassioDataModel {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       debugPrint("Previous fetch is not complited");
     } else {
-      _fetchingTimer = new Timer(new Duration(seconds: 10), () {
+      //Fetch timeout timer
+      _fetchingTimer = Timer(Duration(seconds: 10), () {
         _fetchCompleter.completeError({"message": "Data fetching timeout."});
         _hassioChannel.sink.close();
         _hassioChannel = null;
@@ -76,15 +83,15 @@ class HassioDataModel {
   }
 
   _handleMessage(Completer connectionCompleter, String message) {
-    debugPrint("<[Receive]Message from Home Assistant:");
     var data = json.decode(message);
-    debugPrint("   type: ${data['type']}");
+    debugPrint("[Received]Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
       debugPrint("   sending auth!");
       _sendMessageRaw('{"type": "auth","api_password": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
       debugPrint("   auth done");
-      debugPrint("Connection done");
+      debugPrint("Connection done.");
+      sendSubscribe();
       connectionCompleter.complete();
     } else if (data["type"] == "auth_invalid") {
       connectionCompleter.completeError({message: "Auth error: ${data["message"]}"});
@@ -99,18 +106,35 @@ class HassioDataModel {
         } else if (data["id"] == _currentMssageId) {
           debugPrint("Request id:$_currentMssageId was successful");
         } else {
-          _handleErrorMessage({"message" : "Wrong message ID"});
+          debugPrint("Skipped message due to messageId:");
+          debugPrint(message);
         }
       } else {
         _handleErrorMessage(data["error"]);
       }
+    } else if (data["type"] == "event") {
+      if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
+        _handleEntityStateChange(data["event"]["data"]);
+      } else if (data["event"] != null) {
+        debugPrint("Unhandled event type: ${data["event"]["event_type"]}");
+      } else {
+        debugPrint("Event is null");
+      }
+    } else {
+      debugPrint("Unknown message type");
+      debugPrint(message);
     }
   }
 
   _handleErrorMessage(Object error) {
     debugPrint("Error: ${error.toString()}");
-    if (!_statesCompleter.isCompleted) _statesCompleter.completeError(error);
-    if (!_servicesCompleter.isCompleted) _servicesCompleter.completeError(error);
+    if ((_statesCompleter != null) && (!_statesCompleter.isCompleted)) _statesCompleter.completeError(error);
+    if ((_servicesCompleter != null) && (!_servicesCompleter.isCompleted)) _servicesCompleter.completeError(error);
+  }
+
+  void sendSubscribe() {
+    _incrementMessageId();
+    _sendMessageRaw('{"id": $_currentMssageId, "type": "subscribe_events"}');
   }
 
   Future _getStates() {
@@ -137,12 +161,17 @@ class HassioDataModel {
 
   _sendMessageRaw(message) {
     _reConnectSocket().then((r) {
-      debugPrint(">[Send]Sending to Home Assistant:");
-      debugPrint("   $message");
+      debugPrint("[Sent]$message");
       _hassioChannel.sink.add(message);
     }).catchError((e){
       debugPrint("Unable to connect for sending: $e");
     });
+  }
+
+  void _handleEntityStateChange(Map eventData) {
+    String entityId = eventData["entity_id"];
+    _entitiesData[entityId].addAll(eventData["new_state"]);
+    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
   }
 
   void _parseServices(Map data) {
@@ -202,11 +231,10 @@ class HassioDataModel {
     });
 
     //Gethering information for UI
-
+    debugPrint("Gethering views");
     uiGroups.forEach((viewId) {
       var viewGroup = _entitiesData[viewId];
       Map viewGroupStructure = {};
-      debugPrint("Gethering views");
       if (viewGroup != null) {
         viewGroupStructure["standalone"] = [];
         viewGroupStructure["groups"] = [];

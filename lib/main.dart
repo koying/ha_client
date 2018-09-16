@@ -7,9 +7,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as socketStatus;
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:event_bus/event_bus.dart';
 
 part 'settings.dart';
 part 'data_model.dart';
+
+EventBus eventBus = new EventBus();
 
 void main() => runApp(new HassClientApp());
 
@@ -71,6 +74,12 @@ class _MainPageState extends State<MainPage> {
     String _hassioPassword = prefs.getString('hassio-password');
     _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
     await _refreshData();
+    eventBus.on<StateChangedEvent>().listen((event) {
+      debugPrint("State change event for ${event.entityId}");
+      setState(() {
+        _entitiesData = _dataModel.entities;
+      });
+    });
   }
 
   _refreshData() async {
