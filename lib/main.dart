@@ -8,6 +8,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as socketStatus;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/widgets.dart';
 
 part 'settings.dart';
 part 'data_model.dart';
@@ -43,7 +44,7 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => new _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   HassioDataModel _dataModel;
   Map _entitiesData;
   Map _uiStructure;
@@ -61,10 +62,19 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    _initClient();
+    WidgetsBinding.instance.addObserver(this);
+    _init();
   }
 
-  _initClient() async {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint("$state");
+    if (state == AppLifecycleState.resumed) {
+      _refreshData();
+    }
+  }
+
+  _init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String _hassioAPIEndpoint = "wss://" +
         prefs.getString('hassio-domain') +
@@ -348,8 +358,8 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
-    //TODO
-    //_hassioChannel.sink.close();
+    WidgetsBinding.instance.removeObserver(this);
+    _dataModel.closeConnection();
     super.dispose();
   }
 }

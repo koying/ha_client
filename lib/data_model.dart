@@ -13,6 +13,7 @@ class HassioDataModel {
   int _currentMssageId = 0;
   int _statesMessageId = 0;
   int _servicesMessageId = 0;
+  int _subscriptionMessageId = 0;
   Map _entitiesData = {};
   Map _servicesData = {};
   Map _uiStructure = {};
@@ -37,8 +38,7 @@ class HassioDataModel {
       //Fetch timeout timer
       _fetchingTimer = Timer(Duration(seconds: 10), () {
         _fetchCompleter.completeError({"message": "Data fetching timeout."});
-        _hassioChannel.sink.close();
-        _hassioChannel = null;
+        closeConnection();
       });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {
@@ -49,6 +49,13 @@ class HassioDataModel {
       });
     }
     return _fetchCompleter.future;
+  }
+
+  void closeConnection() {
+    if (_hassioChannel != null) {
+      _hassioChannel.sink.close();
+      _hassioChannel = null;
+    }
   }
 
   Future _reConnectSocket() {
@@ -91,7 +98,7 @@ class HassioDataModel {
     } else if (data["type"] == "auth_ok") {
       debugPrint("   auth done");
       debugPrint("Connection done.");
-      sendSubscribe();
+      _sendSubscribe();
       connectionCompleter.complete();
     } else if (data["type"] == "auth_invalid") {
       connectionCompleter.completeError({message: "Auth error: ${data["message"]}"});
@@ -132,9 +139,10 @@ class HassioDataModel {
     if ((_servicesCompleter != null) && (!_servicesCompleter.isCompleted)) _servicesCompleter.completeError(error);
   }
 
-  void sendSubscribe() {
+  void _sendSubscribe() {
     _incrementMessageId();
-    _sendMessageRaw('{"id": $_currentMssageId, "type": "subscribe_events"}');
+    _subscriptionMessageId = _currentMssageId;
+    _sendMessageRaw('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}');
   }
 
   Future _getStates() {
@@ -160,12 +168,8 @@ class HassioDataModel {
   }
 
   _sendMessageRaw(message) {
-    _reConnectSocket().then((r) {
-      debugPrint("[Sent]$message");
-      _hassioChannel.sink.add(message);
-    }).catchError((e){
-      debugPrint("Unable to connect for sending: $e");
-    });
+    debugPrint("[Sent]$message");
+    _hassioChannel.sink.add(message);
   }
 
   void _handleEntityStateChange(Map eventData) {
@@ -263,8 +267,12 @@ class HassioDataModel {
   }
 
   callService(String domain, String service, String entity_id) {
-    _incrementMessageId();
-    _sendMessageRaw('{"id": $_currentMssageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
+    _reConnectSocket().then((r) {
+      _incrementMessageId();
+      _sendMessageRaw('{"id": $_currentMssageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
+    }).catchError((e){
+      debugPrint("Unable to connect for service call: $entity_id $domain.$service");
+    });
   }
 }
 
