@@ -13,18 +13,6 @@ class HassioDataModel {
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
-  Map _defaultIcons = {
-    "light": 0xf335,
-    "switch": 0xf241,
-    "binary_sensor": 0xf130,
-    "group": 0xf2b1,
-    "sensor": 0xf208,
-    "automation": 0xf411,
-    "script": 0xf219,
-    "input_boolean": 0xf1de,
-    "input_datetime": 0xf953,
-    "sun": 0xf5a8
-  };
 
   Map get entities => _entitiesData;
   Map get services => _servicesData;
@@ -188,9 +176,9 @@ class HassioDataModel {
         }
         String iconName = composedEntity["attributes"]["icon"];
         if (iconName != null) {
-          composedEntity["iconCode"] = MaterialDesignIcons.getIconCode(iconName);
+          composedEntity["iconCode"] = MaterialDesignIcons.getCustomIconByName(iconName);
         } else {
-          composedEntity["iconCode"] = _defaultIcons[entityDomain] ?? 0;
+          composedEntity["iconCode"] = MaterialDesignIcons.getDefaultIconByEntityId(entityId); //
         }
       }
 
@@ -245,7 +233,19 @@ class HassioDataModel {
 }
 
 class MaterialDesignIcons {
-  static Map _iconsMap = {
+  static Map _defaultIconsByDomains = {
+    "light": 0xf335,
+    "switch": 0xf241,
+    "binary_sensor": 0xf130,
+    "group": 0xf2b1,
+    "sensor": 0xf208,
+    "automation": 0xf411,
+    "script": 0xf219,
+    "input_boolean": 0xf1de,
+    "input_datetime": 0xf953,
+    "sun": 0xf5a8
+  };
+  static Map _iconsDataMap = {
     "mdi:access-point": 0xf002,
     "mdi:access-point-network": 0xf003,
     "mdi:account": 0xf004,
@@ -3043,8 +3043,18 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static int getIconCode(String name) {
-    return _iconsMap[name] ?? 0;
+  static int getCustomIconByName(String name) {
+    return _iconsDataMap[name] ?? 0;
+  }
+
+  static int getDefaultIconByEntityId(String entityId) {
+    String domain = entityId.split(".")[0];
+    String iconName = _defaultIconsByDomains[domain];
+    if (iconName != null) {
+      return _iconsDataMap[iconName] ?? 0;
+    } else {
+      return 0;
+    }
   }
 
 }
