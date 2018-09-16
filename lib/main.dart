@@ -173,7 +173,7 @@ class _MainPageState extends State<MainPage> {
       var data = _entitiesData[id];
       entities.add(new ListTile(
         leading: Icon(
-          IconData(data["iconCode"], fontFamily: 'Material Design Icons'),
+          _createMDIfromCode(data["iconCode"]),
           color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
         ),
         //subtitle: Text("${data['entity_id']}"),
@@ -212,12 +212,16 @@ class _MainPageState extends State<MainPage> {
     return result;
   }
 
+  IconData _createMDIfromCode(int code) {
+    return IconData(code, fontFamily: 'Material Design Icons');
+  }
+
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
     if ((_entitiesData != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
         result.add(
-            Tab(icon: Icon(IconData(structure["iconCode"], fontFamily: 'Material Design Icons')))
+            Tab(icon: Icon(_createMDIfromCode(structure["iconCode"])))
         );
       });
     }
@@ -279,7 +283,28 @@ class _MainPageState extends State<MainPage> {
           title: _buildTitle()
         ),
         drawer: _buildAppDrawer(),
-        body: Text(_dataModelErrorMessage != null ? "Well... no.\n\nThere was an error:\n$_dataModelErrorMessage" : "Loading... or not...\n\nJust wait 10 seconds"),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
+                child: Text(
+                    _dataModelErrorMessage != null ? "Well... no.\n\nThere was an error: $_dataModelErrorMessage\n\nCheck your internet connection or something" : "Loading... or not...\n\nJust wait 10 seconds",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16.0),
+                ),
+              ),
+              GlowingProgressIndicator(
+                child: Icon(
+                    _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
+                    size: 40.0,
+                ),
+              ),
+            ]
+          ),
+        ),
+        //Text(_dataModelErrorMessage != null ? "Well... no.\n\nThere was an error:\n$_dataModelErrorMessage" : "Loading... or not...\n\nJust wait 10 seconds"),
         floatingActionButton: new FloatingActionButton(
           onPressed: _refreshData,
           tooltip: 'Increment',
