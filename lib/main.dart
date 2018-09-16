@@ -9,11 +9,14 @@ import 'package:web_socket_channel/status.dart' as socketStatus;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
+import 'package:package_info/package_info.dart';
 
 part 'settings.dart';
 part 'data_model.dart';
 
 EventBus eventBus = new EventBus();
+const String appName = "Home Assistant Client";
+const appVersion = "0.0.5";
 
 void main() => runApp(new HassClientApp());
 
@@ -22,7 +25,7 @@ class HassClientApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Hass Client',
+      title: appName,
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -88,7 +91,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         "/api/websocket";
     String _hassioPassword = prefs.getString('hassio-password');
     _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
-    await _refreshData();
+    _refreshData();
     eventBus.on<StateChangedEvent>().listen((event) {
       debugPrint("State change event for ${event.entityId}");
       setState(() {
@@ -255,7 +258,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildTitle() {
     Row titleRow = Row(
-      children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "...")],
+      children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "")],
     );
     if (loading) {
       titleRow.children.add(Padding(
@@ -286,8 +289,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             },
           ),
           new AboutListTile(
-            applicationName: "Hass Client",
-            applicationVersion: "0.1",
+            applicationName: appName,
+            applicationVersion: appVersion,
             applicationLegalese: "Keyboard Crumbs",
           )
         ],
