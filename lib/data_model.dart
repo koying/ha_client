@@ -318,7 +318,10 @@ class MaterialDesignIcons {
     "script": "mdi:file-document",
     "input_boolean": "mdi:drawing",
     "input_datetime": "mdi:clock",
-    "sun": "mdi:white-balance-sunny"
+    "input_number": "mdi:ray-vertex",
+    "input_select": "mdi:format-list-bulleted",
+    "input_text": "mdi:textbox",
+    "sun": "mdi:white-balance-sunny",
   };
   static Map _iconsDataMap = {
     "mdi:access-point": 0xf002,

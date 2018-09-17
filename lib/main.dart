@@ -83,12 +83,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
-    _instanceHost = domain+":"+port;
-    String _hassioAPIEndpoint = prefs.getString('hassio-protocol')+"://" +
-        domain +
-        ":" +
-        port +
-        "/api/websocket";
+    _instanceHost = "$domain:$port";
+    String _hassioAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     String _hassioPassword = prefs.getString('hassio-password');
     _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
     _refreshData();
@@ -199,18 +195,22 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     List<Widget> entities = [];
     ids.forEach((id) {
       var data = _entitiesData[id];
-      entities.add(new ListTile(
-        leading: Icon(
-          _createMDIfromCode(data["iconCode"]),
-          color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
-        ),
-        //subtitle: Text("${data['entity_id']}"),
-        trailing: _buildEntityAction(id),
-        title: Text(
-          "${data["display_name"]}",
-          overflow: TextOverflow.ellipsis,
-        ),
-      ));
+      if (data == null) {
+        debugPrint("Hiding unknown entity from card: $id");
+      } else {
+        entities.add(new ListTile(
+          leading: Icon(
+            _createMDIfromCode(data["iconCode"]),
+            color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
+          ),
+          //subtitle: Text("${data['entity_id']}"),
+          trailing: _buildEntityAction(id),
+          title: Text(
+            "${data["display_name"]}",
+            overflow: TextOverflow.ellipsis,
+          ),
+        ));
+      }
     });
     return entities;
   }
@@ -249,7 +249,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if ((_entitiesData != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
         result.add(
-            Tab(icon: Icon(_createMDIfromCode(structure["iconCode"])))
+            Tab(
+                icon: Icon(_createMDIfromCode(structure["iconCode"]))
+            )
         );
       });
     }
