@@ -42,7 +42,7 @@ class HassioDataModel {
       //Fetch timeout timer
       _fetchingTimer = Timer(Duration(seconds: 10), () {
         closeConnection();
-        _fetchCompleter.completeError({"message": "Data fetching timeout."});
+        _fetchCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout"});
       });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {

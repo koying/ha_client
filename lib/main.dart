@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/status.dart' as socketStatus;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
-import 'package:package_info/package_info.dart';
 
 part 'settings.dart';
 part 'data_model.dart';
@@ -53,8 +50,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Map _uiStructure;
   Map _instanceConfig;
   int _uiViewsCount = 0;
-  String _dataModelErrorMessage = "";
   String _instanceHost;
+  int _fetchErrorCode = 0;
   bool loading = true;
   Map _stateIconColors = {
     "on": Colors.amber,
@@ -100,7 +97,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     setState(() {
       loading = true;
     });
-    _dataModelErrorMessage = null;
+    _fetchErrorCode = 0;
     if (_dataModel != null) {
       await _dataModel.fetch().then((result) {
         setState(() {
@@ -112,7 +109,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         });
       }).catchError((e) {
         setState(() {
-          _dataModelErrorMessage = e.toString();
+          _fetchErrorCode = e["errorCode"] != null ? e["errorCode"] : 2;
           loading = false;
         });
       });
@@ -258,7 +255,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return result;
   }
 
-  Widget _buildTitle() {
+  Widget _buildAppTitle() {
     Row titleRow = Row(
       children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "")],
     );
@@ -300,39 +297,77 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
+  _getErrorMessageByCode(int code, bool short) {
+    String message = short ? "Unknown error" : "Unknown error";
+    switch (code) {
+      case 1: {
+        message = short ? "Unable to connect" : "Unable to connect\n Please check your internet connection and Home Assistant instance state";
+        break;
+      }
+    }
+    return message;
+  }
+
+  _checkShowInfo(BuildContext context) {
+    if (_fetchErrorCode > 0) {
+      String text = _getErrorMessageByCode(_fetchErrorCode, true);
+      SnackBarAction action;
+      switch (_fetchErrorCode) {
+        case 1: {
+            action = SnackBarAction(
+                label: "Retry",
+                onPressed: _refreshData,
+            );
+            break;
+          }
+      }
+      Timer(Duration(seconds: 1), () {
+        _scaffoldKey.currentState.hideCurrentSnackBar();
+        _scaffoldKey.currentState.showSnackBar(
+            SnackBar(
+                content: Text("$text"),
+                action: action,
+                duration: Duration(hours: 1),
+            )
+        );
+      });
+    }
+  }
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
+    _checkShowInfo(context);
     // This method is rerun every time setState is called.
     //
     if (_entitiesData == null) {
       return new Scaffold(
+        key: _scaffoldKey,
         appBar: new AppBar(
-          title: _buildTitle()
+          title: _buildAppTitle()
         ),
         drawer: _buildAppDrawer(),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
+              /*Padding(
                 padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
                 child: Text(
-                    _dataModelErrorMessage != null ? "Well... no.\n\nThere was an error: $_dataModelErrorMessage\n\nCheck your internet connection or restart the app" : "Loading... I hope...",
+                    _fetchErrorCode > 0 ? "Well... no.\n\nThere was an error [$_fetchErrorCode]: ${_getErrorMessageByCode(_fetchErrorCode, false)}" : "Loading...",
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16.0),
                 ),
-              ),
-              GlowingProgressIndicator(
-                child: Icon(
-                    _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
-                    size: 40.0,
-                    color: _dataModelErrorMessage == null ? Colors.blue : Colors.redAccent,
-                ),
+              ),*/
+              Icon(
+                _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
+                size: 100.0,
+                color: _fetchErrorCode == 0 ? Colors.blue : Colors.redAccent,
               ),
             ]
           ),
         ),
-        //Text(_dataModelErrorMessage != null ? "Well... no.\n\nThere was an error:\n$_dataModelErrorMessage" : "Loading... or not...\n\nJust wait 10 seconds"),
         floatingActionButton: new FloatingActionButton(
           onPressed: _refreshData,
           tooltip: 'Increment',
@@ -343,10 +378,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       return DefaultTabController(
           length: _uiViewsCount,
           child: new Scaffold(
+            key: _scaffoldKey,
             appBar: new AppBar(
               // Here we take the value from the MyHomePage object that was created by
               // the App.build method, and use it to set our appbar title.
-              title: _buildTitle(),
+              title: _buildAppTitle(),
               bottom: TabBar(
                   tabs: buildUIViewTabs()
               ),
