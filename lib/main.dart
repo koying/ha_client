@@ -13,7 +13,7 @@ part 'data_model.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.0.9-alpha";
+const appVersion = "0.0.8";
 
 void main() => runApp(new HassClientApp());
 

@@ -48,8 +48,7 @@ class HassioDataModel {
       _reConnectSocket().then((r) {
         _getData();
       }).catchError((e) {
-        _fetchingTimer.cancel();
-        _fetchCompleter.completeError(e);
+        _finishFetching(e);
       });
     }
     return _fetchCompleter.future;
@@ -114,24 +113,17 @@ class HassioDataModel {
     } else if (data["type"] == "auth_invalid") {
       connectionCompleter.completeError({message: "Auth error: ${data["message"]}"});
     } else if (data["type"] == "result") {
-      if (data["success"] == true) {
-        if (data["id"] == _configMessageId) {
-          _parseConfig(data["result"]);
-          _configCompleter.complete();
-        } else if (data["id"] == _statesMessageId) {
-          _parseEntities(data["result"]);
-          _statesCompleter.complete();
-        } else if (data["id"] == _servicesMessageId) {
-          _parseServices(data["result"]);
-          _servicesCompleter.complete();
-        } else if (data["id"] == _currentMssageId) {
-          debugPrint("Request id:$_currentMssageId was successful");
-        } else {
-          debugPrint("Skipped message due to messageId:");
-          debugPrint(message);
-        }
+      if (data["id"] == _configMessageId) {
+        _parseConfig(data);
+      } else if (data["id"] == _statesMessageId) {
+        _parseEntities(data);
+      } else if (data["id"] == _servicesMessageId) {
+        _parseServices(data);
+      } else if (data["id"] == _currentMssageId) {
+        debugPrint("Request id:$_currentMssageId was successful");
       } else {
-        _handleErrorMessage(data["error"]);
+        debugPrint("Skipped message due to messageId:");
+        debugPrint(message);
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
@@ -145,12 +137,6 @@ class HassioDataModel {
       debugPrint("Unknown message type");
       debugPrint(message);
     }
-  }
-
-  _handleErrorMessage(Object error) {
-    debugPrint("Error: ${error.toString()}");
-    if ((_statesCompleter != null) && (!_statesCompleter.isCompleted)) _statesCompleter.completeError(error);
-    if ((_servicesCompleter != null) && (!_servicesCompleter.isCompleted)) _servicesCompleter.completeError(error);
   }
 
   void _sendSubscribe() {
@@ -206,10 +192,20 @@ class HassioDataModel {
   }
 
   void _parseConfig(Map data) {
-    _instanceConfig = Map.from(data);
+    if (data["success"] == true) {
+      _instanceConfig = Map.from(data["result"]);
+      _configCompleter.complete();
+    } else {
+      _configCompleter.completeError({"errorCode": 2, "errorMessage": data["error"]["message"]});
+    }
   }
 
-  void _parseServices(Map data) {
+  void _parseServices(response) {
+    if (response["success"] == false) {
+      _servicesCompleter.completeError({"errorCode": 4, "errorMessage": response["error"]["message"]});
+      return;
+    }
+    Map data = response["result"];
     Map result = {};
     debugPrint("Parsing ${data.length} Home Assistant service domains");
     data.forEach((domain, services){
@@ -221,9 +217,15 @@ class HassioDataModel {
       });
     });
     _servicesData = result;
+    _servicesCompleter.complete();
   }
 
-  void _parseEntities(List data) async {
+  void _parseEntities(response) async {
+    if (response["success"] == false) {
+      _statesCompleter.completeError({"errorCode": 3, "errorMessage": response["error"]["message"]});
+      return;
+    }
+    List data = response["result"];
     debugPrint("Parsing ${data.length} Home Assistant entities");
     List<String> uiGroups = [];
     data.forEach((entity) {
@@ -295,6 +297,7 @@ class HassioDataModel {
       _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
       }
     });
+    _statesCompleter.complete();
   }
 
   callService(String domain, String service, String entity_id) {
