@@ -12,8 +12,8 @@ part 'settings.dart';
 part 'data_model.dart';
 
 EventBus eventBus = new EventBus();
-const String appName = "Home Assistant Client";
-const appVersion = "0.0.5";
+const String appName = "HA Client";
+const appVersion = "0.0.9-alpha";
 
 void main() => runApp(new HassClientApp());
 
