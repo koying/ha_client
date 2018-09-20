@@ -6,6 +6,12 @@ class StateChangedEvent {
   StateChangedEvent(this.entityId);
 }
 
+class SettingsChangedEvent {
+  bool reconnect;
+
+  SettingsChangedEvent(this.reconnect);
+}
+
 class HassioDataModel {
   String _hassioAPIEndpoint;
   String _hassioPassword;
@@ -56,7 +62,7 @@ class HassioDataModel {
 
   closeConnection() {
     if (_hassioChannel?.closeCode == null) {
-      _hassioChannel.sink?.close();
+      _hassioChannel?.sink?.close();
     }
     _hassioChannel = null;
   }
@@ -111,7 +117,7 @@ class HassioDataModel {
       _sendSubscribe();
       connectionCompleter.complete();
     } else if (data["type"] == "auth_invalid") {
-      connectionCompleter.completeError({message: "Auth error: ${data["message"]}"});
+      connectionCompleter.completeError({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       if (data["id"] == _configMessageId) {
         _parseConfig(data);

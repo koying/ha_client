@@ -51,8 +51,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Map _instanceConfig;
   int _uiViewsCount = 0;
   String _instanceHost;
-  int _fetchErrorCode = 0;
-  bool loading = true;
+  int _errorCodeToBeShown = 0;
+  String _lastErrorMessage = "";
+  StreamSubscription _stateSubscription;
+  bool _isLoading = true;
   Map _stateIconColors = {
     "on": Colors.amber,
     "off": Colors.blueGrey,
@@ -65,7 +67,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _init();
+    eventBus.on<SettingsChangedEvent>().listen((event) {
+      debugPrint("Settings change event: reconnect=${event.reconnect}");
+      setState(() {
+        _errorCodeToBeShown = 0;
+      });
+      _initConnection();
+    });
+    _initConnection();
   }
 
   @override
@@ -76,16 +85,29 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }
   }
 
-  _init() async {
+  _initConnection() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
     _instanceHost = "$domain:$port";
-    String _hassioAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
-    String _hassioPassword = prefs.getString('hassio-password');
-    _dataModel = HassioDataModel(_hassioAPIEndpoint, _hassioPassword);
+    String apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
+    String apiPassword = prefs.getString('hassio-password');
+    if ((domain == null) || (port == null) || (apiEndpoint == null) || (apiPassword == null) ||
+        (domain.length == 0) || (port.length == 0) || (apiEndpoint.length == 0) || (apiPassword.length == 0)) {
+      setState(() {
+        _errorCodeToBeShown = 5;
+      });
+    } else {
+      if (_dataModel != null) _dataModel.closeConnection();
+      _createConnection(apiEndpoint, apiPassword);
+    }
+  }
+
+  _createConnection(String apiEndpoint, String apiPassword) {
+    _dataModel = HassioDataModel(apiEndpoint, apiPassword);
     _refreshData();
-    eventBus.on<StateChangedEvent>().listen((event) {
+    if (_stateSubscription != null) _stateSubscription.cancel();
+    _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
       debugPrint("State change event for ${event.entityId}");
       setState(() {
         _entitiesData = _dataModel.entities;
@@ -95,9 +117,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _refreshData() async {
     setState(() {
-      loading = true;
+      _isLoading = true;
     });
-    _fetchErrorCode = 0;
+    _errorCodeToBeShown = 0;
     if (_dataModel != null) {
       await _dataModel.fetch().then((result) {
         setState(() {
@@ -105,12 +127,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           _entitiesData = _dataModel.entities;
           _uiStructure = _dataModel.uiStructure;
           _uiViewsCount = _uiStructure.length;
-          loading = false;
+          _isLoading = false;
         });
       }).catchError((e) {
         setState(() {
-          _fetchErrorCode = e["errorCode"] != null ? e["errorCode"] : 2;
-          loading = false;
+          _errorCodeToBeShown = e["errorCode"] != null ? e["errorCode"] : 99;
+          _lastErrorMessage = e["errorMessage"] ?? "Unknown error";
+          _isLoading = false;
         });
       });
     }
@@ -259,7 +282,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     Row titleRow = Row(
       children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "")],
     );
-    if (loading) {
+    if (_isLoading) {
       titleRow.children.add(Padding(
         child: JumpingDotsProgressIndicator(
           fontSize: 26.0,
@@ -297,35 +320,61 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  _getErrorMessageByCode(int code, bool short) {
-    String message = short ? "Unknown error" : "Unknown error";
-    switch (code) {
-      case 1: {
-        message = short ? "Unable to connect" : "Unable to connect\n Please check your internet connection and Home Assistant instance state";
-        break;
-      }
-    }
-    return message;
-  }
-
   _checkShowInfo(BuildContext context) {
-    if (_fetchErrorCode > 0) {
-      String text = _getErrorMessageByCode(_fetchErrorCode, true);
+    if (_errorCodeToBeShown > 0) {
+      String message = _lastErrorMessage;
       SnackBarAction action;
-      switch (_fetchErrorCode) {
+      switch (_errorCodeToBeShown) {
         case 1: {
             action = SnackBarAction(
                 label: "Retry",
-                onPressed: _refreshData,
+                onPressed: () {
+                  _scaffoldKey?.currentState?.hideCurrentSnackBar();
+                  _refreshData();
+                },
             );
             break;
           }
+
+        case 5: {
+          message = "Check connection settings";
+          action = SnackBarAction(
+            label: "Open",
+            onPressed: () {
+              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              Navigator.pushNamed(context, '/connection-settings');
+            },
+          );
+          break;
+        }
+
+        case 6: {
+          action = SnackBarAction(
+            label: "Settings",
+            onPressed: () {
+              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              Navigator.pushNamed(context, '/connection-settings');
+            },
+          );
+          break;
+        }
+
+        case 7: {
+          action = SnackBarAction(
+            label: "Retry",
+            onPressed: () {
+              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              _refreshData();
+            },
+          );
+          break;
+        }
       }
       Timer(Duration(seconds: 1), () {
         _scaffoldKey.currentState.hideCurrentSnackBar();
         _scaffoldKey.currentState.showSnackBar(
             SnackBar(
-                content: Text("$text"),
+                content: Text("$message (code: $_errorCodeToBeShown)"),
                 action: action,
                 duration: Duration(hours: 1),
             )
@@ -363,7 +412,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               Icon(
                 _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
                 size: 100.0,
-                color: _fetchErrorCode == 0 ? Colors.blue : Colors.redAccent,
+                color: _errorCodeToBeShown == 0 ? Colors.blue : Colors.redAccent,
               ),
             ]
           ),

@@ -11,7 +11,7 @@ class ConnectionSettingsPage extends StatefulWidget {
 
 class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioDomain = "";
-  String _hassioPort = "";
+  String _hassioPort = "8123";
   String _hassioPassword = "";
   String _socketProtocol = "wss";
 
@@ -26,20 +26,18 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
 
     setState(() {
       _hassioDomain = prefs.getString("hassio-domain");
-      _hassioPort = prefs.getString("hassio-port");
+      _hassioPort = prefs.getString("hassio-port") ?? '8123';
       _hassioPassword = prefs.getString("hassio-password");
-      _socketProtocol = prefs.getString("hassio-protocol");
+      _socketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
     });
   }
 
   _saveSettings() async {
-    debugPrint("Saving settings....");
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("hassio-domain", _hassioDomain);
     prefs.setString("hassio-port", _hassioPort);
     prefs.setString("hassio-password", _hassioPassword);
     prefs.setString("hassio-protocol", _socketProtocol);
-    debugPrint("Done saving settings....");
   }
 
   @override
@@ -47,8 +45,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     return new Scaffold(
       appBar: new AppBar(
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
-          _saveSettings();
-          Navigator.pop(context);
+          _saveSettings().then((r){
+            Navigator.pop(context);
+          });
+          eventBus.fire(SettingsChangedEvent(true));
         }),
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
