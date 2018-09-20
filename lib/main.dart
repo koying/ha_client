@@ -13,7 +13,7 @@ part 'data_model.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.0.8";
+const appVersion = "0.0.10-alpha1";
 
 void main() => runApp(new HassClientApp());
 
@@ -330,7 +330,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           new AboutListTile(
             applicationName: appName,
             applicationVersion: appVersion,
-            applicationLegalese: "Keyboard Crumbs",
+            applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
           )
         ],
       ),
