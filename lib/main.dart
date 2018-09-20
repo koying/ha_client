@@ -54,6 +54,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   int _errorCodeToBeShown = 0;
   String _lastErrorMessage = "";
   StreamSubscription _stateSubscription;
+  StreamSubscription _settingsSubscription;
   bool _isLoading = true;
   Map _stateIconColors = {
     "on": Colors.amber,
@@ -67,7 +68,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    eventBus.on<SettingsChangedEvent>().listen((event) {
+    _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       debugPrint("Settings change event: reconnect=${event.reconnect}");
       setState(() {
         _errorCodeToBeShown = 0;
@@ -92,19 +93,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _instanceHost = "$domain:$port";
     String apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     String apiPassword = prefs.getString('hassio-password');
-    if ((domain == null) || (port == null) || (apiEndpoint == null) || (apiPassword == null) ||
-        (domain.length == 0) || (port.length == 0) || (apiEndpoint.length == 0) || (apiPassword.length == 0)) {
+    String authType = prefs.getString('hassio-auth-type');
+    if ((domain == null) || (port == null) || (apiPassword == null) ||
+        (domain.length == 0) || (port.length == 0) || (apiPassword.length == 0)) {
       setState(() {
         _errorCodeToBeShown = 5;
       });
     } else {
       if (_dataModel != null) _dataModel.closeConnection();
-      _createConnection(apiEndpoint, apiPassword);
+      _createConnection(apiEndpoint, apiPassword, authType);
     }
   }
 
-  _createConnection(String apiEndpoint, String apiPassword) {
-    _dataModel = HassioDataModel(apiEndpoint, apiPassword);
+  _createConnection(String apiEndpoint, String apiPassword, String authType) {
+    _dataModel = HassioDataModel(apiEndpoint, apiPassword, authType);
     _refreshData();
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
@@ -406,6 +408,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             )
         );
       });
+    } else {
+      _scaffoldKey?.currentState?.hideCurrentSnackBar();
     }
   }
 
@@ -479,6 +483,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_stateSubscription != null) _stateSubscription.cancel();
+    if (_settingsSubscription != null) _settingsSubscription.cancel();
     _dataModel.closeConnection();
     super.dispose();
   }

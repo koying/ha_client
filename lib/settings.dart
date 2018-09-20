@@ -14,6 +14,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioPort = "8123";
   String _hassioPassword = "";
   String _socketProtocol = "wss";
+  String _authType = "access_token";
 
   @override
   void initState() {
@@ -29,6 +30,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       _hassioPort = prefs.getString("hassio-port") ?? '8123';
       _hassioPassword = prefs.getString("hassio-password");
       _socketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
+      _authType = prefs.getString("hassio-auth-type") ?? 'access_token';
     });
   }
 
@@ -38,6 +40,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-port", _hassioPort);
     prefs.setString("hassio-password", _hassioPassword);
     prefs.setString("hassio-protocol", _socketProtocol);
+    prefs.setString("hassio-auth-type", _authType);
   }
 
   @override
@@ -95,9 +98,23 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               _saveSettings();
             },
           ),
+          new Row(
+            children: [
+              Text("Login with access token (HA >= 0.78.0)"),
+              Switch(
+                value: (_authType == "access_token"),
+                onChanged: (value) {
+                  setState(() {
+                    _authType = value ? "access_token" : "api_password";
+                  });
+                  _saveSettings();
+                },
+              )
+            ],
+          ),
           new TextField(
             decoration: InputDecoration(
-                labelText: "Home Assistant password"
+                labelText: _authType == "access_token" ? "Access token" : "API password"
             ),
             controller: TextEditingController(
                 text: _hassioPassword

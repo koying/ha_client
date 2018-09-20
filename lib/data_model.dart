@@ -15,6 +15,7 @@ class SettingsChangedEvent {
 class HassioDataModel {
   String _hassioAPIEndpoint;
   String _hassioPassword;
+  String _hassioAuthType;
   IOWebSocketChannel _hassioChannel;
   int _currentMssageId = 0;
   int _statesMessageId = 0;
@@ -36,9 +37,10 @@ class HassioDataModel {
   Map get uiStructure => _uiStructure;
   Map get instanceConfig => _instanceConfig;
 
-  HassioDataModel(String url, String password) {
+  HassioDataModel(String url, String password, String authType) {
     _hassioAPIEndpoint = url;
     _hassioPassword = password;
+    _hassioAuthType = authType;
   }
 
   Future fetch() {
@@ -112,7 +114,7 @@ class HassioDataModel {
     var data = json.decode(message);
     debugPrint("[Received]Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
-      _sendMessageRaw('{"type": "auth","api_password": "$_hassioPassword"}');
+      _sendMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
       _sendSubscribe();
       connectionCompleter.complete();
