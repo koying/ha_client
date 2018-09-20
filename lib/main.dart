@@ -130,13 +130,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           _isLoading = false;
         });
       }).catchError((e) {
-        setState(() {
-          _errorCodeToBeShown = e["errorCode"] != null ? e["errorCode"] : 99;
-          _lastErrorMessage = e["errorMessage"] ?? "Unknown error";
-          _isLoading = false;
-        });
+        _setErrorState(e);
       });
     }
+  }
+
+  _setErrorState(e) {
+    setState(() {
+      _errorCodeToBeShown = e["errorCode"] != null ? e["errorCode"] : 99;
+      _lastErrorMessage = e["errorMessage"] ?? "Unknown error";
+      _isLoading = false;
+    });
+  }
+
+  void _callService(String domain, String service, String entityId) {
+    setState(() {
+      _isLoading = true;
+    });
+    _dataModel.callService(domain, service, entityId).then((r) {
+      setState(() {
+        _isLoading = false;
+      });
+    }).catchError((e) => _setErrorState(e));
   }
 
   Widget _buildEntityAction(String entityId) {
@@ -146,7 +161,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       result = Switch(
         value: (entity["state"] == "on"),
         onChanged: ((state) {
-          _dataModel.callService(
+          _callService(
               entity["domain"], state ? "turn_on" : "turn_off", entityId);
           setState(() {
             _entitiesData[entityId]["state"] = state ? "on" : "off";
@@ -158,7 +173,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           width: 60.0,
           child: FlatButton(
             onPressed: (() {
-              _dataModel.callService(entity["domain"], "turn_on", entityId);
+              _callService(entity["domain"], "turn_on", entityId);
             }),
             child: Text(
               "Run",
@@ -362,6 +377,17 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         case 7: {
           action = SnackBarAction(
             label: "Retry",
+            onPressed: () {
+              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              _refreshData();
+            },
+          );
+          break;
+        }
+
+        case 8: {
+          action = SnackBarAction(
+            label: "Reconnect",
             onPressed: () {
               _scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();

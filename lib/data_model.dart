@@ -45,7 +45,7 @@ class HassioDataModel {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       debugPrint("Previous fetch is not complited");
     } else {
-      //Fetch timeout timer
+      //TODO: Fetch timeout timer. Should be removed after #21 fix
       _fetchingTimer = Timer(Duration(seconds: 10), () {
         closeConnection();
         _fetchCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout"});
@@ -306,13 +306,22 @@ class HassioDataModel {
     _statesCompleter.complete();
   }
 
-  callService(String domain, String service, String entity_id) {
+  Future callService(String domain, String service, String entity_id) {
+    var sendCompleter = Completer();
+    //TODO: Send service call timeout timer. Should be removed after #21 fix
+    Timer _sendTimer = Timer(Duration(seconds: 7), () {
+      sendCompleter.completeError({"errorCode" : 8,"errorMessage": "Connection timeout"});
+    });
     _reConnectSocket().then((r) {
       _incrementMessageId();
       _sendMessageRaw('{"id": $_currentMssageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
+      _sendTimer.cancel();
+      sendCompleter.complete();
     }).catchError((e){
-      debugPrint("Unable to connect for service call: $entity_id $domain.$service");
+      _sendTimer.cancel();
+      sendCompleter.completeError(e);
     });
+    return sendCompleter.future;
   }
 }
 
