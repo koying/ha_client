@@ -156,6 +156,91 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }).catchError((e) => _setErrorState(e));
   }
 
+  List<Widget> _buildViews() {
+    List<Widget> result = [];
+    if ((_entitiesData != null) && (_uiStructure != null)) {
+      _uiStructure.forEach((viewId, structure) {
+        result.add(
+            RefreshIndicator(
+              color: Colors.amber,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: _buildSingleView(structure),
+              ),
+              onRefresh: () => _refreshData(),
+            )
+        );
+      });
+    }
+    return result;
+  }
+
+  List<Widget> _buildSingleView(structure) {
+    List<Widget> result = [];
+    /*structure["standalone"].forEach((entityId) {
+        result.add(_buildCard([entityId], ""));
+      });*/
+    structure["groups"].forEach((id, group) {
+      if (group["children"].length > 0) {
+        result.add(_buildCard(
+            group["children"], group["friendly_name"].toString()));
+      }
+    });
+
+    return result;
+  }
+
+  Card _buildCard(List ids, String name) {
+    List<Widget> body = [];
+    body.add(_buildCardHeader(name));
+    body.addAll(_buildCardBody(ids));
+    Card result =
+    Card(child: new Column(mainAxisSize: MainAxisSize.min, children: body));
+    return result;
+  }
+
+  Widget _buildCardHeader(String name) {
+    var result;
+    if (name.length > 0) {
+      result = new ListTile(
+        //leading: const Icon(Icons.device_hub),
+        //subtitle: Text(".."),
+        //trailing: Text("${data["state"]}"),
+        title: Text("$name",
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
+      );
+    } else {
+      result = new Container(width: 0.0, height: 0.0);
+    }
+    return result;
+  }
+
+  List<Widget> _buildCardBody(List ids) {
+    List<Widget> entities = [];
+    ids.forEach((id) {
+      var data = _entitiesData[id];
+      if (data == null) {
+        debugPrint("Hiding unknown entity from card: $id");
+      } else {
+        entities.add(new ListTile(
+          leading: Icon(
+            _createMDIfromCode(data["iconCode"]),
+            color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
+          ),
+          //subtitle: Text("${data['entity_id']}"),
+          trailing: _buildEntityAction(id),
+          title: Text(
+            "${data["display_name"]}",
+            overflow: TextOverflow.ellipsis,
+          ),
+        ));
+      }
+    });
+    return entities;
+  }
+
   Widget _buildEntityAction(String entityId) {
     var entity = _entitiesData[entityId];
     Widget result;
@@ -198,89 +283,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       // height: double.infinity,
       child: result
     );*/
-    return result;
-  }
-
-  Card _buildCard(List<String> ids, String name) {
-    List<Widget> body = [];
-    body.add(_buildCardHeader(name));
-    body.addAll(_buildCardBody(ids));
-    Card result =
-        Card(child: new Column(mainAxisSize: MainAxisSize.min, children: body));
-    return result;
-  }
-
-  Widget _buildCardHeader(String name) {
-    var result;
-    if (name.length > 0) {
-      result = new ListTile(
-        //leading: const Icon(Icons.device_hub),
-        //subtitle: Text(".."),
-        //trailing: Text("${data["state"]}"),
-        title: Text("$name",
-            textAlign: TextAlign.left,
-            overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
-      );
-    } else {
-      result = new Container(width: 0.0, height: 0.0);
-    }
-    return result;
-  }
-
-  List<Widget> _buildCardBody(List<String> ids) {
-    List<Widget> entities = [];
-    ids.forEach((id) {
-      var data = _entitiesData[id];
-      if (data == null) {
-        debugPrint("Hiding unknown entity from card: $id");
-      } else {
-        entities.add(new ListTile(
-          leading: Icon(
-            _createMDIfromCode(data["iconCode"]),
-            color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
-          ),
-          //subtitle: Text("${data['entity_id']}"),
-          trailing: _buildEntityAction(id),
-          title: Text(
-            "${data["display_name"]}",
-            overflow: TextOverflow.ellipsis,
-          ),
-        ));
-      }
-    });
-    return entities;
-  }
-
-  List<Widget> buildSingleView(structure) {
-      List<Widget> result = [];
-      structure["standalone"].forEach((entityId) {
-        result.add(_buildCard([entityId], ""));
-      });
-      structure["groups"].forEach((group) {
-        result.add(_buildCard(
-            group["children"], group["friendly_name"].toString()));
-      });
-
-      return result;
-  }
-
-  List<Widget> buildUIViews() {
-    List<Widget> result = [];
-    if ((_entitiesData != null) && (_uiStructure != null)) {
-      _uiStructure.forEach((viewId, structure) {
-        result.add(
-            RefreshIndicator(
-              color: Colors.amber,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: buildSingleView(structure),
-              ),
-              onRefresh: () => _refreshData(),
-            )
-        );
-      });
-    }
     return result;
   }
 
@@ -475,7 +477,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             ),
             drawer: _buildAppDrawer(),
             body: TabBarView(
-                children: buildUIViews()
+                children: _buildViews()
             ),
           )
       );

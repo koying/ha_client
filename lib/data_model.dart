@@ -31,6 +31,7 @@ class HassioDataModel {
   Completer _servicesCompleter;
   Completer _configCompleter;
   Timer _fetchingTimer;
+  List _topBadgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
 
   Map get entities => _entitiesData;
   Map get services => _servicesData;
@@ -277,18 +278,38 @@ class HassioDataModel {
 
     //Gethering information for UI
     debugPrint("Gethering views");
-    uiGroups.forEach((viewId) {
+    int viewCounter = 0;
+    uiGroups.forEach((viewId) { //Each view
+      viewCounter +=1;
       var viewGroup = _entitiesData[viewId];
       Map viewGroupStructure = {};
       if (viewGroup != null) {
-        viewGroupStructure["standalone"] = [];
-        viewGroupStructure["groups"] = [];
+        viewGroupStructure["standalone"] = {};
+        viewGroupStructure["groups"] = {};
+        viewGroupStructure["groups"]["haclientui.badges"] = {"children": [], "friendly_name": "Badges"};
         viewGroupStructure["iconCode"] = viewGroup["iconCode"];
-        viewGroup["attributes"]["entity_id"].forEach((entityId) {
-          if (_entitiesData[entityId]["domain"] != "group") {
-            viewGroupStructure["standalone"].add(entityId);
+
+
+        viewGroup["attributes"]["entity_id"].forEach((entityId) { //Each entity or group in view
+          Map newGroup = {};
+          String domain = _entitiesData[entityId]["domain"];
+          if (domain != "group") {
+            String autoGroupID;
+            if (_topBadgeDomains.contains(domain)) {
+              autoGroupID = "haclientui.badges";
+            } else {
+              autoGroupID = "$domain.$domain$viewCounter";
+            }
+            if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
+              newGroup["entity_id"] = "$domain.$domain$viewCounter";
+              newGroup["friendly_name"] = "$domain";
+              newGroup["children"] = [];
+              newGroup["children"].add(entityId);
+              viewGroupStructure["groups"]["$autoGroupID"] = Map.from(newGroup);
+            } else {
+              viewGroupStructure["groups"]["$autoGroupID"]["children"].add(entityId);
+            }
           } else {
-            Map newGroup = {};
             newGroup["entity_id"] = entityId;
             newGroup["friendly_name"] =
             (_entitiesData[entityId]['attributes'] != null)
@@ -299,7 +320,7 @@ class HassioDataModel {
                 groupedEntityId) {
               newGroup["children"].add(groupedEntityId);
             });
-            viewGroupStructure["groups"].add(Map.from(newGroup));
+            viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
           }
         });
       _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
