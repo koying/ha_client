@@ -265,13 +265,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       return result;
   }
 
-  List<ListView> buildUIViews() {
-    List<ListView> result = [];
+  List<Widget> buildUIViews() {
+    List<Widget> result = [];
     if ((_entitiesData != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
-        result.add(ListView(
-          children: buildSingleView(structure),
-        ));
+        result.add(
+            RefreshIndicator(
+              color: Colors.amber,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: buildSingleView(structure),
+              ),
+              onRefresh: () => _refreshData(),
+            )
+        );
       });
     }
     return result;
@@ -469,11 +476,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             drawer: _buildAppDrawer(),
             body: TabBarView(
                 children: buildUIViews()
-            ),
-            floatingActionButton: new FloatingActionButton(
-              onPressed: _refreshData,
-              tooltip: 'Increment',
-              child: new Icon(Icons.refresh),
             ),
           )
       );
