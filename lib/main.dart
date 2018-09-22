@@ -177,9 +177,19 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Widget> _buildSingleView(structure) {
     List<Widget> result = [];
-    /*structure["standalone"].forEach((entityId) {
-        result.add(_buildCard([entityId], ""));
-      });*/
+    if (structure["badges"]["children"].length > 0) {
+      result.add(
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 10.0,
+              runSpacing: 4.0,
+              //padding: new EdgeInsets.all(8.0),
+              //itemExtent: 40.0,
+              children: _buildBadges(structure["badges"]["children"]),
+            )
+      );
+
+    }
     structure["groups"].forEach((id, group) {
       if (group["children"].length > 0) {
         result.add(_buildCard(
@@ -188,6 +198,74 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
 
     return result;
+  }
+
+  List<Widget> _buildBadges(List ids) {
+    List<Widget> result = [];
+    ids.forEach((entityId) {
+      var data = _entitiesData[entityId];
+      if (data == null) {
+        debugPrint("Hiding unknown entity from badges: $entityId");
+      } else {
+        result.add(
+        _buildSingleBadge(data)
+        );
+      }
+    });
+    return result;
+  }
+
+  Widget _buildSingleBadge(data) {
+    Widget badgeIcon;
+    switch (data["domain"]) {
+      case "sun": {
+        badgeIcon = data["state"] == "below_horizon" ? Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf0dc)) : Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf5a8));
+        break;
+      }
+      case "sensor": {
+        badgeIcon = Center(
+          child: Text(
+            "${data['state']}",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18.0),
+          ),
+        );
+        break;
+      }
+      default: {
+       badgeIcon = Icon(MaterialDesignIcons.createIconDataFromEntityData(data));
+      }
+    }
+    return Column(
+      children: <Widget>[
+        Container(
+          margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+          width: 50.0,
+          height: 50.0,
+          decoration: new BoxDecoration(
+            // Circle shape
+            shape: BoxShape.circle,
+            color: Colors.white,
+            // The border you want
+            border: new Border.all(
+              width: 2.0,
+              color: Colors.redAccent,
+            ),
+          ),
+          child: badgeIcon,
+        ),
+        Container(
+          width: 60.0,
+          child: Text(
+            "${data['display_name']}",
+            textAlign: TextAlign.center,
+            softWrap: true,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 
   Card _buildCard(List ids, String name) {
@@ -226,7 +304,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       } else {
         entities.add(new ListTile(
           leading: Icon(
-            _createMDIfromCode(data["iconCode"]),
+            MaterialDesignIcons.createIconDataFromEntityData(data),
             color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
           ),
           //subtitle: Text("${data['entity_id']}"),
@@ -286,17 +364,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return result;
   }
 
-  IconData _createMDIfromCode(int code) {
-    return IconData(code, fontFamily: 'Material Design Icons');
-  }
-
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
     if ((_entitiesData != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
         result.add(
             Tab(
-                icon: Icon(_createMDIfromCode(structure["iconCode"]))
+                icon: Icon(MaterialDesignIcons.createIconDataFromEntityData(structure))
             )
         );
       });
@@ -449,7 +523,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 ),
               ),*/
               Icon(
-                _createMDIfromCode(MaterialDesignIcons.getCustomIconByName("mdi:home-assistant")),
+                MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
                 size: 100.0,
                 color: _errorCodeToBeShown == 0 ? Colors.blue : Colors.redAccent,
               ),

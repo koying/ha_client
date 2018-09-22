@@ -257,12 +257,6 @@ class HassioDataModel {
         if ((entityDomain == "group")&&(composedEntity["attributes"]["view"] == true)) {
           uiGroups.add(entityId);
         }
-        String iconName = composedEntity["attributes"]["icon"];
-        if (iconName != null) {
-          composedEntity["iconCode"] = MaterialDesignIcons.getCustomIconByName(iconName);
-        } else {
-          composedEntity["iconCode"] = MaterialDesignIcons.getDefaultIconByEntityId(entityId); //
-        }
       }
 
 
@@ -286,28 +280,31 @@ class HassioDataModel {
       if (viewGroup != null) {
         viewGroupStructure["standalone"] = {};
         viewGroupStructure["groups"] = {};
-        viewGroupStructure["groups"]["haclientui.badges"] = {"children": [], "friendly_name": "Badges"};
-        viewGroupStructure["iconCode"] = viewGroup["iconCode"];
+        viewGroupStructure["state"] = "on";
+        viewGroupStructure["entity_id"] = viewGroup["entity_id"];
+        viewGroupStructure["badges"] = {"children": []};
+        viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {"icon": viewGroup["attributes"]["icon"]} : {"icon": "none"};
 
 
         viewGroup["attributes"]["entity_id"].forEach((entityId) { //Each entity or group in view
           Map newGroup = {};
           String domain = _entitiesData[entityId]["domain"];
           if (domain != "group") {
-            String autoGroupID;
             if (_topBadgeDomains.contains(domain)) {
-              autoGroupID = "haclientui.badges";
+              viewGroupStructure["badges"]["children"].add(entityId);
             } else {
-              autoGroupID = "$domain.$domain$viewCounter";
-            }
-            if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
-              newGroup["entity_id"] = "$domain.$domain$viewCounter";
-              newGroup["friendly_name"] = "$domain";
-              newGroup["children"] = [];
-              newGroup["children"].add(entityId);
-              viewGroupStructure["groups"]["$autoGroupID"] = Map.from(newGroup);
-            } else {
-              viewGroupStructure["groups"]["$autoGroupID"]["children"].add(entityId);
+              String autoGroupID = "$domain.$domain$viewCounter";
+              if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
+                newGroup["entity_id"] = "$domain.$domain$viewCounter";
+                newGroup["friendly_name"] = "$domain";
+                newGroup["children"] = [];
+                newGroup["children"].add(entityId);
+                viewGroupStructure["groups"]["$autoGroupID"] =
+                    Map.from(newGroup);
+              } else {
+                viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
+                    entityId);
+              }
             }
           } else {
             newGroup["entity_id"] = entityId;
@@ -362,7 +359,59 @@ class MaterialDesignIcons {
     "input_number": "mdi:ray-vertex",
     "input_select": "mdi:format-list-bulleted",
     "input_text": "mdi:textbox",
-    "sun": "mdi:white-balance-sunny",
+    "sun": "mdi:white-balance-sunny"
+  };
+
+  static Map _defaultIconsByDeviceClass = {
+    //"binary_sensor.battery": "mdi:", //TODO
+    "binary_sensor.cold.on": "mdi:snowflake",
+    "binary_sensor.cold.off": "mdi:thermometer",
+    "binary_sensor.connectivity.on": "mdi:server-network",
+    "binary_sensor.connectivity.off": "mdi:server-network-off",
+    "binary_sensor.door.on": "mdi:door-open",
+    "binary_sensor.door.off": "mdi:door-closed",
+    //"binary_sensor.garage_door": "mdi:",
+    //"binary_sensor.gas": "mdi:",
+    "binary_sensor.heat.on": "mdi:fire",
+    "binary_sensor.heat.off": "mdi:thermometer",
+    "binary_sensor.light.on": "mdi:brightness-7",
+    "binary_sensor.light.off": "mdi:brightness-5",
+    //"binary_sensor.lock.on": "mdi:",
+    //"binary_sensor.lock.off": "mdi:",
+    "binary_sensor.moisture.on": "mdi:water",
+    "binary_sensor.moisture.off": "mdi:water-off",
+    "binary_sensor.motion.on": "mdi:run",
+    "binary_sensor.motion.off": "mdi:walk",
+    "binary_sensor.moving.on": "mdi:checkbox-marked-circle",
+    "binary_sensor.moving.off": "mdi:checkbox-blank-circle-outline",
+    "binary_sensor.occupancy.on": "mdi:home",
+    "binary_sensor.occupancy.off": "mdi:home-outline",
+    "binary_sensor.opening.on": "mdi:square-outline",
+    "binary_sensor.opening.off": "mdi:square",
+    //"binary_sensor.plug.on": "mdi:",
+    //"binary_sensor.plug.off": "mdi:",
+    "binary_sensor.power.on": "mdi:alert",
+    "binary_sensor.power.off": "mdi:verified",
+    //"binary_sensor.presence.on": "mdi:",
+    //"binary_sensor.presence.off": "mdi:",
+    //"binary_sensor.problem.on": "mdi:",
+    //"binary_sensor.problem.off": "mdi:",
+    "binary_sensor.safety.on": "mdi:alert",
+    "binary_sensor.safety.off": "mdi:verified",
+    "binary_sensor.smoke.on": "mdi:alert",
+    "binary_sensor.smoke.off": "mdi:verified",
+    "binary_sensor.sound.on": "mdi:music-note",
+    "binary_sensor.sound.off": "mdi:music-note-off",
+    "binary_sensor.vibration.on": "mdi:vibrate",
+    "binary_sensor.vibration.off": "mdi:mdi-crop-portrait",
+    //"binary_sensor.window.on": "mdi:",
+    //"binary_sensor.window.off": "mdi:",
+    "sensor.battery": "mdi:battery-80",
+    "sensor.humidity": "mdi:water-percent",
+    //"sensor.illuminance": "mdi:",
+    "sensor.temperature": "mdi:thermometer",
+    //"cover.window": "mdi:",
+    //"cover.garage": "mdi:",
   };
   static Map _iconsDataMap = {
     "mdi:access-point": 0xf002,
@@ -3162,13 +3211,37 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static int getCustomIconByName(String name) {
+  static IconData createIconDataFromEntityData(Map data) {
+    String iconName = data["attributes"] != null ? data["attributes"]["icon"] : null;
+    int iconCode = 0;
+    if (iconName != null) {
+      iconCode = getIconCodeByIconName(iconName);
+    } else {
+      iconCode = getDefaultIconByEntityId(data["entity_id"], data["attributes"] != null ? data["attributes"]["device_class"] : null, data["state"]); //
+    }
+    return IconData(iconCode, fontFamily: 'Material Design Icons');
+  }
+
+  static IconData createIconDataFromIconCode(int code) {
+    return IconData(code, fontFamily: 'Material Design Icons');
+  }
+
+  static IconData createIconDataFromIconName(String name) {
+    return IconData(getIconCodeByIconName(name), fontFamily: 'Material Design Icons');
+  }
+
+  static int getIconCodeByIconName(String name) {
     return _iconsDataMap[name] ?? 0;
   }
 
-  static int getDefaultIconByEntityId(String entityId) {
+  static int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
     String domain = entityId.split(".")[0];
-    String iconName = _defaultIconsByDomains[domain];
+    String iconNameByDomain = _defaultIconsByDomains[domain];
+    String iconNameByDeviceClass;
+    if (deviceClass != null) {
+      iconNameByDeviceClass = _defaultIconsByDeviceClass["$domain.$deviceClass.$state"] ?? _defaultIconsByDeviceClass["$domain.$deviceClass"];
+    }
+    String iconName = iconNameByDeviceClass ?? iconNameByDomain;
     if (iconName != null) {
       return _iconsDataMap[iconName] ?? 0;
     } else {
