@@ -221,12 +221,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildSingleBadge(data) {
     Widget badgeIcon;
+    String badgeTextValue;
     switch (data["domain"]) {
       case "sun": {
         badgeIcon = data["state"] == "below_horizon" ? Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf0dc)) : Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf5a8));
         break;
       }
       case "sensor": {
+        badgeTextValue = data["attributes"]["unit_of_measurement"];
         badgeIcon = Center(
           child: Text(
             "${data['state']}",
@@ -238,9 +240,31 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         );
         break;
       }
+      case "device_tracker": {
+        badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, 50.0,Colors.black);
+        badgeTextValue = data["state"];
+        break;
+      }
       default: {
        badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, 50.0,Colors.black);
       }
+    }
+    Widget badgeText;
+    if (badgeTextValue == null) {
+      badgeText = Container(width: 0.0, height: 0.0);
+    } else {
+      badgeText = Container(
+          padding: EdgeInsets.fromLTRB(6.0, 2.0, 6.0, 2.0),
+          child: Text("$badgeTextValue",
+              style: TextStyle(fontSize: 13.0, color: Colors.white),
+              textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.fade),
+          decoration: new BoxDecoration(
+            // Circle shape
+            //shape: BoxShape.circle,
+            color: Colors.redAccent,
+            borderRadius: BorderRadius.circular(9.0),
+          )
+      );
     }
     return Column(
       children: <Widget>[
@@ -258,7 +282,27 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               color: Colors.redAccent,
             ),
           ),
-          child: badgeIcon,
+          child: Stack(
+            overflow: Overflow.visible,
+            children: <Widget>[
+              Positioned(
+                width: 46.0,
+                height: 46.0,
+                top: 0.0,
+                left: 0.0,
+                child: badgeIcon,
+              ),
+              Positioned(
+                //width: 50.0,
+                bottom: -9.0,
+                left: -15.0,
+                right: -15.0,
+                child: Center(
+                  child: badgeText,
+                )
+              )
+            ],
+          ),
         ),
         Container(
           width: 60.0,
@@ -309,7 +353,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         debugPrint("Hiding unknown entity from card: $id");
       } else {
         entities.add(new ListTile(
-          leading: MaterialDesignIcons.createIconFromEntityData(data, 24.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
+          leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
           trailing: _buildEntityStateWidget(data),
           title: Text(
