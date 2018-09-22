@@ -14,7 +14,7 @@ part 'data_model.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.0.11-alpha";
+const appVersion = "0.0.12-alpha";
 
 String homeAssistantWebHost;
 
