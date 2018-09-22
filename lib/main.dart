@@ -7,6 +7,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 part 'settings.dart';
 part 'data_model.dart';
@@ -14,6 +15,8 @@ part 'data_model.dart';
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
 const appVersion = "0.0.11-alpha";
+
+String homeAssistantWebHost;
 
 void main() => runApp(new HassClientApp());
 
@@ -92,6 +95,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     String port = prefs.getString('hassio-port');
     _instanceHost = "$domain:$port";
     String apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
+    homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
     String apiPassword = prefs.getString('hassio-password');
     String authType = prefs.getString('hassio-auth-type');
     if ((domain == null) || (port == null) || (apiPassword == null) ||
@@ -226,6 +230,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         badgeIcon = Center(
           child: Text(
             "${data['state']}",
+            overflow: TextOverflow.fade,
+            softWrap: false,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 18.0),
           ),
@@ -233,7 +239,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         break;
       }
       default: {
-       badgeIcon = Icon(MaterialDesignIcons.createIconDataFromEntityData(data));
+       badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, 50.0,Colors.black);
       }
     }
     return Column(
@@ -303,15 +309,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         debugPrint("Hiding unknown entity from card: $id");
       } else {
         entities.add(new ListTile(
-          leading: Icon(
-            MaterialDesignIcons.createIconDataFromEntityData(data),
-            color: _stateIconColors[data["state"]] ?? Colors.blueGrey,
-          ),
+          leading: MaterialDesignIcons.createIconFromEntityData(data, 24.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
-          trailing: _buildEntityAction(id),
+          trailing: _buildEntityStateWidget(data),
           title: Text(
             "${data["display_name"]}",
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.fade,
+            softWrap: false,
           ),
         ));
       }
@@ -319,26 +323,26 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return entities;
   }
 
-  Widget _buildEntityAction(String entityId) {
-    var entity = _entitiesData[entityId];
+  Widget _buildEntityStateWidget(data) {
+    String entityId = data["entity_id"];
     Widget result;
-    if (entity["actionType"] == "switch") {
+    if (data["actionType"] == "switch") {
       result = Switch(
-        value: (entity["state"] == "on"),
+        value: (data["state"] == "on"),
         onChanged: ((state) {
           _callService(
-              entity["domain"], state ? "turn_on" : "turn_off", entityId);
+              data["domain"], state ? "turn_on" : "turn_off", entityId);
           setState(() {
             _entitiesData[entityId]["state"] = state ? "on" : "off";
           });
         }),
       );
-    } else if (entity["actionType"] == "statelessIcon") {
+    } else if (data["actionType"] == "statelessIcon") {
       result = SizedBox(
           width: 60.0,
           child: FlatButton(
             onPressed: (() {
-              _callService(entity["domain"], "turn_on", entityId);
+              _callService(data["domain"], "turn_on", entityId);
             }),
             child: Text(
               "Run",
@@ -350,7 +354,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       result = Padding(
           padding: EdgeInsets.fromLTRB(0.0, 0.0, 16.0, 0.0),
           child: Text(
-              "${entity["state"]}${(entity["attributes"] != null && entity["attributes"]["unit_of_measurement"] != null) ? entity["attributes"]["unit_of_measurement"] : ''}",
+              "${data["state"]}${(data["attributes"] != null && data["attributes"]["unit_of_measurement"] != null) ? data["attributes"]["unit_of_measurement"] : ''}",
               textAlign: TextAlign.right,
               style: new TextStyle(
                 fontSize: 16.0,
@@ -370,7 +374,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _uiStructure.forEach((viewId, structure) {
         result.add(
             Tab(
-                icon: Icon(MaterialDesignIcons.createIconDataFromEntityData(structure))
+                icon: MaterialDesignIcons.createIconFromEntityData(structure, 24.0, null)
             )
         );
       });

@@ -40,6 +40,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-port", _hassioPort);
     prefs.setString("hassio-password", _hassioPassword);
     prefs.setString("hassio-protocol", _socketProtocol);
+    prefs.setString("hassio-res-protocol", _socketProtocol == "wss" ? "https" : "http");
     prefs.setString("hassio-auth-type", _authType);
   }
 

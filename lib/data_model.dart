@@ -3211,15 +3211,37 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static IconData createIconDataFromEntityData(Map data) {
-    String iconName = data["attributes"] != null ? data["attributes"]["icon"] : null;
-    int iconCode = 0;
-    if (iconName != null) {
-      iconCode = getIconCodeByIconName(iconName);
+  static Widget createIconFromEntityData(Map data, double size, Color color) {
+    if ((data["attributes"] != null) && (data["attributes"]["entity_picture"] != null)) {
+      if (homeAssistantWebHost != null) {
+        return CircleAvatar(
+          backgroundColor: Colors.white,
+          backgroundImage: CachedNetworkImageProvider(
+            "$homeAssistantWebHost${data["attributes"]["entity_picture"]}",
+          ),
+        );
+      } else {
+        return Container(width: 0.0, height: 0.0);
+      }
     } else {
-      iconCode = getDefaultIconByEntityId(data["entity_id"], data["attributes"] != null ? data["attributes"]["device_class"] : null, data["state"]); //
+      String iconName = data["attributes"] != null
+          ? data["attributes"]["icon"]
+          : null;
+      int iconCode = 0;
+      if (iconName != null) {
+        iconCode = getIconCodeByIconName(iconName);
+      } else {
+        iconCode = getDefaultIconByEntityId(data["entity_id"],
+            data["attributes"] != null
+                ? data["attributes"]["device_class"]
+                : null, data["state"]); //
+      }
+      return Icon(
+          IconData(iconCode, fontFamily: 'Material Design Icons'),
+          size: size,
+          color: color,
+      );
     }
-    return IconData(iconCode, fontFamily: 'Material Design Icons');
   }
 
   static IconData createIconDataFromIconCode(int code) {
