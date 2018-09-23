@@ -46,10 +46,10 @@ class HassioDataModel {
 
   Future fetch() {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
-      debugPrint("Previous fetch is not complited");
+      TheLogger.log("Warning","Previous fetch is not complited");
     } else {
       //TODO: Fetch timeout timer. Should be removed after #21 fix
-      _fetchingTimer = Timer(Duration(seconds: 10), () {
+      _fetchingTimer = Timer(Duration(seconds: 15), () {
         closeConnection();
         _fetchCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout"});
       });
@@ -73,10 +73,10 @@ class HassioDataModel {
   Future _reConnectSocket() {
     var _connectionCompleter = new Completer();
     if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
-      debugPrint("Socket connecting...");
+      TheLogger.log("Debug","Socket connecting...");
       _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
       _hassioChannel.stream.handleError((e) {
-        debugPrint("Unhandled socket error: ${e.toString()}");
+        TheLogger.log("Error","Unhandled socket error: ${e.toString()}");
       });
       _hassioChannel.stream.listen((message) =>
           _handleMessage(_connectionCompleter, message));
@@ -113,7 +113,7 @@ class HassioDataModel {
 
   _handleMessage(Completer connectionCompleter, String message) {
     var data = json.decode(message);
-    debugPrint("[Received]Message type: ${data['type']}");
+    TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
       _sendMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
@@ -129,22 +129,18 @@ class HassioDataModel {
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
       } else if (data["id"] == _currentMessageId) {
-        debugPrint("Request id:$_currentMessageId was successful");
-      } else {
-        debugPrint("Skipped message due to messageId:");
-        debugPrint(message);
+        TheLogger.log("Debug","Request id:$_currentMessageId was successful");
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
-        debugPrint("Unhandled event type: ${data["event"]["event_type"]}");
+        TheLogger.log("Warning","Unhandled event type: ${data["event"]["event_type"]}");
       } else {
-        debugPrint("Event is null");
+        TheLogger.log("Error","Event is null: $message");
       }
     } else {
-      debugPrint("Unknown message type");
-      debugPrint(message);
+      TheLogger.log("Warning","Unknown message type: $message");
     }
   }
 
@@ -185,18 +181,28 @@ class HassioDataModel {
     _currentMessageId += 1;
   }
 
-  _sendMessageRaw(message) {
-    debugPrint("[Sent]$message");
+  _sendMessageRaw(String message) {
+    if (message.indexOf('"type": "auth"') > 0) {
+      TheLogger.log("Debug", "[Sending] ==> auth request");
+    } else {
+      TheLogger.log("Debug", "[Sending] ==> $message");
+    }
     _hassioChannel.sink.add(message);
   }
 
   void _handleEntityStateChange(Map eventData) {
-    String entityId = eventData["entity_id"];
-    if (_entitiesData[entityId] != null) {
-      _entitiesData[entityId].addAll(eventData["new_state"]);
-      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
+    TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
+    if (eventData["new_state"] == null) {
+      TheLogger.log("Error", "No new_state found");
     } else {
-      debugPrint("Unknown enity $entityId");
+      var parsedEntityData = _parseEntity(eventData["new_state"]);
+      String entityId = parsedEntityData["entity_id"];
+      if (_entitiesData[entityId] == null) {
+        _entitiesData[entityId] = parsedEntityData;
+      } else {
+        _entitiesData[entityId].addAll(parsedEntityData);
+      }
+      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
     }
   }
 
@@ -214,107 +220,122 @@ class HassioDataModel {
       _servicesCompleter.completeError({"errorCode": 4, "errorMessage": response["error"]["message"]});
       return;
     }
-    Map data = response["result"];
-    Map result = {};
-    debugPrint("Parsing ${data.length} Home Assistant service domains");
-    data.forEach((domain, services){
-      result[domain] = Map.from(services);
-      services.forEach((serviceName, serviceData){
-        if (_entitiesData["$domain.$serviceName"] != null) {
-          result[domain].remove(serviceName);
-        }
+    try {
+      Map data = response["result"];
+      Map result = {};
+      TheLogger.log("Debug","Parsing ${data.length} Home Assistant service domains");
+      data.forEach((domain, services) {
+        result[domain] = Map.from(services);
+        services.forEach((serviceName, serviceData) {
+          if (_entitiesData["$domain.$serviceName"] != null) {
+            result[domain].remove(serviceName);
+          }
+        });
       });
-    });
-    _servicesData = result;
-    _servicesCompleter.complete();
+      _servicesData = result;
+      _servicesCompleter.complete();
+    } catch (e) {
+      //TODO hadle it properly
+      TheLogger.log("Error","Error parsing services. But they are not used :-)");
+      _servicesCompleter.complete();
+    }
   }
 
   void _parseEntities(response) async {
+    _entitiesData.clear();
+    _uiStructure.clear();
     if (response["success"] == false) {
       _statesCompleter.completeError({"errorCode": 3, "errorMessage": response["error"]["message"]});
       return;
     }
     List data = response["result"];
-    debugPrint("Parsing ${data.length} Home Assistant entities");
+    TheLogger.log("Debug","Parsing ${data.length} Home Assistant entities");
     List<String> uiGroups = [];
     data.forEach((entity) {
-      var composedEntity = Map.from(entity);
-      String entityDomain = entity["entity_id"].split(".")[0];
-      String entityId = entity["entity_id"];
+      try {
+        var composedEntity = _parseEntity(entity);
 
-      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
-      composedEntity["domain"] = entityDomain;
-
-      if (composedEntity["attributes"] != null) {
-        if ((entityDomain == "group")&&(composedEntity["attributes"]["view"] == true)) {
-          uiGroups.add(entityId);
+        if (composedEntity["attributes"] != null) {
+          if ((composedEntity["domain"] == "group") &&
+              (composedEntity["attributes"]["view"] == true)) {
+            uiGroups.add(composedEntity["entity_id"]);
+          }
         }
+        _entitiesData[entity["entity_id"]] = composedEntity;
+      } catch (error) {
+        TheLogger.log("Error","Error parsing entity: ${entity['entity_id']}");
       }
-
-
-      if (entityDomain == "group") {
-        if ((composedEntity["attributes"] != null) &&
-            (composedEntity["attributes"]["view"] == true)) {
-
-        }
-      }
-
-      _entitiesData[entityId] = Map.from(composedEntity);
     });
 
     //Gethering information for UI
-    debugPrint("Gethering views");
+    TheLogger.log("Debug","Gethering views");
     int viewCounter = 0;
     uiGroups.forEach((viewId) { //Each view
-      viewCounter +=1;
-      var viewGroup = _entitiesData[viewId];
-      Map viewGroupStructure = {};
-      if (viewGroup != null) {
-        viewGroupStructure["groups"] = {};
-        viewGroupStructure["state"] = "on";
-        viewGroupStructure["entity_id"] = viewGroup["entity_id"];
-        viewGroupStructure["badges"] = {"children": []};
-        viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {"icon": viewGroup["attributes"]["icon"]} : {"icon": "none"};
+      try {
+        Map viewGroupStructure = {};
+        viewCounter += 1;
+        var viewGroup = _entitiesData[viewId];
+        if (viewGroup != null) {
+          viewGroupStructure["groups"] = {};
+          viewGroupStructure["state"] = "on";
+          viewGroupStructure["entity_id"] = viewGroup["entity_id"];
+          viewGroupStructure["badges"] = {"children": []};
+          viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {
+            "icon": viewGroup["attributes"]["icon"]
+          } : {"icon": "none"};
 
 
-        viewGroup["attributes"]["entity_id"].forEach((entityId) { //Each entity or group in view
-          Map newGroup = {};
-          String domain = _entitiesData[entityId]["domain"];
-          if (domain != "group") {
-            if (_topBadgeDomains.contains(domain)) {
-              viewGroupStructure["badges"]["children"].add(entityId);
-            } else {
-              String autoGroupID = "$domain.$domain$viewCounter";
-              if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
-                newGroup["entity_id"] = "$domain.$domain$viewCounter";
-                newGroup["friendly_name"] = "$domain";
-                newGroup["children"] = [];
-                newGroup["children"].add(entityId);
-                viewGroupStructure["groups"]["$autoGroupID"] =
-                    Map.from(newGroup);
+          viewGroup["attributes"]["entity_id"].forEach((
+              entityId) { //Each entity or group in view
+            Map newGroup = {};
+            String domain = _entitiesData[entityId]["domain"];
+            if (domain != "group") {
+              if (_topBadgeDomains.contains(domain)) {
+                viewGroupStructure["badges"]["children"].add(entityId);
               } else {
-                viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
-                    entityId);
+                String autoGroupID = "$domain.$domain$viewCounter";
+                if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
+                  newGroup["entity_id"] = "$domain.$domain$viewCounter";
+                  newGroup["friendly_name"] = "$domain";
+                  newGroup["children"] = [];
+                  newGroup["children"].add(entityId);
+                  viewGroupStructure["groups"]["$autoGroupID"] =
+                      Map.from(newGroup);
+                } else {
+                  viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
+                      entityId);
+                }
               }
+            } else {
+              newGroup["entity_id"] = entityId;
+              newGroup["friendly_name"] =
+              (_entitiesData[entityId]['attributes'] != null)
+                  ? (_entitiesData[entityId]['attributes']['friendly_name'] ??
+                  "")
+                  : "";
+              newGroup["children"] = List<String>();
+              _entitiesData[entityId]["attributes"]["entity_id"].forEach((
+                  groupedEntityId) {
+                newGroup["children"].add(groupedEntityId);
+              });
+              viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
             }
-          } else {
-            newGroup["entity_id"] = entityId;
-            newGroup["friendly_name"] =
-            (_entitiesData[entityId]['attributes'] != null)
-                ? (_entitiesData[entityId]['attributes']['friendly_name'] ?? "")
-                : "";
-            newGroup["children"] = List<String>();
-            _entitiesData[entityId]["attributes"]["entity_id"].forEach((
-                groupedEntityId) {
-              newGroup["children"].add(groupedEntityId);
-            });
-            viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
-          }
-        });
-      _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
+          });
+        }
+        _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
+      } catch (error) {
+        TheLogger.log("Error","Error parsing view: $viewId");
       }
     });
     _statesCompleter.complete();
+  }
+
+  Map _parseEntity(rawData) {
+    var composedEntity = Map.from(rawData);
+    String entityDomain = rawData["entity_id"].split(".")[0];
+    composedEntity["display_name"] = "${rawData["attributes"]!=null ? rawData["attributes"]["friendly_name"] ?? rawData["attributes"]["name"] : "_"}";
+    composedEntity["domain"] = entityDomain;
+    return composedEntity;
   }
 
   Future callService(String domain, String service, String entity_id) {

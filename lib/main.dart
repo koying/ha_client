@@ -9,14 +9,45 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-part 'settings.dart';
+part 'settingsPage.dart';
 part 'data_model.dart';
+part 'logPage.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.1.0-alpha";
+const appVersion = "0.1.1-alpha";
 
 String homeAssistantWebHost;
+
+class TheLogger {
+
+  static List<String> _log = [];
+
+  static String getLog() {
+    String res = '';
+    _log.forEach((line) {
+      res += "$line\n\n";
+    });
+    return res;
+  }
+
+  static bool get isInDebugMode {
+    bool inDebugMode = false;
+
+    assert(inDebugMode = true);
+
+    return inDebugMode;
+  }
+
+  static void log(String level, String message) {
+    debugPrint('$message');
+    _log.add("[$level] :  $message");
+    if (_log.length > 50) {
+      _log.removeAt(0);
+    }
+  }
+
+}
 
 void main() => runApp(new HassClientApp());
 
@@ -32,7 +63,8 @@ class HassClientApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => MainPage(title: 'Hass Client'),
-        "/connection-settings": (context) => ConnectionSettingsPage(title: "Connection Settings")
+        "/connection-settings": (context) => ConnectionSettingsPage(title: "Connection Settings"),
+        "/log-view": (context) => LogViewPage(title: "Log")
       },
     );
   }
@@ -76,7 +108,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
-      debugPrint("Settings change event: reconnect=${event.reconnect}");
+      TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
       setState(() {
         _errorCodeToBeShown = 0;
       });
@@ -87,7 +119,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint("$state");
+    TheLogger.log("Debug","$state");
     if (state == AppLifecycleState.resumed) {
       _refreshData();
     }
@@ -118,7 +150,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _refreshData();
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-      debugPrint("State change event for ${event.entityId}");
       setState(() {
         _entitiesData = _dataModel.entities;
       });
@@ -212,11 +243,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     List<Widget> result = [];
     ids.forEach((entityId) {
       var data = _entitiesData[entityId];
-      if (data == null) {
-        debugPrint("Hiding unknown entity from badges: $entityId");
-      } else {
+      if (data != null) {
         result.add(
-        _buildSingleBadge(data)
+          _buildSingleBadge(data)
         );
       }
     });
@@ -363,9 +392,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     List<Widget> entities = [];
     ids.forEach((id) {
       var data = _entitiesData[id];
-      if (data == null) {
-        debugPrint("Hiding unknown entity from card: $id");
-      } else {
+      if (data != null) {
         entities.add(new ListTile(
           leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
@@ -485,6 +512,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             title: Text("Connection settings"),
             onTap: () {
               Navigator.pushNamed(context, '/connection-settings');
+            },
+          ),
+          new ListTile(
+            leading: Icon(Icons.insert_drive_file),
+            title: Text("Log"),
+            onTap: () {
+              Navigator.pushNamed(context, '/log-view');
             },
           ),
           new AboutListTile(
