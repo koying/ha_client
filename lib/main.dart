@@ -220,11 +220,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   Widget _buildSingleBadge(data) {
+    double iconSize = 26.0;
     Widget badgeIcon;
     String badgeTextValue;
     switch (data["domain"]) {
       case "sun": {
-        badgeIcon = data["state"] == "below_horizon" ? Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf0dc)) : Icon(MaterialDesignIcons.createIconDataFromIconCode(0xf5a8));
+        badgeIcon = data["state"] == "below_horizon" ?
+          Icon(
+            MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
+            size: iconSize,
+          ) :
+          Icon(
+            MaterialDesignIcons.createIconDataFromIconCode(0xf5a8),
+            size: iconSize,
+          );
         break;
       }
       case "sensor": {
@@ -241,12 +250,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         break;
       }
       case "device_tracker": {
-        badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, 50.0,Colors.black);
+        badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, iconSize,Colors.black);
         badgeTextValue = data["state"];
         break;
       }
       default: {
-       badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, 50.0,Colors.black);
+       badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, iconSize,Colors.black);
       }
     }
     Widget badgeText;

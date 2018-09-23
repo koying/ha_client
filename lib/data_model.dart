@@ -17,7 +17,7 @@ class HassioDataModel {
   String _hassioPassword;
   String _hassioAuthType;
   IOWebSocketChannel _hassioChannel;
-  int _currentMssageId = 0;
+  int _currentMessageId = 0;
   int _statesMessageId = 0;
   int _servicesMessageId = 0;
   int _subscriptionMessageId = 0;
@@ -128,8 +128,8 @@ class HassioDataModel {
         _parseEntities(data);
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
-      } else if (data["id"] == _currentMssageId) {
-        debugPrint("Request id:$_currentMssageId was successful");
+      } else if (data["id"] == _currentMessageId) {
+        debugPrint("Request id:$_currentMessageId was successful");
       } else {
         debugPrint("Skipped message due to messageId:");
         debugPrint(message);
@@ -150,14 +150,14 @@ class HassioDataModel {
 
   void _sendSubscribe() {
     _incrementMessageId();
-    _subscriptionMessageId = _currentMssageId;
+    _subscriptionMessageId = _currentMessageId;
     _sendMessageRaw('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}');
   }
 
   Future _getConfig() {
     _configCompleter = new Completer();
     _incrementMessageId();
-    _configMessageId = _currentMssageId;
+    _configMessageId = _currentMessageId;
     _sendMessageRaw('{"id": $_configMessageId, "type": "get_config"}');
 
     return _configCompleter.future;
@@ -166,7 +166,7 @@ class HassioDataModel {
   Future _getStates() {
     _statesCompleter = new Completer();
     _incrementMessageId();
-    _statesMessageId = _currentMssageId;
+    _statesMessageId = _currentMessageId;
     _sendMessageRaw('{"id": $_statesMessageId, "type": "get_states"}');
 
     return _statesCompleter.future;
@@ -175,14 +175,14 @@ class HassioDataModel {
   Future _getServices() {
     _servicesCompleter = new Completer();
     _incrementMessageId();
-    _servicesMessageId = _currentMssageId;
+    _servicesMessageId = _currentMessageId;
     _sendMessageRaw('{"id": $_servicesMessageId, "type": "get_services"}');
 
     return _servicesCompleter.future;
   }
 
   _incrementMessageId() {
-    _currentMssageId += 1;
+    _currentMessageId += 1;
   }
 
   _sendMessageRaw(message) {
@@ -278,7 +278,6 @@ class HassioDataModel {
       var viewGroup = _entitiesData[viewId];
       Map viewGroupStructure = {};
       if (viewGroup != null) {
-        viewGroupStructure["standalone"] = {};
         viewGroupStructure["groups"] = {};
         viewGroupStructure["state"] = "on";
         viewGroupStructure["entity_id"] = viewGroup["entity_id"];
@@ -334,7 +333,7 @@ class HassioDataModel {
     });
     _reConnectSocket().then((r) {
       _incrementMessageId();
-      _sendMessageRaw('{"id": $_currentMssageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
+      _sendMessageRaw('{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
       _sendTimer.cancel();
       sendCompleter.complete();
     }).catchError((e){
