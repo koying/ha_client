@@ -191,13 +191,14 @@ class HassioDataModel {
   }
 
   void _handleEntityStateChange(Map eventData) {
-    String entityId = eventData["entity_id"];
-    if (_entitiesData[entityId] != null) {
-      _entitiesData[entityId].addAll(eventData["new_state"]);
-      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
+    var parsedEntityData = _parseEntity(eventData["new_state"]);
+    String entityId = parsedEntityData["entity_id"];
+    if (_entitiesData[entityId] == null) {
+      _entitiesData[entityId] = parsedEntityData;
     } else {
-      debugPrint("Unknown enity $entityId");
+      _entitiesData[entityId].addAll(parsedEntityData);
     }
+    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
   }
 
   void _parseConfig(Map data) {
@@ -230,6 +231,8 @@ class HassioDataModel {
   }
 
   void _parseEntities(response) async {
+    _entitiesData.clear();
+    _uiStructure.clear();
     if (response["success"] == false) {
       _statesCompleter.completeError({"errorCode": 3, "errorMessage": response["error"]["message"]});
       return;
@@ -238,28 +241,15 @@ class HassioDataModel {
     debugPrint("Parsing ${data.length} Home Assistant entities");
     List<String> uiGroups = [];
     data.forEach((entity) {
-      var composedEntity = Map.from(entity);
-      String entityDomain = entity["entity_id"].split(".")[0];
-      String entityId = entity["entity_id"];
-
-      composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
-      composedEntity["domain"] = entityDomain;
+      var composedEntity = _parseEntity(entity);
 
       if (composedEntity["attributes"] != null) {
-        if ((entityDomain == "group")&&(composedEntity["attributes"]["view"] == true)) {
-          uiGroups.add(entityId);
+        if ((composedEntity["domain"] == "group")&&(composedEntity["attributes"]["view"] == true)) {
+          uiGroups.add(composedEntity["entity_id"]);
         }
       }
 
-
-      if (entityDomain == "group") {
-        if ((composedEntity["attributes"] != null) &&
-            (composedEntity["attributes"]["view"] == true)) {
-
-        }
-      }
-
-      _entitiesData[entityId] = Map.from(composedEntity);
+      _entitiesData[composedEntity["entity_id"]] = composedEntity;
     });
 
     //Gethering information for UI
@@ -315,6 +305,14 @@ class HassioDataModel {
       }
     });
     _statesCompleter.complete();
+  }
+
+  Map _parseEntity(rawData) {
+    var composedEntity = Map.from(rawData);
+    String entityDomain = rawData["entity_id"].split(".")[0];
+    composedEntity["display_name"] = "${rawData["attributes"]!=null ? rawData["attributes"]["friendly_name"] ?? rawData["attributes"]["name"] : "_"}";
+    composedEntity["domain"] = entityDomain;
+    return composedEntity;
   }
 
   Future callService(String domain, String service, String entity_id) {
