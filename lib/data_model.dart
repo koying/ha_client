@@ -46,7 +46,7 @@ class HassioDataModel {
 
   Future fetch() {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
-      debugPrint("Previous fetch is not complited");
+      TheLogger.log("Warning","Previous fetch is not complited");
     } else {
       //TODO: Fetch timeout timer. Should be removed after #21 fix
       _fetchingTimer = Timer(Duration(seconds: 15), () {
@@ -73,10 +73,10 @@ class HassioDataModel {
   Future _reConnectSocket() {
     var _connectionCompleter = new Completer();
     if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
-      debugPrint("Socket connecting...");
+      TheLogger.log("Debug","Socket connecting...");
       _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
       _hassioChannel.stream.handleError((e) {
-        debugPrint("Unhandled socket error: ${e.toString()}");
+        TheLogger.log("Error","Unhandled socket error: ${e.toString()}");
       });
       _hassioChannel.stream.listen((message) =>
           _handleMessage(_connectionCompleter, message));
@@ -113,7 +113,7 @@ class HassioDataModel {
 
   _handleMessage(Completer connectionCompleter, String message) {
     var data = json.decode(message);
-    debugPrint("[Received]Message type: ${data['type']}");
+    TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
       _sendMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
@@ -129,22 +129,18 @@ class HassioDataModel {
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
       } else if (data["id"] == _currentMessageId) {
-        debugPrint("Request id:$_currentMessageId was successful");
-      } else {
-        debugPrint("Skipped message due to messageId:");
-        debugPrint(message);
+        TheLogger.log("Debug","Request id:$_currentMessageId was successful");
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
-        debugPrint("Unhandled event type: ${data["event"]["event_type"]}");
+        TheLogger.log("Warning","Unhandled event type: ${data["event"]["event_type"]}");
       } else {
-        debugPrint("Event is null");
+        TheLogger.log("Error","Event is null: $message");
       }
     } else {
-      debugPrint("Unknown message type");
-      debugPrint(message);
+      TheLogger.log("Warning","Unknown message type: $message");
     }
   }
 
@@ -185,20 +181,29 @@ class HassioDataModel {
     _currentMessageId += 1;
   }
 
-  _sendMessageRaw(message) {
-    debugPrint("[Sent]$message");
+  _sendMessageRaw(String message) {
+    if (message.indexOf('"type": "auth"') > 0) {
+      TheLogger.log("Debug", "[Sending] ==> auth request");
+    } else {
+      TheLogger.log("Debug", "[Sending] ==> $message");
+    }
     _hassioChannel.sink.add(message);
   }
 
   void _handleEntityStateChange(Map eventData) {
-    var parsedEntityData = _parseEntity(eventData["new_state"]);
-    String entityId = parsedEntityData["entity_id"];
-    if (_entitiesData[entityId] == null) {
-      _entitiesData[entityId] = parsedEntityData;
+    TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
+    if (eventData["new_state"] == null) {
+      TheLogger.log("Error", "No new_state found");
     } else {
-      _entitiesData[entityId].addAll(parsedEntityData);
+      var parsedEntityData = _parseEntity(eventData["new_state"]);
+      String entityId = parsedEntityData["entity_id"];
+      if (_entitiesData[entityId] == null) {
+        _entitiesData[entityId] = parsedEntityData;
+      } else {
+        _entitiesData[entityId].addAll(parsedEntityData);
+      }
+      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
     }
-    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
   }
 
   void _parseConfig(Map data) {
@@ -218,7 +223,7 @@ class HassioDataModel {
     try {
       Map data = response["result"];
       Map result = {};
-      debugPrint("Parsing ${data.length} Home Assistant service domains");
+      TheLogger.log("Debug","Parsing ${data.length} Home Assistant service domains");
       data.forEach((domain, services) {
         result[domain] = Map.from(services);
         services.forEach((serviceName, serviceData) {
@@ -231,7 +236,7 @@ class HassioDataModel {
       _servicesCompleter.complete();
     } catch (e) {
       //TODO hadle it properly
-      debugPrint("Error parsing services");
+      TheLogger.log("Error","Error parsing services. But they are not used :-)");
       _servicesCompleter.complete();
     }
   }
@@ -244,7 +249,7 @@ class HassioDataModel {
       return;
     }
     List data = response["result"];
-    debugPrint("Parsing ${data.length} Home Assistant entities");
+    TheLogger.log("Debug","Parsing ${data.length} Home Assistant entities");
     List<String> uiGroups = [];
     data.forEach((entity) {
       try {
@@ -258,13 +263,12 @@ class HassioDataModel {
         }
         _entitiesData[entity["entity_id"]] = composedEntity;
       } catch (error) {
-        debugPrint("Error parsing entity: ${entity['entity_id']}");
-        debugPrint("$error");
+        TheLogger.log("Error","Error parsing entity: ${entity['entity_id']}");
       }
     });
 
     //Gethering information for UI
-    debugPrint("Gethering views");
+    TheLogger.log("Debug","Gethering views");
     int viewCounter = 0;
     uiGroups.forEach((viewId) { //Each view
       try {
@@ -320,7 +324,7 @@ class HassioDataModel {
         }
         _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
       } catch (error) {
-        debugPrint("Error parsing view: $viewId");
+        TheLogger.log("Error","Error parsing view: $viewId");
       }
     });
     _statesCompleter.complete();
