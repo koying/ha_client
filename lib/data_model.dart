@@ -49,7 +49,7 @@ class HassioDataModel {
       debugPrint("Previous fetch is not complited");
     } else {
       //TODO: Fetch timeout timer. Should be removed after #21 fix
-      _fetchingTimer = Timer(Duration(seconds: 10), () {
+      _fetchingTimer = Timer(Duration(seconds: 15), () {
         closeConnection();
         _fetchCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout"});
       });
@@ -215,19 +215,25 @@ class HassioDataModel {
       _servicesCompleter.completeError({"errorCode": 4, "errorMessage": response["error"]["message"]});
       return;
     }
-    Map data = response["result"];
-    Map result = {};
-    debugPrint("Parsing ${data.length} Home Assistant service domains");
-    data.forEach((domain, services){
-      result[domain] = Map.from(services);
-      services.forEach((serviceName, serviceData){
-        if (_entitiesData["$domain.$serviceName"] != null) {
-          result[domain].remove(serviceName);
-        }
+    try {
+      Map data = response["result"];
+      Map result = {};
+      debugPrint("Parsing ${data.length} Home Assistant service domains");
+      data.forEach((domain, services) {
+        result[domain] = Map.from(services);
+        services.forEach((serviceName, serviceData) {
+          if (_entitiesData["$domain.$serviceName"] != null) {
+            result[domain].remove(serviceName);
+          }
+        });
       });
-    });
-    _servicesData = result;
-    _servicesCompleter.complete();
+      _servicesData = result;
+      _servicesCompleter.complete();
+    } catch (e) {
+      //TODO hadle it properly
+      debugPrint("Error parsing services");
+      _servicesCompleter.complete();
+    }
   }
 
   void _parseEntities(response) async {
@@ -241,67 +247,80 @@ class HassioDataModel {
     debugPrint("Parsing ${data.length} Home Assistant entities");
     List<String> uiGroups = [];
     data.forEach((entity) {
-      var composedEntity = _parseEntity(entity);
+      try {
+        var composedEntity = _parseEntity(entity);
 
-      if (composedEntity["attributes"] != null) {
-        if ((composedEntity["domain"] == "group")&&(composedEntity["attributes"]["view"] == true)) {
-          uiGroups.add(composedEntity["entity_id"]);
+        if (composedEntity["attributes"] != null) {
+          if ((composedEntity["domain"] == "group") &&
+              (composedEntity["attributes"]["view"] == true)) {
+            uiGroups.add(composedEntity["entity_id"]);
+          }
         }
+        _entitiesData[entity["entity_id"]] = composedEntity;
+      } catch (error) {
+        debugPrint("Error parsing entity: ${entity['entity_id']}");
+        debugPrint("$error");
       }
-
-      _entitiesData[composedEntity["entity_id"]] = composedEntity;
     });
 
     //Gethering information for UI
     debugPrint("Gethering views");
     int viewCounter = 0;
     uiGroups.forEach((viewId) { //Each view
-      viewCounter +=1;
-      var viewGroup = _entitiesData[viewId];
-      Map viewGroupStructure = {};
-      if (viewGroup != null) {
-        viewGroupStructure["groups"] = {};
-        viewGroupStructure["state"] = "on";
-        viewGroupStructure["entity_id"] = viewGroup["entity_id"];
-        viewGroupStructure["badges"] = {"children": []};
-        viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {"icon": viewGroup["attributes"]["icon"]} : {"icon": "none"};
+      try {
+        Map viewGroupStructure = {};
+        viewCounter += 1;
+        var viewGroup = _entitiesData[viewId];
+        if (viewGroup != null) {
+          viewGroupStructure["groups"] = {};
+          viewGroupStructure["state"] = "on";
+          viewGroupStructure["entity_id"] = viewGroup["entity_id"];
+          viewGroupStructure["badges"] = {"children": []};
+          viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {
+            "icon": viewGroup["attributes"]["icon"]
+          } : {"icon": "none"};
 
 
-        viewGroup["attributes"]["entity_id"].forEach((entityId) { //Each entity or group in view
-          Map newGroup = {};
-          String domain = _entitiesData[entityId]["domain"];
-          if (domain != "group") {
-            if (_topBadgeDomains.contains(domain)) {
-              viewGroupStructure["badges"]["children"].add(entityId);
-            } else {
-              String autoGroupID = "$domain.$domain$viewCounter";
-              if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
-                newGroup["entity_id"] = "$domain.$domain$viewCounter";
-                newGroup["friendly_name"] = "$domain";
-                newGroup["children"] = [];
-                newGroup["children"].add(entityId);
-                viewGroupStructure["groups"]["$autoGroupID"] =
-                    Map.from(newGroup);
+          viewGroup["attributes"]["entity_id"].forEach((
+              entityId) { //Each entity or group in view
+            Map newGroup = {};
+            String domain = _entitiesData[entityId]["domain"];
+            if (domain != "group") {
+              if (_topBadgeDomains.contains(domain)) {
+                viewGroupStructure["badges"]["children"].add(entityId);
               } else {
-                viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
-                    entityId);
+                String autoGroupID = "$domain.$domain$viewCounter";
+                if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
+                  newGroup["entity_id"] = "$domain.$domain$viewCounter";
+                  newGroup["friendly_name"] = "$domain";
+                  newGroup["children"] = [];
+                  newGroup["children"].add(entityId);
+                  viewGroupStructure["groups"]["$autoGroupID"] =
+                      Map.from(newGroup);
+                } else {
+                  viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
+                      entityId);
+                }
               }
+            } else {
+              newGroup["entity_id"] = entityId;
+              newGroup["friendly_name"] =
+              (_entitiesData[entityId]['attributes'] != null)
+                  ? (_entitiesData[entityId]['attributes']['friendly_name'] ??
+                  "")
+                  : "";
+              newGroup["children"] = List<String>();
+              _entitiesData[entityId]["attributes"]["entity_id"].forEach((
+                  groupedEntityId) {
+                newGroup["children"].add(groupedEntityId);
+              });
+              viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
             }
-          } else {
-            newGroup["entity_id"] = entityId;
-            newGroup["friendly_name"] =
-            (_entitiesData[entityId]['attributes'] != null)
-                ? (_entitiesData[entityId]['attributes']['friendly_name'] ?? "")
-                : "";
-            newGroup["children"] = List<String>();
-            _entitiesData[entityId]["attributes"]["entity_id"].forEach((
-                groupedEntityId) {
-              newGroup["children"].add(groupedEntityId);
-            });
-            viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
-          }
-        });
-      _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
+          });
+        }
+        _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
+      } catch (error) {
+        debugPrint("Error parsing view: $viewId");
       }
     });
     _statesCompleter.complete();
