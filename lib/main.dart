@@ -15,7 +15,7 @@ part 'logPage.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.1.0-alpha";
+const appVersion = "0.1.1-alpha";
 
 String homeAssistantWebHost;
 

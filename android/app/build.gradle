@@ -39,8 +39,8 @@ android {
         applicationId "com.keyboardcrumbs.haclient"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 18
-        versionName "0.1.0-alpha"
+        versionCode 19
+        versionName "0.1.1-alpha"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
