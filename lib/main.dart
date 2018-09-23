@@ -59,12 +59,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   bool _isLoading = true;
-  Map _stateIconColors = {
+  Map<String, Color> _stateIconColors = {
     "on": Colors.amber,
-    "off": Colors.blueGrey,
+    "off": Color.fromRGBO(68, 115, 158, 1.0),
     "unavailable": Colors.black12,
     "unknown": Colors.black12,
     "playing": Colors.amber
+  };
+  Map<String, Color> _badgeColors = {
+    "default": Color.fromRGBO(223, 76, 30, 1.0),
+    "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
   };
 
   @override
@@ -223,6 +227,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     double iconSize = 26.0;
     Widget badgeIcon;
     String badgeTextValue;
+    Color iconColor = _badgeColors[data["domain"]] ?? _badgeColors["default"];
     switch (data["domain"]) {
       case "sun": {
         badgeIcon = data["state"] == "below_horizon" ?
@@ -270,7 +275,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           decoration: new BoxDecoration(
             // Circle shape
             //shape: BoxShape.circle,
-            color: Colors.redAccent,
+            color: iconColor,
             borderRadius: BorderRadius.circular(9.0),
           )
       );
@@ -288,7 +293,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             // The border you want
             border: new Border.all(
               width: 2.0,
-              color: Colors.redAccent,
+              color: iconColor,
             ),
           ),
           child: Stack(
@@ -364,7 +369,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         entities.add(new ListTile(
           leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
-          trailing: _buildEntityStateWidget(data),
+          trailing: _buildEntityActionWidget(data),
           title: Text(
             "${data["display_name"]}",
             overflow: TextOverflow.fade,
@@ -376,22 +381,29 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return entities;
   }
 
-  Widget _buildEntityStateWidget(data) {
+  Widget _buildEntityActionWidget(data) {
     String entityId = data["entity_id"];
     Widget result;
-    if (data["actionType"] == "switch") {
-      result = Switch(
-        value: (data["state"] == "on"),
-        onChanged: ((state) {
-          _callService(
-              data["domain"], state ? "turn_on" : "turn_off", entityId);
-          setState(() {
-            _entitiesData[entityId]["state"] = state ? "on" : "off";
-          });
-        }),
-      );
-    } else if (data["actionType"] == "statelessIcon") {
-      result = SizedBox(
+    switch (data["domain"]) {
+      case "automation":
+      case "switch":
+      case "light": {
+        result = Switch(
+          value: (data["state"] == "on"),
+          onChanged: ((state) {
+            _callService(
+                data["domain"], state ? "turn_on" : "turn_off", entityId);
+            setState(() {
+              _entitiesData[entityId]["state"] = state ? "on" : "off";
+            });
+          }),
+        );
+        break;
+      }
+
+      case "script":
+      case "scene": {
+        result = SizedBox(
           width: 60.0,
           child: FlatButton(
             onPressed: (() {
@@ -402,17 +414,25 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               textAlign: TextAlign.right,
               style: new TextStyle(fontSize: 16.0, color: Colors.blue),
             ),
-          ));
-    } else {
-      result = Padding(
+          )
+        );
+        break;
+      }
+
+      default: {
+        result = Padding(
           padding: EdgeInsets.fromLTRB(0.0, 0.0, 16.0, 0.0),
           child: Text(
-              "${data["state"]}${(data["attributes"] != null && data["attributes"]["unit_of_measurement"] != null) ? data["attributes"]["unit_of_measurement"] : ''}",
-              textAlign: TextAlign.right,
-              style: new TextStyle(
-                fontSize: 16.0,
-              )));
+            "${data["state"]}${(data["attributes"] != null && data["attributes"]["unit_of_measurement"] != null) ? data["attributes"]["unit_of_measurement"] : ''}",
+            textAlign: TextAlign.right,
+            style: new TextStyle(
+              fontSize: 16.0,
+            )
+          )
+        );
+      }
     }
+
     /*return SizedBox(
       width: 60.0,
       // height: double.infinity,

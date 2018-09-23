@@ -245,14 +245,6 @@ class HassioDataModel {
       composedEntity["display_name"] = "${entity["attributes"]!=null ? entity["attributes"]["friendly_name"] ?? entity["attributes"]["name"] : "_"}";
       composedEntity["domain"] = entityDomain;
 
-      if ((entityDomain == "automation") || (entityDomain == "switch") || (entityDomain == "light")) {
-        composedEntity["actionType"] = "switch";
-      } else if ((entityDomain == "script") || (entityDomain == "scene")) {
-        composedEntity["actionType"] = "statelessIcon";
-      } else {
-        composedEntity["actionType"] = "stateText";
-      }
-
       if (composedEntity["attributes"] != null) {
         if ((entityDomain == "group")&&(composedEntity["attributes"]["view"] == true)) {
           uiGroups.add(entityId);
