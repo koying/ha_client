@@ -35,6 +35,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   }
 
   _saveSettings() async {
+    if (_hassioDomain.indexOf("http") == 0 && _hassioDomain.indexOf("//") > 0) {
+      _hassioDomain = _hassioDomain.split("//")[1];
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("hassio-domain", _hassioDomain);
     prefs.setString("hassio-port", _hassioPort);
