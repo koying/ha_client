@@ -641,11 +641,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             ]
           ),
         ),
-        floatingActionButton: new FloatingActionButton(
-          onPressed: _refreshData,
-          tooltip: 'Increment',
-          child: new Icon(Icons.refresh),
-        ),
       );
     } else {
       return DefaultTabController(
