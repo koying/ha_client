@@ -26,7 +26,7 @@ class TheLogger {
   static String getLog() {
     String res = '';
     _log.forEach((line) {
-      res += "$line\n\n";
+      res += "$line\n";
     });
     return res;
   }
@@ -40,7 +40,9 @@ class TheLogger {
   }
 
   static void log(String level, String message) {
-    debugPrint('$message');
+    if (isInDebugMode) {
+      debugPrint('$message');
+    }
     _log.add("[$level] :  $message");
     if (_log.length > 50) {
       _log.removeAt(0);
@@ -49,7 +51,23 @@ class TheLogger {
 
 }
 
-void main() => runApp(new HassClientApp());
+void main() {
+  FlutterError.onError = (errorDetails) {
+    TheLogger.log("Error", "${errorDetails.exception}");
+    if (TheLogger.isInDebugMode) {
+      FlutterError.dumpErrorToConsole(errorDetails);
+    }
+  };
+
+  runZoned(() {
+    runApp(new HassClientApp());
+  }, onError: (error, stack) {
+    TheLogger.log("Global error", "$error");
+  });
+
+
+
+}
 
 class HassClientApp extends StatelessWidget {
   // This widget is the root of your application.
