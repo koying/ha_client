@@ -531,20 +531,23 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             leading: Icon(Icons.settings),
             title: Text("Connection settings"),
             onTap: () {
-              Navigator.pushNamed(context, '/connection-settings');
+              Navigator.of(context).pop();
+              Navigator.of(context).pushNamed('/connection-settings');
             },
           ),
           new ListTile(
             leading: Icon(Icons.insert_drive_file),
             title: Text("Log"),
             onTap: () {
-              Navigator.pushNamed(context, '/log-view');
+              Navigator.of(context).pop();
+              Navigator.of(context).pushNamed('/log-view');
             },
           ),
           new ListTile(
             leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
             title: Text("Reprot issue"),
             onTap: () {
+              Navigator.of(context).pop();
               haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
             },
           ),
