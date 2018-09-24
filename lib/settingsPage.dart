@@ -57,8 +57,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
           });
           eventBus.fire(SettingsChangedEvent(true));
         }),
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
       ),
       body: ListView(
@@ -66,7 +64,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
         children: <Widget>[
           new Row(
             children: [
-              Text("HTTPS"),
+              Text("Use ssl (HTTPS)"),
               Switch(
                 value: (_socketProtocol == "wss"),
                 onChanged: (value) {
