@@ -272,57 +272,64 @@ class HassioDataModel {
     int viewCounter = 0;
     uiGroups.forEach((viewId) { //Each view
       try {
-        Map viewGroupStructure = {};
+        Map viewStructure = {};
         viewCounter += 1;
-        var viewGroup = _entitiesData[viewId];
-        if (viewGroup != null) {
-          viewGroupStructure["groups"] = {};
-          viewGroupStructure["state"] = "on";
-          viewGroupStructure["entity_id"] = viewGroup["entity_id"];
-          viewGroupStructure["badges"] = {"children": []};
-          viewGroupStructure["attributes"] = viewGroup["attributes"] != null ? {
-            "icon": viewGroup["attributes"]["icon"]
-          } : {"icon": "none"};
+        var viewGroupData = _entitiesData[viewId];
+        if ((viewGroupData != null) && (viewGroupData["attributes"] != null)) {
+          viewStructure["groups"] = {};
+          viewStructure["state"] = "on";
+          viewStructure["entity_id"] = viewGroupData["entity_id"];
+          viewStructure["badges"] = {"children": []};
+          viewStructure["attributes"] = {
+              "icon": viewGroupData["attributes"]["icon"]
+            };
 
-
-          viewGroup["attributes"]["entity_id"].forEach((
+          viewGroupData["attributes"]["entity_id"].forEach((
               entityId) { //Each entity or group in view
             Map newGroup = {};
-            String domain = _entitiesData[entityId]["domain"];
-            if (domain != "group") {
-              if (_topBadgeDomains.contains(domain)) {
-                viewGroupStructure["badges"]["children"].add(entityId);
-              } else {
-                String autoGroupID = "$domain.$domain$viewCounter";
-                if (viewGroupStructure["groups"]["$autoGroupID"] == null) {
-                  newGroup["entity_id"] = "$domain.$domain$viewCounter";
-                  newGroup["friendly_name"] = "$domain";
-                  newGroup["children"] = [];
-                  newGroup["children"].add(entityId);
-                  viewGroupStructure["groups"]["$autoGroupID"] =
-                      Map.from(newGroup);
+            if (_entitiesData[entityId] != null) {
+              Map cardOrEntityData = _entitiesData[entityId];
+              String domain = cardOrEntityData["domain"];
+              if (domain != "group") {
+                if (_topBadgeDomains.contains(domain)) {
+                  viewStructure["badges"]["children"].add(entityId);
                 } else {
-                  viewGroupStructure["groups"]["$autoGroupID"]["children"].add(
-                      entityId);
+                  String autoGroupID = "$domain.$domain$viewCounter";
+                  if (viewStructure["groups"]["$autoGroupID"] == null) {
+                    newGroup["entity_id"] = "$domain.$domain$viewCounter";
+                    newGroup["friendly_name"] = "$domain";
+                    newGroup["children"] = [];
+                    newGroup["children"].add(entityId);
+                    viewStructure["groups"]["$autoGroupID"] =
+                        Map.from(newGroup);
+                  } else {
+                    viewStructure["groups"]["$autoGroupID"]["children"].add(
+                        entityId);
+                  }
                 }
+              } else {
+                newGroup["entity_id"] = entityId;
+                newGroup["friendly_name"] =
+                (cardOrEntityData['attributes'] != null)
+                    ? (cardOrEntityData['attributes']['friendly_name'] ??
+                    "")
+                    : "";
+                newGroup["children"] = List<String>();
+                cardOrEntityData["attributes"]["entity_id"].forEach((
+                    groupedEntityId) {
+                  newGroup["children"].add(groupedEntityId);
+                });
+                viewStructure["groups"]["$entityId"] = Map.from(newGroup);
               }
             } else {
-              newGroup["entity_id"] = entityId;
-              newGroup["friendly_name"] =
-              (_entitiesData[entityId]['attributes'] != null)
-                  ? (_entitiesData[entityId]['attributes']['friendly_name'] ??
-                  "")
-                  : "";
-              newGroup["children"] = List<String>();
-              _entitiesData[entityId]["attributes"]["entity_id"].forEach((
-                  groupedEntityId) {
-                newGroup["children"].add(groupedEntityId);
-              });
-              viewGroupStructure["groups"]["$entityId"] = Map.from(newGroup);
+              TheLogger.log("Warning", "Unknown entity inside view: $entityId");
             }
           });
+          _uiStructure[viewId.split(".")[1]] = viewStructure;
+        } else {
+          TheLogger.log("Warning", "No state or attributes found for view: $viewId");
         }
-        _uiStructure[viewId.split(".")[1]] = viewGroupStructure;
+
       } catch (error) {
         TheLogger.log("Error","Error parsing view: $viewId");
       }
