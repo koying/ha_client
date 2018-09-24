@@ -250,7 +250,7 @@ class HassioDataModel {
     }
     List data = response["result"];
     TheLogger.log("Debug","Parsing ${data.length} Home Assistant entities");
-    List<String> uiGroups = [];
+    List<String> viewsList = [];
     data.forEach((entity) {
       try {
         var composedEntity = _parseEntity(entity);
@@ -258,7 +258,7 @@ class HassioDataModel {
         if (composedEntity["attributes"] != null) {
           if ((composedEntity["domain"] == "group") &&
               (composedEntity["attributes"]["view"] == true)) {
-            uiGroups.add(composedEntity["entity_id"]);
+            viewsList.add(composedEntity["entity_id"]);
           }
         }
         _entitiesData[entity["entity_id"]] = composedEntity;
@@ -270,7 +270,7 @@ class HassioDataModel {
     //Gethering information for UI
     TheLogger.log("Debug","Gethering views");
     int viewCounter = 0;
-    uiGroups.forEach((viewId) { //Each view
+    viewsList.forEach((viewId) { //Each view
       try {
         Map viewStructure = {};
         viewCounter += 1;

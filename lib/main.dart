@@ -242,8 +242,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               alignment: WrapAlignment.center,
               spacing: 10.0,
               runSpacing: 4.0,
-              //padding: new EdgeInsets.all(8.0),
-              //itemExtent: 40.0,
               children: _buildBadges(structure["badges"]["children"]),
             )
       );
@@ -639,57 +637,44 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  Scaffold _buildScaffold(bool empty) {
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: _buildAppTitle(),
+        bottom: empty ? null : TabBar(tabs: buildUIViewTabs()),
+      ),
+      drawer: _buildAppDrawer(),
+      body: empty ?
+        Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
+                  size: 100.0,
+                  color: _errorCodeToBeShown == 0 ? Colors.blue : Colors.redAccent,
+                ),
+              ]
+          ),
+        )
+        :
+        TabBarView(
+            children: _buildViews()
+        ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _checkShowInfo(context);
     // This method is rerun every time setState is called.
-    //
     if (_entitiesData == null) {
-      return new Scaffold(
-        key: _scaffoldKey,
-        appBar: new AppBar(
-          title: _buildAppTitle()
-        ),
-        drawer: _buildAppDrawer(),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              /*Padding(
-                padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
-                child: Text(
-                    _fetchErrorCode > 0 ? "Well... no.\n\nThere was an error [$_fetchErrorCode]: ${_getErrorMessageByCode(_fetchErrorCode, false)}" : "Loading...",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16.0),
-                ),
-              ),*/
-              Icon(
-                MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
-                size: 100.0,
-                color: _errorCodeToBeShown == 0 ? Colors.blue : Colors.redAccent,
-              ),
-            ]
-          ),
-        ),
-      );
+      return _buildScaffold(true);
     } else {
       return DefaultTabController(
           length: _uiViewsCount,
-          child: new Scaffold(
-            key: _scaffoldKey,
-            appBar: new AppBar(
-              // Here we take the value from the MyHomePage object that was created by
-              // the App.build method, and use it to set our appbar title.
-              title: _buildAppTitle(),
-              bottom: TabBar(
-                  tabs: buildUIViewTabs()
-              ),
-            ),
-            drawer: _buildAppDrawer(),
-            body: TabBarView(
-                children: _buildViews()
-            ),
-          )
+          child: _buildScaffold(false)
       );
     }
   }
