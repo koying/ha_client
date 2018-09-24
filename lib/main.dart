@@ -8,10 +8,12 @@ import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 part 'settingsPage.dart';
 part 'data_model.dart';
 part 'logPage.dart';
+part 'utils.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
@@ -537,6 +539,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             title: Text("Log"),
             onTap: () {
               Navigator.pushNamed(context, '/log-view');
+            },
+          ),
+          new ListTile(
+            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
+            title: Text("Reprot issue"),
+            onTap: () {
+              haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
             },
           ),
           new AboutListTile(
