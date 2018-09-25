@@ -11,48 +11,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 
-part 'settingsPage.dart';
-part 'data_model.dart';
-part 'logPage.dart';
-part 'utils.dart';
+part 'settings.page.dart';
+part 'data_provider.class.dart';
+part 'log.page.dart';
+part 'utils.class.dart';
+part 'mdi.class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
 const appVersion = "0.1.2";
 
 String homeAssistantWebHost;
-
-class TheLogger {
-
-  static List<String> _log = [];
-
-  static String getLog() {
-    String res = '';
-    _log.forEach((line) {
-      res += "$line\n";
-    });
-    return res;
-  }
-
-  static bool get isInDebugMode {
-    bool inDebugMode = false;
-
-    assert(inDebugMode = true);
-
-    return inDebugMode;
-  }
-
-  static void log(String level, String message) {
-    if (isInDebugMode) {
-      debugPrint('$message');
-    }
-    _log.add("[$level] :  $message");
-    if (_log.length > 50) {
-      _log.removeAt(0);
-    }
-  }
-
-}
 
 void main() {
   FlutterError.onError = (errorDetails) {
@@ -63,16 +32,13 @@ void main() {
   };
 
   runZoned(() {
-    runApp(new HassClientApp());
+    runApp(new HAClientApp());
   }, onError: (error, stack) {
     TheLogger.log("Global error", "$error");
   });
-
-
-
 }
 
-class HassClientApp extends StatelessWidget {
+class HAClientApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -101,7 +67,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
-  HassioDataModel _dataModel;
+  HADataProvider _dataModel;
   Map _entitiesData;
   Map _uiStructure;
   Map _instanceConfig;
@@ -167,7 +133,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _createConnection(String apiEndpoint, String apiPassword, String authType) {
-    _dataModel = HassioDataModel(apiEndpoint, apiPassword, authType);
+    _dataModel = HADataProvider(apiEndpoint, apiPassword, authType);
     _refreshData();
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
