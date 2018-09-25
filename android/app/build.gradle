@@ -39,8 +39,8 @@ android {
         applicationId "com.keyboardcrumbs.haclient"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 20
-        versionName "0.1.2-alpha"
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

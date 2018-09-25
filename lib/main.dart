@@ -17,7 +17,7 @@ part 'utils.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.1.2-alpha";
+const appVersion = "0.1.2";
 
 String homeAssistantWebHost;
 
