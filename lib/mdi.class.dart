@@ -14,7 +14,8 @@ class MaterialDesignIcons {
     "input_number": "mdi:ray-vertex",
     "input_select": "mdi:format-list-bulleted",
     "input_text": "mdi:textbox",
-    "sun": "mdi:white-balance-sunny"
+    "sun": "mdi:white-balance-sunny",
+    "scene": "mdi:google-pages"
   };
 
   static Map _defaultIconsByDeviceClass = {
