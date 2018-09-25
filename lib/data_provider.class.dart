@@ -296,18 +296,18 @@ class HADataProvider {
                   }
                 }
               } else {
-                newGroup["entity_id"] = entityId;
-                newGroup["friendly_name"] =
-                (cardOrEntityData['attributes'] != null)
-                    ? (cardOrEntityData['attributes']['friendly_name'] ??
-                    "")
-                    : "";
-                newGroup["children"] = List<String>();
-                cardOrEntityData["attributes"]["entity_id"].forEach((
-                    groupedEntityId) {
-                  newGroup["children"].add(groupedEntityId);
-                });
-                viewStructure["groups"]["$entityId"] = Map.from(newGroup);
+                if (cardOrEntityData["attributes"] != null) {
+                  newGroup["entity_id"] = entityId;
+                  newGroup["friendly_name"] = cardOrEntityData['attributes']['friendly_name'] ?? "";
+                  newGroup["children"] = List<String>();
+                  cardOrEntityData["attributes"]["entity_id"].forEach((
+                      groupedEntityId) {
+                    newGroup["children"].add(groupedEntityId);
+                  });
+                  viewStructure["groups"]["$entityId"] = Map.from(newGroup);
+                } else {
+                  TheLogger.log("Warning", "Group has no attributes to build a card: $entityId");
+                }
               }
             } else {
               TheLogger.log("Warning", "Unknown entity inside view: $entityId");
