@@ -113,7 +113,7 @@ class HassioDataModel {
 
   _handleMessage(Completer connectionCompleter, String message) {
     var data = json.decode(message);
-    TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
+    //TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
       _sendMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
@@ -191,7 +191,7 @@ class HassioDataModel {
   }
 
   void _handleEntityStateChange(Map eventData) {
-    TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
+    //TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
     if (eventData["new_state"] == null) {
       TheLogger.log("Error", "No new_state found");
     } else {
