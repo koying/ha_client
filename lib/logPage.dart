@@ -15,6 +15,7 @@ class _LogViewPageState extends State<LogViewPage> {
   String _hassioPassword = "";
   String _socketProtocol = "wss";
   String _authType = "access_token";
+  String _logData;
 
   @override
   void initState() {
@@ -23,7 +24,7 @@ class _LogViewPageState extends State<LogViewPage> {
   }
 
   _loadLog() async {
-    //
+    _logData = TheLogger.getLog();
   }
 
   @override
@@ -36,12 +37,28 @@ class _LogViewPageState extends State<LogViewPage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.content_copy),
+            onPressed: () {
+              Clipboard.setData(new ClipboardData(text: _logData));
+            },
+          ),
+          IconButton(
+            icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
+            onPressed: () {
+              String body = "```\n$_logData```";
+              String encodedBody = "${Uri.encodeFull(body)}";
+              haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new?body=$encodedBody");
+            },
+          ),
+        ],
       ),
       body: TextField(
         maxLines: null,
 
         controller: TextEditingController(
-            text: TheLogger.getLog()
+            text: _logData
         ),
       )
     );
