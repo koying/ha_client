@@ -15,7 +15,8 @@ class MaterialDesignIcons {
     "input_select": "mdi:format-list-bulleted",
     "input_text": "mdi:textbox",
     "sun": "mdi:white-balance-sunny",
-    "scene": "mdi:google-pages"
+    "scene": "mdi:google-pages",
+    "media_player": "mdi:cast"
   };
 
   static Map _defaultIconsByDeviceClass = {
