@@ -16,6 +16,8 @@ part 'data_provider.class.dart';
 part 'log.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
+part 'entity.class.dart';
+part 'entity_collection.class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
