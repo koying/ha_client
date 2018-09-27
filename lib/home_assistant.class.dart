@@ -1,35 +1,36 @@
 part of 'main.dart';
 
-class HADataProvider {
+class HomeAssistant {
   String _hassioAPIEndpoint;
   String _hassioPassword;
   String _hassioAuthType;
+
   IOWebSocketChannel _hassioChannel;
+
   int _currentMessageId = 0;
   int _statesMessageId = 0;
   int _servicesMessageId = 0;
   int _subscriptionMessageId = 0;
   int _configMessageId = 0;
-  Map _entitiesData = {};
-  Map _servicesData = {};
-  Map _uiStructure = {};
+  EntityCollection _entities;
   Map _instanceConfig = {};
+
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
   Completer _configCompleter;
   Timer _fetchingTimer;
-  List _topBadgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
 
-  Map get entities => _entitiesData;
-  Map get services => _servicesData;
-  Map get uiStructure => _uiStructure;
-  Map get instanceConfig => _instanceConfig;
+  String get locationName => _instanceConfig["location_name"] ?? "";
 
-  HADataProvider(String url, String password, String authType) {
+
+  EntityCollection get entities => _entities;
+
+  HomeAssistant(String url, String password, String authType) {
     _hassioAPIEndpoint = url;
     _hassioPassword = password;
     _hassioAuthType = authType;
+    _entities = EntityCollection();
   }
 
   Future fetch() {
@@ -179,19 +180,9 @@ class HADataProvider {
   }
 
   void _handleEntityStateChange(Map eventData) {
-    //TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
-    if (eventData["new_state"] == null) {
-      TheLogger.log("Error", "No new_state found");
-    } else {
-      var parsedEntityData = _parseEntity(eventData["new_state"]);
-      String entityId = parsedEntityData["entity_id"];
-      if (_entitiesData[entityId] == null) {
-        _entitiesData[entityId] = parsedEntityData;
-      } else {
-        _entitiesData[entityId].addAll(parsedEntityData);
-      }
-      eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
-    }
+    TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
+    _entities.updateState(eventData);
+    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
   }
 
   void _parseConfig(Map data) {
@@ -204,7 +195,8 @@ class HADataProvider {
   }
 
   void _parseServices(response) {
-    if (response["success"] == false) {
+    _servicesCompleter.complete();
+    /*if (response["success"] == false) {
       _servicesCompleter.completeError({"errorCode": 4, "errorMessage": response["error"]["message"]});
       return;
     }
@@ -215,7 +207,7 @@ class HADataProvider {
       data.forEach((domain, services) {
         result[domain] = Map.from(services);
         services.forEach((serviceName, serviceData) {
-          if (_entitiesData["$domain.$serviceName"] != null) {
+          if (_entitiesData.isExist("$domain.$serviceName")) {
             result[domain].remove(serviceName);
           }
         });
@@ -223,114 +215,18 @@ class HADataProvider {
       _servicesData = result;
       _servicesCompleter.complete();
     } catch (e) {
-      //TODO hadle it properly
       TheLogger.log("Error","Error parsing services. But they are not used :-)");
       _servicesCompleter.complete();
-    }
+    }*/
   }
 
   void _parseEntities(response) async {
-    _entitiesData.clear();
-    _uiStructure.clear();
     if (response["success"] == false) {
       _statesCompleter.completeError({"errorCode": 3, "errorMessage": response["error"]["message"]});
       return;
     }
-    List data = response["result"];
-    TheLogger.log("Debug","Parsing ${data.length} Home Assistant entities");
-    List<String> viewsList = [];
-    data.forEach((entity) {
-      try {
-        var composedEntity = _parseEntity(entity);
-
-        if (composedEntity["attributes"] != null) {
-          if ((composedEntity["domain"] == "group") &&
-              (composedEntity["attributes"]["view"] == true)) {
-            viewsList.add(composedEntity["entity_id"]);
-          }
-        }
-        _entitiesData[entity["entity_id"]] = composedEntity;
-      } catch (error) {
-        TheLogger.log("Error","Error parsing entity: ${entity['entity_id']}");
-      }
-    });
-
-    //Gethering information for UI
-    TheLogger.log("Debug","Gethering views");
-    int viewCounter = 0;
-    viewsList.forEach((viewId) { //Each view
-      try {
-        Map viewStructure = {};
-        viewCounter += 1;
-        var viewGroupData = _entitiesData[viewId];
-        if ((viewGroupData != null) && (viewGroupData["attributes"] != null)) {
-          viewStructure["groups"] = {};
-          viewStructure["state"] = "on";
-          viewStructure["entity_id"] = viewGroupData["entity_id"];
-          viewStructure["badges"] = {"children": []};
-          viewStructure["attributes"] = {
-              "icon": viewGroupData["attributes"]["icon"]
-            };
-
-          viewGroupData["attributes"]["entity_id"].forEach((
-              entityId) { //Each entity or group in view
-            Map newGroup = {};
-            if (_entitiesData[entityId] != null) {
-              Map cardOrEntityData = _entitiesData[entityId];
-              String domain = cardOrEntityData["domain"];
-              if (domain != "group") {
-                if (_topBadgeDomains.contains(domain)) {
-                  viewStructure["badges"]["children"].add(entityId);
-                } else {
-                  String autoGroupID = "$domain.$domain$viewCounter";
-                  if (viewStructure["groups"]["$autoGroupID"] == null) {
-                    newGroup["entity_id"] = "$domain.$domain$viewCounter";
-                    newGroup["friendly_name"] = "$domain";
-                    newGroup["children"] = [];
-                    newGroup["children"].add(entityId);
-                    viewStructure["groups"]["$autoGroupID"] =
-                        Map.from(newGroup);
-                  } else {
-                    viewStructure["groups"]["$autoGroupID"]["children"].add(
-                        entityId);
-                  }
-                }
-              } else {
-                if (cardOrEntityData["attributes"] != null) {
-                  newGroup["entity_id"] = entityId;
-                  newGroup["friendly_name"] = cardOrEntityData['attributes']['friendly_name'] ?? "";
-                  newGroup["children"] = List<String>();
-                  cardOrEntityData["attributes"]["entity_id"].forEach((
-                      groupedEntityId) {
-                    newGroup["children"].add(groupedEntityId);
-                  });
-                  viewStructure["groups"]["$entityId"] = Map.from(newGroup);
-                } else {
-                  TheLogger.log("Warning", "Group has no attributes to build a card: $entityId");
-                }
-              }
-            } else {
-              TheLogger.log("Warning", "Unknown entity inside view: $entityId");
-            }
-          });
-          _uiStructure[viewId.split(".")[1]] = viewStructure;
-        } else {
-          TheLogger.log("Warning", "No state or attributes found for view: $viewId");
-        }
-
-      } catch (error) {
-        TheLogger.log("Error","Error parsing view: $viewId");
-      }
-    });
+    _entities.parse(response["result"]);
     _statesCompleter.complete();
-  }
-
-  Map _parseEntity(rawData) {
-    var composedEntity = Map.from(rawData);
-    String entityDomain = rawData["entity_id"].split(".")[0];
-    composedEntity["display_name"] = "${rawData["attributes"]!=null ? rawData["attributes"]["friendly_name"] ?? rawData["attributes"]["name"] : "_"}";
-    composedEntity["domain"] = entityDomain;
-    return composedEntity;
   }
 
   Future callService(String domain, String service, String entity_id) {

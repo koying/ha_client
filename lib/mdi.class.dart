@@ -2868,30 +2868,26 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static Widget createIconFromEntityData(Map data, double size, Color color) {
-    if ((data["attributes"] != null) && (data["attributes"]["entity_picture"] != null)) {
+  static Widget createIconFromEntityData(Entity data, double size, Color color) {
+    if (data.entityPicture != null) {
       if (homeAssistantWebHost != null) {
         return CircleAvatar(
           backgroundColor: Colors.white,
           backgroundImage: CachedNetworkImageProvider(
-            "$homeAssistantWebHost${data["attributes"]["entity_picture"]}",
+            "$homeAssistantWebHost${data.entityPicture}",
           ),
         );
       } else {
         return Container(width: 0.0, height: 0.0);
       }
     } else {
-      String iconName = data["attributes"] != null
-          ? data["attributes"]["icon"]
-          : null;
+      String iconName = data.icon;
       int iconCode = 0;
-      if (iconName != null) {
+      if (iconName.length > 0) {
         iconCode = getIconCodeByIconName(iconName);
       } else {
-        iconCode = getDefaultIconByEntityId(data["entity_id"],
-            data["attributes"] != null
-                ? data["attributes"]["device_class"]
-                : null, data["state"]); //
+        iconCode = getDefaultIconByEntityId(data.entityId,
+            data.deviceClass, data.state); //
       }
       return Icon(
         IconData(iconCode, fontFamily: 'Material Design Icons'),

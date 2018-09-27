@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 
 part 'settings.page.dart';
-part 'data_provider.class.dart';
+part 'home_assistant.class.dart';
 part 'log.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
@@ -37,6 +37,9 @@ void main() {
     runApp(new HAClientApp());
   }, onError: (error, stack) {
     TheLogger.log("Global error", "$error");
+    if (TheLogger.isInDebugMode) {
+      debugPrint("$stack");
+    }
   });
 }
 
@@ -69,10 +72,10 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
-  HADataProvider _dataModel;
-  Map _entitiesData;
+  HomeAssistant _homeAssistant;
+  EntityCollection _entities;
   Map _uiStructure;
-  Map _instanceConfig;
+  //Map _instanceConfig;
   int _uiViewsCount = 0;
   String _instanceHost;
   int _errorCodeToBeShown = 0;
@@ -129,18 +132,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         _errorCodeToBeShown = 5;
       });
     } else {
-      if (_dataModel != null) _dataModel.closeConnection();
+      if (_homeAssistant != null) _homeAssistant.closeConnection();
       _createConnection(apiEndpoint, apiPassword, authType);
     }
   }
 
   _createConnection(String apiEndpoint, String apiPassword, String authType) {
-    _dataModel = HADataProvider(apiEndpoint, apiPassword, authType);
+    _homeAssistant = HomeAssistant(apiEndpoint, apiPassword, authType);
     _refreshData();
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
       setState(() {
-        _entitiesData = _dataModel.entities;
+        _entities = _homeAssistant.entities;
       });
     });
   }
@@ -150,12 +153,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _isLoading = true;
     });
     _errorCodeToBeShown = 0;
-    if (_dataModel != null) {
-      await _dataModel.fetch().then((result) {
+    if (_homeAssistant != null) {
+      await _homeAssistant.fetch().then((result) {
         setState(() {
-          _instanceConfig = _dataModel.instanceConfig;
-          _entitiesData = _dataModel.entities;
-          _uiStructure = _dataModel.uiStructure;
+          //_instanceConfig = _homeAssistant.instanceConfig;
+          _entities = _homeAssistant.entities;
+          _uiStructure = _entities.ui;
           _uiViewsCount = _uiStructure.length;
           _isLoading = false;
         });
@@ -177,7 +180,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     setState(() {
       _isLoading = true;
     });
-    _dataModel.callService(domain, service, entityId).then((r) {
+    _homeAssistant.callService(domain, service, entityId).then((r) {
       setState(() {
         _isLoading = false;
       });
@@ -186,7 +189,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Widget> _buildViews() {
     List<Widget> result = [];
-    if ((_entitiesData != null) && (_uiStructure != null)) {
+    if ((_entities != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
         result.add(
             RefreshIndicator(
@@ -229,7 +232,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   List<Widget> _buildBadges(List ids) {
     List<Widget> result = [];
     ids.forEach((entityId) {
-      var data = _entitiesData[entityId];
+      var data = _entities.get(entityId);
       if (data != null) {
         result.add(
           _buildSingleBadge(data)
@@ -239,14 +242,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return result;
   }
 
-  Widget _buildSingleBadge(data) {
+  Widget _buildSingleBadge(Entity data) {
     double iconSize = 26.0;
     Widget badgeIcon;
     String badgeTextValue;
-    Color iconColor = _badgeColors[data["domain"]] ?? _badgeColors["default"];
-    switch (data["domain"]) {
+    Color iconColor = _badgeColors[data.domain] ?? _badgeColors["default"];
+    switch (data.domain) {
       case "sun": {
-        badgeIcon = data["state"] == "below_horizon" ?
+        badgeIcon = data.state == "below_horizon" ?
           Icon(
             MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
             size: iconSize,
@@ -258,10 +261,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         break;
       }
       case "sensor": {
-        badgeTextValue = data["attributes"]["unit_of_measurement"];
+        badgeTextValue = data.unitOfMeasurement;
         badgeIcon = Center(
           child: Text(
-            "${data['state']}",
+            "${data.state}",
             overflow: TextOverflow.fade,
             softWrap: false,
             textAlign: TextAlign.center,
@@ -272,7 +275,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       }
       case "device_tracker": {
         badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, iconSize,Colors.black);
-        badgeTextValue = data["state"];
+        badgeTextValue = data.state;
         break;
       }
       default: {
@@ -337,7 +340,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         Container(
           width: 60.0,
           child: Text(
-            "${data['display_name']}",
+            "${data.displayName}",
             textAlign: TextAlign.center,
             softWrap: true,
             maxLines: 2,
@@ -378,14 +381,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   List<Widget> _buildCardBody(List ids) {
     List<Widget> entities = [];
     ids.forEach((id) {
-      var data = _entitiesData[id];
+      var data = _entities.get(id);
       if (data != null) {
         entities.add(new ListTile(
-          leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data["state"]] ?? Colors.blueGrey),
+          leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
           trailing: _buildEntityActionWidget(data),
           title: Text(
-            "${data["display_name"]}",
+            "${data.displayName}",
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
@@ -395,21 +398,23 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return entities;
   }
 
-  Widget _buildEntityActionWidget(data) {
-    String entityId = data["entity_id"];
+  Widget _buildEntityActionWidget(Entity entity) {
+    String entityId = entity.entityId;
     Widget result;
-    switch (data["domain"]) {
+    switch (entity.domain) {
       case "automation":
       case "switch":
       case "light": {
         result = Switch(
-          value: (data["state"] == "on"),
+          value: entity.isOn,
           onChanged: ((state) {
             _callService(
-                data["domain"], state ? "turn_on" : "turn_off", entityId);
-            setState(() {
-              _entitiesData[entityId]["state"] = state ? "on" : "off";
-            });
+                entity.domain, state ? "turn_on" : "turn_off", entityId
+            );
+            //TODO remove after checking if state will chenge without setState but after socket event
+            /*setState(() {
+              _entities[entityId]["state"] = state ? "on" : "off";
+            });*/
           }),
         );
         break;
@@ -421,7 +426,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           width: 60.0,
           child: FlatButton(
             onPressed: (() {
-              _callService(data["domain"], "turn_on", entityId);
+              _callService(entity.domain, "turn_on", entityId);
             }),
             child: Text(
               "Run",
@@ -437,7 +442,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         result = Padding(
           padding: EdgeInsets.fromLTRB(0.0, 0.0, 16.0, 0.0),
           child: Text(
-            "${data["state"]}${(data["attributes"] != null && data["attributes"]["unit_of_measurement"] != null) ? data["attributes"]["unit_of_measurement"] : ''}",
+            "${entity.state}${entity.unitOfMeasurement}",
             textAlign: TextAlign.right,
             style: new TextStyle(
               fontSize: 16.0,
@@ -457,11 +462,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
-    if ((_entitiesData != null) && (_uiStructure != null)) {
+    if ((_entities != null) && (_uiStructure != null)) {
       _uiStructure.forEach((viewId, structure) {
         result.add(
             Tab(
-                icon: MaterialDesignIcons.createIconFromEntityData(structure, 24.0, null)
+                icon: MaterialDesignIcons.createIconFromEntityData(_entities.get(viewId), 24.0, null)
             )
         );
       });
@@ -471,7 +476,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildAppTitle() {
     Row titleRow = Row(
-      children: [Text(_instanceConfig != null ? _instanceConfig["location_name"] : "")],
+      children: [Text(_homeAssistant != null ? _homeAssistant.locationName : "")],
     );
     if (_isLoading) {
       titleRow.children.add(Padding(
@@ -490,7 +495,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: ListView(
         children: <Widget>[
           new UserAccountsDrawerHeader(
-            accountName: Text(_instanceConfig != null ? _instanceConfig["location_name"] : "Unknown"),
+            accountName: Text(_homeAssistant != null ? _homeAssistant.locationName : "Unknown"),
             accountEmail: Text(_instanceHost ?? "Not configured"),
             currentAccountPicture: new Image.asset('images/hassio-192x192.png'),
           ),
@@ -638,7 +643,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     _checkShowInfo(context);
     // This method is rerun every time setState is called.
-    if (_entitiesData == null) {
+    if (_entities == null) {
       return _buildScaffold(true);
     } else {
       return DefaultTabController(
@@ -653,7 +658,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     if (_stateSubscription != null) _stateSubscription.cancel();
     if (_settingsSubscription != null) _settingsSubscription.cancel();
-    _dataModel.closeConnection();
+    _homeAssistant.closeConnection();
     super.dispose();
   }
 }
