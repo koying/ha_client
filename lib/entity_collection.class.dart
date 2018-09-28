@@ -10,6 +10,8 @@ class EntityCollection {
     viewList = [];
   }
 
+  bool get hasDefaultView => _entities["group.default_view"] != null;
+
   void parse(List rawData) {
     _entities.clear();
     viewList.clear();
@@ -53,6 +55,33 @@ class EntityCollection {
 
   bool isExist(String entityId) {
     return _entities[entityId] != null;
+  }
+
+  Map<String,List<String>> getDefaultViewTopLevelEntities() {
+    Map<String,List<String>> result = {"userGroups": [], "notGroupedEntities": []};
+    List<String> entities = [];
+    _entities.forEach((id, entity){
+      if ((id.indexOf("group.") == 0) && (id.indexOf(".all_") == -1) && (!entity.isView)) {
+        result["userGroups"].add(id);
+      }
+      if (!entity.isGroup) {
+        entities.add(id);
+      }
+    });
+
+    entities.forEach((entiyId) {
+      bool foundInGroup = false;
+      result["userGroups"].forEach((userGroupId) {
+        if (_entities[userGroupId].childEntities.contains(entiyId)) {
+          foundInGroup = true;
+        }
+      });
+      if (!foundInGroup) {
+        result["notGroupedEntities"].add(entiyId);
+      }
+    });
+
+    return result;
   }
 
 }

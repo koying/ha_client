@@ -214,8 +214,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       result.add(
         Wrap(
           alignment: WrapAlignment.center,
-          spacing: 12.0,
-          runSpacing: 4.0,
+          spacing: 10.0,
+          runSpacing: 1.0,
           children: _buildBadges(view.badges),
         )
       );
@@ -265,32 +265,32 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         badgeTextValue = data.unitOfMeasurement;
         badgeIcon = Center(
           child: Text(
-            "${data.state}",
+            "${data.state == 'unknown' ? '-' : data.state}",
             overflow: TextOverflow.fade,
             softWrap: false,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18.0),
+            style: TextStyle(fontSize: 17.0),
           ),
         );
         break;
       }
       case "device_tracker": {
-        badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, iconSize,Colors.black);
+        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(data, iconSize,Colors.black);
         badgeTextValue = data.state;
         break;
       }
       default: {
-       badgeIcon = MaterialDesignIcons.createIconFromEntityData(data, iconSize,Colors.black);
+       badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(data, iconSize,Colors.black);
       }
     }
     Widget badgeText;
-    if (badgeTextValue == null) {
+    if (badgeTextValue == null || badgeTextValue.length == 0) {
       badgeText = Container(width: 0.0, height: 0.0);
     } else {
       badgeText = Container(
           padding: EdgeInsets.fromLTRB(6.0, 2.0, 6.0, 2.0),
           child: Text("$badgeTextValue",
-              style: TextStyle(fontSize: 13.0, color: Colors.white),
+              style: TextStyle(fontSize: 12.0, color: Colors.white),
               textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.fade),
           decoration: new BoxDecoration(
             // Circle shape
@@ -329,8 +329,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               Positioned(
                 //width: 50.0,
                 bottom: -9.0,
-                left: -15.0,
-                right: -15.0,
+                left: -10.0,
+                right: -10.0,
                 child: Center(
                   child: badgeText,
                 )
@@ -343,8 +343,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           child: Text(
             "${data.displayName}",
             textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.0),
             softWrap: true,
-            maxLines: 2,
+            maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -386,7 +387,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       var data = _entities.get(id);
       if (data != null) {
         entities.add(new ListTile(
-          leading: MaterialDesignIcons.createIconFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
+          leading: MaterialDesignIcons.createIconWidgetFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
           trailing: _buildEntityActionWidget(data),
           title: Text(
@@ -468,7 +469,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _homeAssistant.uiBuilder.views.forEach((viewId, view) {
         result.add(
             Tab(
-                icon: MaterialDesignIcons.createIconFromEntityData(_entities.get(viewId), 24.0, null)
+                icon: MaterialDesignIcons.createIconWidgetFromEntityData(_entities.get(viewId), 24.0, null) ??
+                    Icon(
+                      MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
+                      size: 24.0,
+                    )
             )
         );
       });

@@ -2868,7 +2868,10 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static Widget createIconFromEntityData(Entity data, double size, Color color) {
+  static Widget createIconWidgetFromEntityData(Entity data, double size, Color color) {
+    if (data == null) {
+      return null;
+    }
     if (data.entityPicture != null) {
       if (homeAssistantWebHost != null) {
         return CircleAvatar(

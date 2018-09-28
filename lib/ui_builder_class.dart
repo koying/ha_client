@@ -19,7 +19,24 @@ class UIBuilder {
   void build(EntityCollection entitiesCollection) {
     _entities = entitiesCollection;
     _views.clear();
+    if (!_entities.hasDefaultView) {
+      _createDefaultView();
+    }
     _createViews(entitiesCollection.viewList);
+  }
+
+  void _createDefaultView() {
+    Map<String, List<String>> userGroupsList = _entities.getDefaultViewTopLevelEntities();
+    TheLogger.log("RESULT", "${userGroupsList["userGroups"]}");
+    TheLogger.log("RESULT", "${userGroupsList["notGroupedEntities"]}");
+    View view = View("group.default_view", 0);
+    userGroupsList["userGroups"].forEach((groupId){
+      view.add(_entities.get(groupId));
+    });
+    userGroupsList["notGroupedEntities"].forEach((entityId){
+      view.add(_entities.get(entityId));
+    });
+    _views["group.default_view"] = view;
   }
 
   void _createViews(List<String> viewsList) {
