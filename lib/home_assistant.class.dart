@@ -13,6 +13,7 @@ class HomeAssistant {
   int _subscriptionMessageId = 0;
   int _configMessageId = 0;
   EntityCollection _entities;
+  UIBuilder _uiBuilder;
   Map _instanceConfig = {};
 
   Completer _fetchCompleter;
@@ -22,7 +23,8 @@ class HomeAssistant {
   Timer _fetchingTimer;
 
   String get locationName => _instanceConfig["location_name"] ?? "";
-
+  int get viewsCount => _entities.viewList.length ?? 0;
+  UIBuilder get uiBuilder => _uiBuilder;
 
   EntityCollection get entities => _entities;
 
@@ -31,6 +33,7 @@ class HomeAssistant {
     _hassioPassword = password;
     _hassioAuthType = authType;
     _entities = EntityCollection();
+    _uiBuilder = UIBuilder();
   }
 
   Future fetch() {
@@ -226,6 +229,7 @@ class HomeAssistant {
       return;
     }
     _entities.parse(response["result"]);
+    _uiBuilder.build(_entities);
     _statesCompleter.complete();
   }
 

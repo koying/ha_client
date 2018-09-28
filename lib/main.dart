@@ -18,6 +18,10 @@ part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity.class.dart';
 part 'entity_collection.class.dart';
+part 'ui_builder_class.dart';
+part 'view_class.dart';
+part 'card_class.dart';
+part 'badge_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
@@ -74,7 +78,6 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   HomeAssistant _homeAssistant;
   EntityCollection _entities;
-  Map _uiStructure;
   //Map _instanceConfig;
   int _uiViewsCount = 0;
   String _instanceHost;
@@ -158,8 +161,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         setState(() {
           //_instanceConfig = _homeAssistant.instanceConfig;
           _entities = _homeAssistant.entities;
-          _uiStructure = _entities.ui;
-          _uiViewsCount = _uiStructure.length;
+          _uiViewsCount = _homeAssistant.viewsCount;
           _isLoading = false;
         });
       }).catchError((e) {
@@ -189,14 +191,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Widget> _buildViews() {
     List<Widget> result = [];
-    if ((_entities != null) && (_uiStructure != null)) {
-      _uiStructure.forEach((viewId, structure) {
+    if ((_entities != null) && (!_homeAssistant.uiBuilder.isEmpty)) {
+      _homeAssistant.uiBuilder.views.forEach((viewId, view) {
         result.add(
             RefreshIndicator(
               color: Colors.amber,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                children: _buildSingleView(structure),
+                children: _buildSingleView(view),
               ),
               onRefresh: () => _refreshData(),
             )
@@ -206,36 +208,35 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return result;
   }
 
-  List<Widget> _buildSingleView(structure) {
+  List<Widget> _buildSingleView(View view) {
     List<Widget> result = [];
-    if (structure["badges"]["children"].length > 0) {
+    if (view.isThereBadges) {
       result.add(
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 10.0,
               runSpacing: 4.0,
-              children: _buildBadges(structure["badges"]["children"]),
+              children: _buildBadges(view.badges),
             )
       );
 
     }
-    structure["groups"].forEach((id, group) {
-      if (group["children"].length > 0) {
-        result.add(_buildCard(
-            group["children"], group["friendly_name"].toString()));
+    view.cards.forEach((id, card) {
+      if (card.entities.isNotEmpty) {
+        result.add(_buildCard(card));
       }
     });
 
     return result;
   }
 
-  List<Widget> _buildBadges(List ids) {
+  List<Widget> _buildBadges( Map<String, Badge> badges) {
     List<Widget> result = [];
-    ids.forEach((entityId) {
-      var data = _entities.get(entityId);
-      if (data != null) {
+    badges.forEach((id, badge) {
+      var badgeEntity = _entities.get(id);
+      if (badgeEntity != null) {
         result.add(
-          _buildSingleBadge(data)
+          _buildSingleBadge(badgeEntity)
         );
       }
     });
@@ -351,12 +352,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  Card _buildCard(List ids, String name) {
+  Card _buildCard(HACard card) {
     List<Widget> body = [];
-    body.add(_buildCardHeader(name));
-    body.addAll(_buildCardBody(ids));
-    Card result =
-    Card(child: new Column(mainAxisSize: MainAxisSize.min, children: body));
+    body.add(_buildCardHeader(card.friendlyName));
+    body.addAll(_buildCardBody(card.entities));
+    Card result = Card(
+        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
+    );
     return result;
   }
 
@@ -462,8 +464,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
-    if ((_entities != null) && (_uiStructure != null)) {
-      _uiStructure.forEach((viewId, structure) {
+    if ((_entities != null) && (!_homeAssistant.uiBuilder.isEmpty)) {
+      _homeAssistant.uiBuilder.views.forEach((viewId, view) {
         result.add(
             Tab(
                 icon: MaterialDesignIcons.createIconFromEntityData(_entities.get(viewId), 24.0, null)
