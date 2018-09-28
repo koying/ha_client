@@ -15,25 +15,39 @@ class View {
     badges = {};
   }
 
-  void addBadge(String entityId) {
+  void add(Entity entity) {
+    if (!entity.isGroup) {
+      _addEntityWithoutGroup(entity);
+    } else {
+      _addCardWithEntities(entity);
+    }
+  }
+
+  void _addBadge(String entityId) {
     badges.addAll({entityId: Badge(entityId)});
   }
 
-  void addEntityWithoutGroup(Entity entity) {
-    String groupIdToAdd = "${entity.domain}.${entity.domain}$_count";
-    if (cards[groupIdToAdd] == null) {
-      addCard(groupIdToAdd, entity.domain);
+  void _addEntityWithoutGroup(Entity entity) {
+    if (UIBuilder.isBadge(entity.domain)) {
+      //This is badge
+      _addBadge(entity.entityId);
+    } else {
+      //This is a standalone entity
+      String groupIdToAdd = "${entity.domain}.${entity.domain}$_count";
+      if (cards[groupIdToAdd] == null) {
+        _addCard(groupIdToAdd, entity.domain);
+      }
+      cards[groupIdToAdd].addEntity(entity.entityId);
     }
-    cards[groupIdToAdd].addEntity(entity.entityId);
   }
 
-  void addCard(String entityId, String friendlyName) {
+  void _addCard(String entityId, String friendlyName) {
     cards.addAll({"$entityId": HACard(entityId, friendlyName)});
   }
 
-  void addCardWithEntities(String entityId, String friendlyName, List entities) {
-    cards.addAll({"$entityId": HACard(entityId, friendlyName)});
-    cards[entityId].addEntities(entities);
+  void _addCardWithEntities(Entity entity) {
+    cards.addAll({"${entity.entityId}": HACard(entity.entityId, entity.displayName)});
+    cards[entity.entityId].addEntities(entity.childEntities);
   }
 
 }

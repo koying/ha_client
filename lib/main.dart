@@ -212,12 +212,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     List<Widget> result = [];
     if (view.isThereBadges) {
       result.add(
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 10.0,
-              runSpacing: 4.0,
-              children: _buildBadges(view.badges),
-            )
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12.0,
+          runSpacing: 4.0,
+          children: _buildBadges(view.badges),
+        )
       );
 
     }

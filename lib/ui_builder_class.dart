@@ -3,13 +3,17 @@ part of 'main.dart';
 class UIBuilder {
   EntityCollection _entities;
   Map<String, View> _views;
-  List _topBadgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
+  static List badgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
 
   bool get isEmpty => _views.length == 0;
   Map<String, View> get views => _views ?? {};
 
   UIBuilder() {
     _views = {};
+  }
+
+  static bool isBadge(String domain) {
+    return badgeDomains.contains(domain);
   }
 
   void build(EntityCollection entitiesCollection) {
@@ -36,18 +40,7 @@ class UIBuilder {
         viewGroupEntity.childEntities.forEach((
               entityId) { //Each entity or group in view
           if (_entities.isExist(entityId)) {
-            Entity entityToAdd = _entities.get(entityId);
-            if (!entityToAdd.isGroup) {
-              if (_topBadgeDomains.contains(entityToAdd.domain)) {
-                //This is badge
-                view.addBadge(entityId);
-              } else {
-                //This is a standalone entity
-                view.addEntityWithoutGroup(entityToAdd);
-              }
-            } else {
-              view.addCardWithEntities(entityId, entityToAdd.displayName, entityToAdd.childEntities);
-            }
+            view.add(_entities.get(entityId));
           } else {
             TheLogger.log("Warning", "Unknown entity inside view: $entityId");
           }
