@@ -72,7 +72,7 @@ class Entity {
     eventBus.fire(new ShowEntityPageEvent(this));
   }
 
-  Widget buildWidget() {
+  Widget buildWidget(BuildContext context) {
     return SizedBox(
       height: Entity.WIDGET_HEIGHT,
       child: Row(
@@ -87,13 +87,13 @@ class Entity {
               onTap: openEntityPage,
             ),
           ),
-          _buildActionWidget()
+          _buildActionWidget(context)
         ],
       ),
     );
   }
 
-  Widget buildExtendedWidget(String staticState) {
+  Widget buildExtendedWidget(BuildContext context, String staticState) {
     return Row(
       children: <Widget>[
         _buildIconWidget(),
@@ -106,7 +106,7 @@ class Entity {
                   Expanded(
                     child: _buildNameWidget(),
                   ),
-                  _buildExtendedActionWidget(staticState)
+                  _buildExtendedActionWidget(context, staticState)
                 ],
               ),
               _buildLastUpdatedWidget()
@@ -149,7 +149,7 @@ class Entity {
     );
   }
 
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(BuildContext context) {
     return Padding(
         padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
         child: GestureDetector(
@@ -166,8 +166,8 @@ class Entity {
     );
   }
 
-  Widget _buildExtendedActionWidget(String staticState) {
-    return _buildActionWidget();
+  Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
+    return _buildActionWidget(context);
   }
 }
 
@@ -176,7 +176,7 @@ class SwitchEntity extends Entity {
   SwitchEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(BuildContext context) {
     return Switch(
       value: this.isOn,
       onChanged: ((switchState) {
@@ -192,7 +192,7 @@ class ButtonEntity extends Entity {
   ButtonEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(BuildContext context) {
     return FlatButton(
       onPressed: (() {
         eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
@@ -212,7 +212,7 @@ class InputEntity extends Entity {
   InputEntity(Map rawData) : super(rawData);
 
   @override
-  Widget buildExtendedWidget(String staticState) {
+  Widget buildExtendedWidget(BuildContext context, String staticState) {
     return Column(
       children: <Widget>[
         SizedBox(
@@ -229,14 +229,14 @@ class InputEntity extends Entity {
         ),
         SizedBox(
           height: Entity.EXTENDED_WIDGET_HEIGHT,
-          child: _buildExtendedActionWidget(staticState),
+          child: _buildExtendedActionWidget(context, staticState),
         )
       ],
     );
   }
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(BuildContext context) {
     if (this.isSliderField) {
       return Container(
         width: 200.0,
@@ -270,12 +270,12 @@ class InputEntity extends Entity {
         ),
       );
     } else {
-      return super._buildActionWidget();
+      return super._buildActionWidget(context);
     }
   }
 
   @override
-  Widget _buildExtendedActionWidget(String staticState) {
+  Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
     return Padding(
         padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
         child: Row(
@@ -297,6 +297,7 @@ class InputEntity extends Entity {
               child: FlatButton(
                 onPressed: () {
                   eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$staticState"}));
+                  Navigator.pop(context);
                 },
                 child: Text(
                     "SET",
