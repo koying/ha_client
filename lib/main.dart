@@ -589,7 +589,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           ),
           new ListTile(
             leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
-            title: Text("Reprot issue"),
+            title: Text("Report an issue"),
             onTap: () {
               Navigator.of(context).pop();
               haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
