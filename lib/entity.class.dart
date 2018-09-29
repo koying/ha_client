@@ -1,18 +1,24 @@
 part of 'main.dart';
 
 class Entity {
-  static Map<String, Color> stateIconColors = {
+  static const STATE_ICONS_COLORS = {
     "on": Colors.amber,
     "off": Color.fromRGBO(68, 115, 158, 1.0),
     "unavailable": Colors.black12,
     "unknown": Colors.black12,
     "playing": Colors.amber
   };
+  static const RIGTH_WIDGET_PADDING = 14.0;
+  static const LEFT_WIDGET_PADDING = 8.0;
+  static const EXTENDED_WIDGET_HEIGHT = 50.0;
+  static const WIDGET_HEIGHT = 34.0;
+
   Map _attributes;
   String _domain;
   String _entityId;
   String _state;
   String _entityPicture;
+  DateTime _lastUpdated;
 
   String get displayName => _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
   String get domain => _domain;
@@ -34,6 +40,7 @@ class Entity {
   String get entityPicture => _attributes["entity_picture"];
   String get unitOfMeasurement => _attributes["unit_of_measurement"] ?? "";
   List get childEntities => _attributes["entity_id"] ?? [];
+  String get lastUpdated => _getLastUpdatedFormatted();
 
   Entity(Map rawData) {
     update(rawData);
@@ -48,25 +55,34 @@ class Entity {
     _domain = rawData["entity_id"].split(".")[0];
     _entityId = rawData["entity_id"];
     _state = rawData["state"];
+    _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
+  }
+
+  String _getLastUpdatedFormatted() {
+    if (_lastUpdated == null) {
+      return "-";
+    } else {
+      return formatDate(_lastUpdated, [yy, '-', M, '-', d, ' ', HH, ':', nn, ':', ss]);
+    }
+  }
+
+  void openEntityPage() {
+    eventBus.fire(new ShowEntityPageEvent(this));
   }
 
   Widget buildWidget() {
     return SizedBox(
-      height: 34.0,
+      height: Entity.WIDGET_HEIGHT,
       child: Row(
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
-            child: MaterialDesignIcons.createIconWidgetFromEntityData(this, 28.0, Entity.stateIconColors[_state] ?? Colors.blueGrey),
+          GestureDetector(
+            child: _buildIconWidget(),
+            onTap: openEntityPage,
           ),
           Expanded(
-            child: Text(
-              "${this.displayName}",
-              overflow: TextOverflow.fade,
-              softWrap: false,
-              style: TextStyle(
-                  fontSize: 16.0
-              ),
+            child: GestureDetector(
+              child: _buildNameWidget(),
+              onTap: openEntityPage,
             ),
           ),
           _buildActionWidget()
@@ -75,17 +91,77 @@ class Entity {
     );
   }
 
+  Widget buildExtendedWidget() {
+    return Row(
+      children: <Widget>[
+        _buildIconWidget(),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildNameWidget(),
+                  ),
+                  _buildExtendedActionWidget()
+                ],
+              ),
+              _buildLastUpdatedWidget()
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildIconWidget() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
+      child: MaterialDesignIcons.createIconWidgetFromEntityData(this, 28.0, Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
+    );
+  }
+
+  Widget _buildLastUpdatedWidget() {
+    return Text(
+      '${this.lastUpdated}',
+      textAlign: TextAlign.left,
+      style: TextStyle(
+          fontSize: 12.0,
+          color: Colors.black26
+      ),
+    );
+  }
+
+  Widget _buildNameWidget() {
+    return Text(
+      "${this.displayName}",
+      overflow: TextOverflow.fade,
+      softWrap: false,
+      style: TextStyle(
+          fontSize: 16.0
+      ),
+    );
+  }
+
   Widget _buildActionWidget() {
     return Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, 14.0, 0.0),
-        child: Text(
-            "${_state}${this.unitOfMeasurement}",
-            textAlign: TextAlign.right,
-            style: new TextStyle(
-              fontSize: 16.0,
-            )
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
+        child: GestureDetector(
+          child: Text(
+              "$_state${this.unitOfMeasurement}",
+              textAlign: TextAlign.right,
+              style: new TextStyle(
+                fontSize: 16.0,
+              )
+          ),
+          onTap: openEntityPage,
         )
     );
+  }
+
+  Widget _buildExtendedActionWidget() {
+    return _buildActionWidget();
   }
 }
 
@@ -130,6 +206,30 @@ class InputEntity extends Entity {
   InputEntity(Map rawData) : super(rawData);
 
   @override
+  Widget buildExtendedWidget() {
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: Entity.EXTENDED_WIDGET_HEIGHT,
+          child: Row(
+            children: <Widget>[
+              _buildIconWidget(),
+              Expanded(
+                child: _buildNameWidget(),
+              ),
+              _buildLastUpdatedWidget()
+            ],
+          ),
+        ),
+        SizedBox(
+          height: Entity.EXTENDED_WIDGET_HEIGHT,
+          child: _buildExtendedActionWidget(),
+        )
+      ],
+    );
+  }
+
+  @override
   Widget _buildActionWidget() {
     if (this.isSlider) {
       return Container(
@@ -146,7 +246,7 @@ class InputEntity extends Entity {
                   eventBus.fire(new StateChangedEvent(_entityId, (value.roundToDouble() / 10).toString(), true));
                 },
                 onChangeEnd: (value) {
-                  eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "${_state}"}));
+                  eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$_state"}));
                 },
               ),
             ),
@@ -164,9 +264,25 @@ class InputEntity extends Entity {
         ),
       );
     } else {
-      //TODO draw box instead of slider
-      return Text("Not implemented");
+      return super._buildActionWidget();
     }
+  }
+
+  @override
+  Widget _buildExtendedActionWidget() {
+    return Padding(
+        padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
+        child: Container(
+          child: TextField(
+            controller: TextEditingController(
+                text: _state,
+            ),
+            onChanged: (value) {
+              eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$value"}));
+            },
+          ),
+        )
+    );
   }
 
 }

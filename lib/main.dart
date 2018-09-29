@@ -10,10 +10,12 @@ import 'package:flutter/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
+import 'package:date_format/date_format.dart';
 
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
+part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity.class.dart';
@@ -86,6 +88,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
+  StreamSubscription _showEntityPageSubscription;
   bool _isLoading = true;
 
   Map<String, Color> _badgeColors = {
@@ -152,6 +155,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _serviceCallSubscription = eventBus.on<ServiceCallEvent>().listen((event) {
       _callService(event.domain, event.service, event.entityId, event.additionalParams);
     });
+
+    if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
+    _showEntityPageSubscription = eventBus.on<ShowEntityPageEvent>().listen((event) {
+      _showEntityPage(event.entity);
+    });
   }
 
   _refreshData() async {
@@ -190,6 +198,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         _isLoading = false;
       });
     }).catchError((e) => _setErrorState(e));
+  }
+
+  void _showEntityPage(Entity entity) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EntityViewPage(entity: entity),
+        )
+    );
   }
 
   List<Widget> _buildViews() {
@@ -602,6 +619,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_stateSubscription != null) _stateSubscription.cancel();
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
+    if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
     _homeAssistant.closeConnection();
     super.dispose();
   }

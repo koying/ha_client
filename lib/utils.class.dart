@@ -64,3 +64,9 @@ class ServiceCallEvent {
 
   ServiceCallEvent(this.domain, this.service, this.entityId, this.additionalParams);
 }
+
+class ShowEntityPageEvent {
+  Entity entity;
+
+  ShowEntityPageEvent(this.entity);
+}

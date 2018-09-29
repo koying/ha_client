@@ -10,11 +10,6 @@ class LogViewPage extends StatefulWidget {
 }
 
 class _LogViewPageState extends State<LogViewPage> {
-  String _hassioDomain = "";
-  String _hassioPort = "8123";
-  String _hassioPassword = "";
-  String _socketProtocol = "wss";
-  String _authType = "access_token";
   String _logData;
 
   @override
