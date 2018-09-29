@@ -51,10 +51,6 @@ class Entity {
     update(rawData);
   }
 
-  int getValueDivisions() {
-    return ((maxValue - minValue)/valueStep).round().round();
-  }
-
   void update(Map rawData) {
     _attributes = rawData["attributes"] ?? {};
     _domain = rawData["entity_id"].split(".")[0];
@@ -250,9 +246,8 @@ class InputEntity extends Entity {
                 min: this.minValue*10,
                 max: this.maxValue*10,
                 value: (this.doubleState <= this.maxValue) && (this.doubleState >= this.minValue) ? this.doubleState*10 : this.minValue*10,
-                //divisions: this.getValueDivisions(),
                 onChanged: (value) {
-                  eventBus.fire(new StateChangedEvent(_entityId, ((value / 10).roundToDouble()).toString(), true));
+                  eventBus.fire(new StateChangedEvent(_entityId, (value.roundToDouble() / 10).toString(), true));
                 },
                 onChangeEnd: (value) {
                   eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$_state"}));
