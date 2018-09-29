@@ -28,9 +28,9 @@ class EntityCollection {
 
   void updateState(Map rawStateData) {
     if (isExist(rawStateData["entity_id"])) {
-      updateFromRaw(rawStateData["new_state"]);
+      updateFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
     } else {
-      addFromRaw(rawStateData["new_state"]);
+      addFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
     }
   }
 
