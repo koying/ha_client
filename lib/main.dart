@@ -432,6 +432,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     Widget result;
     switch (entity.domain) {
       case "automation":
+      case "input_boolean":
       case "switch":
       case "light": {
         result = Switch(
