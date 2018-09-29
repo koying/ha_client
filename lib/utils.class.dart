@@ -44,12 +44,23 @@ class haUtils {
 
 class StateChangedEvent {
   String entityId;
+  String newState;
+  bool setToCollection;
 
-  StateChangedEvent(this.entityId);
+  StateChangedEvent(this.entityId, this.newState, this.setToCollection);
 }
 
 class SettingsChangedEvent {
   bool reconnect;
 
   SettingsChangedEvent(this.reconnect);
+}
+
+class ServiceCallEvent {
+  String domain;
+  String service;
+  String entityId;
+  Map<String, String> additionalParams;
+
+  ServiceCallEvent(this.domain, this.service, this.entityId, this.additionalParams);
 }

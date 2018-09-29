@@ -85,14 +85,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   String _lastErrorMessage = "";
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
+  StreamSubscription _serviceCallSubscription;
   bool _isLoading = true;
-  Map<String, Color> _stateIconColors = {
-    "on": Colors.amber,
-    "off": Color.fromRGBO(68, 115, 158, 1.0),
-    "unavailable": Colors.black12,
-    "unknown": Colors.black12,
-    "playing": Colors.amber
-  };
+
   Map<String, Color> _badgeColors = {
     "default": Color.fromRGBO(223, 76, 30, 1.0),
     "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
@@ -146,8 +141,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
       setState(() {
-        _entities = _homeAssistant.entities;
+        if (event.setToCollection) {
+          _entities
+              .get(event.entityId)
+              .state = event.newState;
+        }
       });
+    });
+    if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
+    _serviceCallSubscription = eventBus.on<ServiceCallEvent>().listen((event) {
+      _callService(event.domain, event.service, event.entityId, event.additionalParams);
     });
   }
 
@@ -384,149 +387,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   List<Widget> _buildCardBody(List ids) {
     List<Widget> entities = [];
     ids.forEach((id) {
-      var data = _entities.get(id);
-      if (data != null) {
+      var entity = _entities.get(id);
+      if (entity != null) {
         entities.add(
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: SizedBox(
-              height: 34.0,
-              child: Row(
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
-                    child: MaterialDesignIcons.createIconWidgetFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "${data.displayName}",
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
-                      style: TextStyle(
-                        fontSize: 16.0
-                      ),
-                    ),
-                  ),
-                  _buildEntityActionWidget(data)
-                ],
-              ),
-            ),
-          )
-          /*new ListTile(
-          leading: MaterialDesignIcons.createIconWidgetFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
-          //subtitle: Text("${data['entity_id']}"),
-          trailing: _buildEntityActionWidget(data),
-          title: Text(
-            "${data.displayName}",
-            overflow: TextOverflow.fade,
-            softWrap: false,
-          ),
-        )*/);
+            child: entity.buildWidget(),
+          ));
       }
     });
     return entities;
-  }
-
-  Widget _buildEntityActionWidget(Entity entity) {
-    String entityId = entity.entityId;
-    Widget result;
-    switch (entity.domain) {
-      case "automation":
-      case "input_boolean":
-      case "switch":
-      case "light": {
-        result = Switch(
-          value: entity.isOn,
-          onChanged: ((state) {
-            _callService(
-                entity.domain, state ? "turn_on" : "turn_off", entityId, null
-            );
-            //TODO remove after checking if state will chenge without setState but after socket event
-            /*setState(() {
-              _entities[entityId]["state"] = state ? "on" : "off";
-            });*/
-          }),
-        );
-        break;
-      }
-
-      case "script":
-      case "scene": {
-        result = FlatButton(
-          onPressed: (() {
-            _callService(entity.domain, "turn_on", entityId, null);
-          }),
-          child: Text(
-            "EXECUTE",
-            textAlign: TextAlign.right,
-            style: new TextStyle(fontSize: 16.0, color: Colors.blue),
-          ),
-        );
-        break;
-      }
-
-      case "input_number": {
-        if (entity.isSlider) {
-          result = Container(
-            width: 200.0,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Slider(
-                    min: entity.minValue*10,
-                    max: entity.maxValue*10,
-                    value: entity.doubleState*10,
-                    divisions: entity.getValueDivisions(),
-                    onChanged: (value) {
-                      setState(() {
-                        entity.state = (value.roundToDouble() / 10).toString();
-                      });
-                    },
-                    onChangeEnd: (value) {
-                      _callService(entity.domain, "set_value", entityId,
-                          {"value": "${entity.state}"});
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: 16.0),
-                  child: Text(
-                      "${entity.state}${entity.unitOfMeasurement}",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        fontSize: 16.0,
-                      )
-                  ),
-                )
-              ],
-            ),
-          );
-        } else {
-          //TODO draw box instead of slider
-        }
-        break;
-      }
-
-      default: {
-        result = Padding(
-          padding: EdgeInsets.fromLTRB(0.0, 0.0, 14.0, 0.0),
-          child: Text(
-            "${entity.state}${entity.unitOfMeasurement}",
-            textAlign: TextAlign.right,
-            style: new TextStyle(
-              fontSize: 16.0,
-            )
-          )
-        );
-      }
-    }
-
-    /*return SizedBox(
-      width: 60.0,
-      // height: double.infinity,
-      child: result
-    );*/
-    return result;
   }
 
   List<Tab> buildUIViewTabs() {
@@ -731,6 +601,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     if (_stateSubscription != null) _stateSubscription.cancel();
     if (_settingsSubscription != null) _settingsSubscription.cancel();
+    if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     _homeAssistant.closeConnection();
     super.dispose();
   }

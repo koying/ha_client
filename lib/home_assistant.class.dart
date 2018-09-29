@@ -185,7 +185,7 @@ class HomeAssistant {
   void _handleEntityStateChange(Map eventData) {
     TheLogger.log("Debug", "Parsing new state for ${eventData['entity_id']}");
     _entities.updateState(eventData);
-    eventBus.fire(new StateChangedEvent(eventData["entity_id"]));
+    eventBus.fire(new StateChangedEvent(eventData["entity_id"], null, false));
   }
 
   void _parseConfig(Map data) {

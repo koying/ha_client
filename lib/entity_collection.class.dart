@@ -26,6 +26,30 @@ class EntityCollection {
     });
   }
 
+  Entity _createEntityInstance(rawEntityData) {
+    switch (rawEntityData["entity_id"].split(".")[0]) {
+      case "automation":
+      case "input_boolean ":
+      case "switch":
+      case "light": {
+        return SwitchEntity(rawEntityData);
+      }
+
+      case "script":
+      case "scene": {
+        return ButtonEntity(rawEntityData);
+      }
+
+      case "input_number": {
+        return InputEntity(rawEntityData);
+      }
+
+      default: {
+        return Entity(rawEntityData);
+      }
+    }
+  }
+
   void updateState(Map rawStateData) {
     if (isExist(rawStateData["entity_id"])) {
       updateFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
@@ -39,7 +63,7 @@ class EntityCollection {
   }
 
   Entity addFromRaw(Map rawEntityData) {
-    Entity entity = Entity(rawEntityData);
+    Entity entity = _createEntityInstance(rawEntityData);
     _entities[entity.entityId] = entity;
     return entity;
   }
