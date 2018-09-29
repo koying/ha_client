@@ -30,7 +30,9 @@ class Entity {
   double get maxValue => _attributes["max"] ?? 100.0;
   double get valueStep => _attributes["step"] ?? 1.0;
   double get doubleState => double.tryParse(_state) ?? 0.0;
-  bool get isSlider => _attributes["mode"] == "slider";
+  bool get isSliderField => _attributes["mode"] == "slider";
+  bool get isTextField => _attributes["mode"] == "text";
+  bool get isPasswordField => _attributes["mode"] == "password";
 
   String get deviceClass => _attributes["device_class"] ?? null;
   bool get isView => (_domain == "group") && (_attributes != null ? _attributes["view"] ?? false : false);
@@ -91,7 +93,7 @@ class Entity {
     );
   }
 
-  Widget buildExtendedWidget() {
+  Widget buildExtendedWidget(String staticState) {
     return Row(
       children: <Widget>[
         _buildIconWidget(),
@@ -104,7 +106,7 @@ class Entity {
                   Expanded(
                     child: _buildNameWidget(),
                   ),
-                  _buildExtendedActionWidget()
+                  _buildExtendedActionWidget(staticState)
                 ],
               ),
               _buildLastUpdatedWidget()
@@ -149,6 +151,7 @@ class Entity {
         padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
         child: GestureDetector(
           child: Text(
+              this.isPasswordField ? "******" :
               "$_state${this.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
@@ -160,7 +163,7 @@ class Entity {
     );
   }
 
-  Widget _buildExtendedActionWidget() {
+  Widget _buildExtendedActionWidget(String staticState) {
     return _buildActionWidget();
   }
 }
@@ -206,7 +209,7 @@ class InputEntity extends Entity {
   InputEntity(Map rawData) : super(rawData);
 
   @override
-  Widget buildExtendedWidget() {
+  Widget buildExtendedWidget(String staticState) {
     return Column(
       children: <Widget>[
         SizedBox(
@@ -223,7 +226,7 @@ class InputEntity extends Entity {
         ),
         SizedBox(
           height: Entity.EXTENDED_WIDGET_HEIGHT,
-          child: _buildExtendedActionWidget(),
+          child: _buildExtendedActionWidget(staticState),
         )
       ],
     );
@@ -231,7 +234,7 @@ class InputEntity extends Entity {
 
   @override
   Widget _buildActionWidget() {
-    if (this.isSlider) {
+    if (this.isSliderField) {
       return Container(
         width: 200.0,
         child: Row(
@@ -240,7 +243,7 @@ class InputEntity extends Entity {
               child: Slider(
                 min: this.minValue*10,
                 max: this.maxValue*10,
-                value: this.doubleState*10,
+                value: (this.doubleState <= this.maxValue) && (this.doubleState >= this.minValue) ? this.doubleState*10 : this.minValue*10,
                 divisions: this.getValueDivisions(),
                 onChanged: (value) {
                   eventBus.fire(new StateChangedEvent(_entityId, (value.roundToDouble() / 10).toString(), true));
@@ -269,18 +272,37 @@ class InputEntity extends Entity {
   }
 
   @override
-  Widget _buildExtendedActionWidget() {
+  Widget _buildExtendedActionWidget(String staticState) {
     return Padding(
         padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
-        child: Container(
-          child: TextField(
-            controller: TextEditingController(
-                text: _state,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: TextField(
+                obscureText: this.isPasswordField,
+                controller: TextEditingController(
+                  text: staticState,
+                ),
+                onChanged: (value) {
+                  staticState = value;
+                },
+              ),
             ),
-            onChanged: (value) {
-              eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$value"}));
-            },
-          ),
+            SizedBox(
+              width: 63.0,
+              child: FlatButton(
+                onPressed: () {
+                  eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$staticState"}));
+                },
+                child: Text(
+                    "SET",
+                    textAlign: TextAlign.right,
+                  style: new TextStyle(fontSize: 16.0, color: Colors.blue),
+                ),
+              ),
+            )
+          ],
         )
     );
   }

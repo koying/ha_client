@@ -12,11 +12,13 @@ class EntityViewPage extends StatefulWidget {
 class _EntityViewPageState extends State<EntityViewPage> {
   String _title;
   Entity _entity;
+  String _lastState;
 
   @override
   void initState() {
     super.initState();
     _entity = widget.entity;
+    _lastState = _entity.state;
     _prepareData();
   }
 
@@ -39,7 +41,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
           padding: EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
-              _entity.buildExtendedWidget()
+              _entity.buildExtendedWidget(_lastState)
             ],
           ),
       ),
