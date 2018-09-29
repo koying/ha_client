@@ -178,11 +178,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
   }
 
-  void _callService(String domain, String service, String entityId) {
+  void _callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
     setState(() {
       _isLoading = true;
     });
-    _homeAssistant.callService(domain, service, entityId).then((r) {
+    _homeAssistant.callService(domain, service, entityId, additionalParams).then((r) {
       setState(() {
         _isLoading = false;
       });
@@ -386,7 +386,33 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     ids.forEach((id) {
       var data = _entities.get(id);
       if (data != null) {
-        entities.add(new ListTile(
+        entities.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+            child: SizedBox(
+              height: 34.0,
+              child: Row(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
+                    child: MaterialDesignIcons.createIconWidgetFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "${data.displayName}",
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontSize: 16.0
+                      ),
+                    ),
+                  ),
+                  _buildEntityActionWidget(data)
+                ],
+              ),
+            ),
+          )
+          /*new ListTile(
           leading: MaterialDesignIcons.createIconWidgetFromEntityData(data, 28.0, _stateIconColors[data.state] ?? Colors.blueGrey),
           //subtitle: Text("${data['entity_id']}"),
           trailing: _buildEntityActionWidget(data),
@@ -395,7 +421,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
-        ));
+        )*/);
       }
     });
     return entities;
@@ -412,7 +438,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           value: entity.isOn,
           onChanged: ((state) {
             _callService(
-                entity.domain, state ? "turn_on" : "turn_off", entityId
+                entity.domain, state ? "turn_on" : "turn_off", entityId, null
             );
             //TODO remove after checking if state will chenge without setState but after socket event
             /*setState(() {
@@ -425,25 +451,64 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
       case "script":
       case "scene": {
-        result = SizedBox(
-          width: 60.0,
-          child: FlatButton(
-            onPressed: (() {
-              _callService(entity.domain, "turn_on", entityId);
-            }),
-            child: Text(
-              "Run",
-              textAlign: TextAlign.right,
-              style: new TextStyle(fontSize: 16.0, color: Colors.blue),
-            ),
-          )
+        result = FlatButton(
+          onPressed: (() {
+            _callService(entity.domain, "turn_on", entityId, null);
+          }),
+          child: Text(
+            "EXECUTE",
+            textAlign: TextAlign.right,
+            style: new TextStyle(fontSize: 16.0, color: Colors.blue),
+          ),
         );
+        break;
+      }
+
+      case "input_number": {
+        if (entity.isSlider) {
+          result = Container(
+            width: 200.0,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Slider(
+                    min: entity.minValue*10,
+                    max: entity.maxValue*10,
+                    value: entity.doubleState*10,
+                    divisions: entity.getValueDivisions(),
+                    onChanged: (value) {
+                      setState(() {
+                        entity.state = (value.roundToDouble() / 10).toString();
+                      });
+                    },
+                    onChangeEnd: (value) {
+                      _callService(entity.domain, "set_value", entityId,
+                          {"value": "${entity.state}"});
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: Text(
+                      "${entity.state}${entity.unitOfMeasurement}",
+                      textAlign: TextAlign.right,
+                      style: new TextStyle(
+                        fontSize: 16.0,
+                      )
+                  ),
+                )
+              ],
+            ),
+          );
+        } else {
+          //TODO draw box instead of slider
+        }
         break;
       }
 
       default: {
         result = Padding(
-          padding: EdgeInsets.fromLTRB(0.0, 0.0, 16.0, 0.0),
+          padding: EdgeInsets.fromLTRB(0.0, 0.0, 14.0, 0.0),
           child: Text(
             "${entity.state}${entity.unitOfMeasurement}",
             textAlign: TextAlign.right,

@@ -11,6 +11,14 @@ class Entity {
   String get domain => _domain;
   String get entityId => _entityId;
   String get state => _state;
+  set state(value) => _state = value;
+
+  double get minValue => _attributes["min"] ?? 0.0;
+  double get maxValue => _attributes["max"] ?? 100.0;
+  double get valueStep => _attributes["step"] ?? 1.0;
+  double get doubleState => double.tryParse(_state) ?? 0.0;
+  bool get isSlider => _attributes["mode"] == "slider";
+
   String get deviceClass => _attributes["device_class"] ?? null;
   bool get isView => (_domain == "group") && (_attributes != null ? _attributes["view"] ?? false : false);
   bool get isGroup => _domain == "group";
@@ -22,6 +30,10 @@ class Entity {
 
   Entity(Map rawData) {
     update(rawData);
+  }
+
+  int getValueDivisions() {
+    return ((maxValue - minValue)/valueStep).round().round();
   }
 
   void update(Map rawData) {

@@ -233,7 +233,7 @@ class HomeAssistant {
     _statesCompleter.complete();
   }
 
-  Future callService(String domain, String service, String entity_id) {
+  Future callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
     var sendCompleter = Completer();
     //TODO: Send service call timeout timer. Should be removed after #21 fix
     Timer _sendTimer = Timer(Duration(seconds: 7), () {
@@ -241,7 +241,14 @@ class HomeAssistant {
     });
     _reConnectSocket().then((r) {
       _incrementMessageId();
-      _sendMessageRaw('{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entity_id"}}');
+      String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
+      if (additionalParams != null) {
+        additionalParams.forEach((name, value){
+          message += ', "$name" : "$value"';
+        });
+      }
+      message += '}}';
+      _sendMessageRaw(message);
       _sendTimer.cancel();
       sendCompleter.complete();
     }).catchError((e){
