@@ -136,12 +136,15 @@ class Entity {
   }
 
   Widget _buildNameWidget() {
-    return Text(
-      "${this.displayName}",
-      overflow: TextOverflow.fade,
-      softWrap: false,
-      style: TextStyle(
-          fontSize: 16.0
+    return Padding(
+      padding: EdgeInsets.only(right: 10.0),
+      child: Text(
+        "${this.displayName}",
+        overflow: TextOverflow.ellipsis,
+        softWrap: false,
+        style: TextStyle(
+            fontSize: 16.0
+        ),
       ),
     );
   }
