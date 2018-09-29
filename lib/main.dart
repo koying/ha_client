@@ -144,7 +144,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
       setState(() {
-        if (event.setToCollection) {
+        if (event.localChange) {
           _entities
               .get(event.entityId)
               .state = event.newState;

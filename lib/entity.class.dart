@@ -256,7 +256,7 @@ class InputEntity extends Entity {
             Padding(
               padding: EdgeInsets.only(right: 16.0),
               child: Text(
-                  "${_state}${this.unitOfMeasurement}",
+                  "$_state${this.unitOfMeasurement}",
                   textAlign: TextAlign.right,
                   style: new TextStyle(
                     fontSize: 16.0,

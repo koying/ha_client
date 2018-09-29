@@ -13,12 +13,21 @@ class _EntityViewPageState extends State<EntityViewPage> {
   String _title;
   Entity _entity;
   String _lastState;
+  StreamSubscription _stateSubscription;
 
   @override
   void initState() {
     super.initState();
     _entity = widget.entity;
     _lastState = _entity.state;
+    if (_stateSubscription != null) _stateSubscription.cancel();
+    _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
+      setState(() {
+        if (event.entityId == _entity.entityId) {
+          _lastState = event.newState ?? _entity.state;
+        }
+      });
+    });
     _prepareData();
   }
 
@@ -46,5 +55,11 @@ class _EntityViewPageState extends State<EntityViewPage> {
           ),
       ),
     );
+  }
+
+  @override
+  void dispose(){
+    if (_stateSubscription != null) _stateSubscription.cancel();
+    super.dispose();
   }
 }

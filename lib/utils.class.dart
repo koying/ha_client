@@ -45,9 +45,9 @@ class haUtils {
 class StateChangedEvent {
   String entityId;
   String newState;
-  bool setToCollection;
+  bool localChange;
 
-  StateChangedEvent(this.entityId, this.newState, this.setToCollection);
+  StateChangedEvent(this.entityId, this.newState, this.localChange);
 }
 
 class SettingsChangedEvent {
