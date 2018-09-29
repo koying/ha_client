@@ -2875,6 +2875,7 @@ class MaterialDesignIcons {
     if (data.entityPicture != null) {
       if (homeAssistantWebHost != null) {
         return CircleAvatar(
+          radius: size/2,
           backgroundColor: Colors.white,
           backgroundImage: CachedNetworkImageProvider(
             "$homeAssistantWebHost${data.entityPicture}",

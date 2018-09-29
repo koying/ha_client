@@ -8,16 +8,19 @@ class Entity {
     "unknown": Colors.black12,
     "playing": Colors.amber
   };
-  static const RIGTH_WIDGET_PADDING = 14.0;
+  static const RIGHT_WIDGET_PADDING = 14.0;
   static const LEFT_WIDGET_PADDING = 8.0;
   static const EXTENDED_WIDGET_HEIGHT = 50.0;
   static const WIDGET_HEIGHT = 34.0;
+  static const ICON_SIZE = 28.0;
+  static const STATE_FONT_SIZE = 16.0;
+  static const NAME_FONT_SIZE = 16.0;
+  static const SMALL_FONT_SIZE = 12.0;
 
   Map _attributes;
   String _domain;
   String _entityId;
   String _state;
-  String _entityPicture;
   DateTime _lastUpdated;
 
   String get displayName => _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
@@ -72,28 +75,28 @@ class Entity {
     eventBus.fire(new ShowEntityPageEvent(this));
   }
 
-  Widget buildWidget(BuildContext context) {
+  Widget buildWidget(GlobalKey<FormState> formKey, bool tapAction) {
     return SizedBox(
       height: Entity.WIDGET_HEIGHT,
       child: Row(
         children: <Widget>[
           GestureDetector(
             child: _buildIconWidget(),
-            onTap: openEntityPage,
+            onTap: tapAction ? openEntityPage : null,
           ),
           Expanded(
             child: GestureDetector(
               child: _buildNameWidget(),
-              onTap: openEntityPage,
+              onTap: tapAction ? openEntityPage : null,
             ),
           ),
-          _buildActionWidget(context)
+          _buildActionWidget()
         ],
       ),
     );
   }
 
-  Widget buildExtendedWidget(BuildContext context, String staticState) {
+  /*Widget buildExtendedWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
     return Row(
       children: <Widget>[
         _buildIconWidget(),
@@ -115,12 +118,12 @@ class Entity {
         )
       ],
     );
-  }
+  }*/
 
   Widget _buildIconWidget() {
     return Padding(
       padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
-      child: MaterialDesignIcons.createIconWidgetFromEntityData(this, 28.0, Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
+      child: MaterialDesignIcons.createIconWidgetFromEntityData(this, Entity.ICON_SIZE, Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
     );
   }
 
@@ -129,7 +132,7 @@ class Entity {
       '${this.lastUpdated}',
       textAlign: TextAlign.left,
       style: TextStyle(
-          fontSize: 12.0,
+          fontSize: Entity.SMALL_FONT_SIZE,
           color: Colors.black26
       ),
     );
@@ -143,22 +146,22 @@ class Entity {
         overflow: TextOverflow.ellipsis,
         softWrap: false,
         style: TextStyle(
-            fontSize: 16.0
+            fontSize: Entity.NAME_FONT_SIZE
         ),
       ),
     );
   }
 
-  Widget _buildActionWidget(BuildContext context) {
+  Widget _buildActionWidget() {
     return Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
         child: GestureDetector(
           child: Text(
               this.isPasswordField ? "******" :
               "$_state${this.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: 16.0,
+                fontSize: Entity.STATE_FONT_SIZE,
               )
           ),
           onTap: openEntityPage,
@@ -166,9 +169,9 @@ class Entity {
     );
   }
 
-  Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
+  /*Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
     return _buildActionWidget(context);
-  }
+  }*/
 }
 
 class SwitchEntity extends Entity {
@@ -176,7 +179,7 @@ class SwitchEntity extends Entity {
   SwitchEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget(BuildContext context) {
+  Widget _buildActionWidget() {
     return Switch(
       value: this.isOn,
       onChanged: ((switchState) {
@@ -192,7 +195,7 @@ class ButtonEntity extends Entity {
   ButtonEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget(BuildContext context) {
+  Widget _buildActionWidget() {
     return FlatButton(
       onPressed: (() {
         eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
@@ -200,7 +203,7 @@ class ButtonEntity extends Entity {
       child: Text(
         "EXECUTE",
         textAlign: TextAlign.right,
-        style: new TextStyle(fontSize: 16.0, color: Colors.blue),
+        style: new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
       ),
     );
   }
@@ -211,8 +214,8 @@ class InputEntity extends Entity {
 
   InputEntity(Map rawData) : super(rawData);
 
-  @override
-  Widget buildExtendedWidget(BuildContext context, String staticState) {
+  /*@override
+  Widget buildExtendedWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
     return Column(
       children: <Widget>[
         SizedBox(
@@ -229,14 +232,14 @@ class InputEntity extends Entity {
         ),
         SizedBox(
           height: Entity.EXTENDED_WIDGET_HEIGHT,
-          child: _buildExtendedActionWidget(context, staticState),
+          child: _buildInputWidget(context, formKey, staticState),
         )
       ],
     );
-  }
+  }*/
 
   @override
-  Widget _buildActionWidget(BuildContext context) {
+  Widget _buildActionWidget() {
     if (this.isSliderField) {
       return Container(
         width: 200.0,
@@ -247,9 +250,9 @@ class InputEntity extends Entity {
                 min: this.minValue*10,
                 max: this.maxValue*10,
                 value: (this.doubleState <= this.maxValue) && (this.doubleState >= this.minValue) ? this.doubleState*10 : this.minValue*10,
-                divisions: this.getValueDivisions(),
+                //divisions: this.getValueDivisions(),
                 onChanged: (value) {
-                  eventBus.fire(new StateChangedEvent(_entityId, (value.roundToDouble() / 10).toString(), true));
+                  eventBus.fire(new StateChangedEvent(_entityId, ((value / 10).roundToDouble()).toString(), true));
                 },
                 onChangeEnd: (value) {
                   eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$_state"}));
@@ -257,27 +260,40 @@ class InputEntity extends Entity {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(right: 16.0),
+              padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
               child: Text(
                   "$_state${this.unitOfMeasurement}",
                   textAlign: TextAlign.right,
                   style: new TextStyle(
-                    fontSize: 16.0,
+                    fontSize: Entity.STATE_FONT_SIZE,
                   )
               ),
             )
           ],
         ),
       );
+    } else if (this.isTextField || this.isPasswordField) {
+      return Container(
+        width: 160.0,
+        child: TextField(
+          obscureText: this.isPasswordField,
+          controller: TextEditingController(
+            text: _state,
+          ),
+          onChanged: (value) {
+            //TODO
+            //staticState = value;
+          },
+        ),
+      );
     } else {
-      return super._buildActionWidget(context);
+      return super._buildActionWidget();
     }
   }
 
-  @override
-  Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
+  /*Widget _buildInputWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
     return Padding(
-        padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGTH_WIDGET_PADDING, 0.0),
+        padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -302,13 +318,13 @@ class InputEntity extends Entity {
                 child: Text(
                     "SET",
                     textAlign: TextAlign.right,
-                  style: new TextStyle(fontSize: 16.0, color: Colors.blue),
+                  style: new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
                 ),
               ),
             )
           ],
         )
     );
-  }
+  }*/
 
 }
