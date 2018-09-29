@@ -385,7 +385,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildCardHeader(String name) {
     var result;
-    if (name.length > 0) {
+    if (name.trim().length > 0) {
       result = new ListTile(
         //leading: const Icon(Icons.device_hub),
         //subtitle: Text(".."),
