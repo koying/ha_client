@@ -15,7 +15,7 @@ class Entity {
   static const ICON_SIZE = 28.0;
   static const STATE_FONT_SIZE = 16.0;
   static const NAME_FONT_SIZE = 16.0;
-  static const SMALL_FONT_SIZE = 12.0;
+  static const SMALL_FONT_SIZE = 14.0;
 
   Map _attributes;
   String _domain;
@@ -63,7 +63,28 @@ class Entity {
     if (_lastUpdated == null) {
       return "-";
     } else {
-      return formatDate(_lastUpdated, [yy, '-', M, '-', d, ' ', HH, ':', nn, ':', ss]);
+      DateTime now = DateTime.now();
+      Duration d = now.difference(_lastUpdated);
+      String text;
+      int v;
+      if (d.inDays == 0) {
+        if (d.inHours == 0) {
+          if (d.inMinutes == 0) {
+            text = "seconds ago";
+            v = d.inSeconds;
+          } else {
+            text = "minutes ago";
+            v = d.inMinutes;
+          }
+        } else {
+          text = "hours ago";
+          v = d.inHours;
+        }
+      } else {
+        text = "days ago";
+        v = d.inDays;
+      }
+      return "$v $text";
     }
   }
 
@@ -92,6 +113,10 @@ class Entity {
     );
   }
 
+  Widget buildAdditionalWidget() {
+    return _buildLastUpdatedWidget();
+  }
+
   Widget _buildIconWidget() {
     return Padding(
       padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
@@ -100,12 +125,15 @@ class Entity {
   }
 
   Widget _buildLastUpdatedWidget() {
-    return Text(
-      '${this.lastUpdated}',
-      textAlign: TextAlign.left,
-      style: TextStyle(
-          fontSize: Entity.SMALL_FONT_SIZE,
-          color: Colors.black26
+    return Padding(
+      padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),
+      child: Text(
+        '${this.lastUpdated}',
+        textAlign: TextAlign.left,
+        style: TextStyle(
+            fontSize: Entity.SMALL_FONT_SIZE,
+            color: Colors.black26
+        ),
       ),
     );
   }
