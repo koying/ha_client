@@ -33,6 +33,9 @@ class Entity {
   double get maxValue => _attributes["max"] ?? 100.0;
   double get valueStep => _attributes["step"] ?? 1.0;
   double get doubleState => double.tryParse(_state) ?? 0.0;
+  int get valueMinLength => _attributes["min"] ?? -1;
+  int get valueMaxLength => _attributes["max"] ?? -1;
+  String get valuePattern => _attributes["pattern"] ?? null;
   bool get isSliderField => _attributes["mode"] == "slider";
   bool get isTextField => _attributes["mode"] == "text";
   bool get isPasswordField => _attributes["mode"] == "password";
@@ -90,6 +93,10 @@ class Entity {
 
   void openEntityPage() {
     eventBus.fire(new ShowEntityPageEvent(this));
+  }
+
+  void sendNewState(newState) {
+    return;
   }
 
   Widget buildWidget(bool inCard) {
@@ -179,11 +186,16 @@ class SwitchEntity extends Entity {
   SwitchEntity(Map rawData) : super(rawData);
 
   @override
+  void sendNewState(newValue) {
+    eventBus.fire(new ServiceCallEvent(_domain, (newValue as bool) ? "turn_on" : "turn_off", entityId, null));
+  }
+
+  @override
   Widget _buildActionWidget(bool inCard) {
     return Switch(
       value: this.isOn,
       onChanged: ((switchState) {
-        eventBus.fire(new ServiceCallEvent(_domain, switchState ? "turn_on" : "turn_off", entityId, null));
+        sendNewState(switchState);
       }),
     );
   }
@@ -195,10 +207,15 @@ class ButtonEntity extends Entity {
   ButtonEntity(Map rawData) : super(rawData);
 
   @override
+  void sendNewState(newValue) {
+    eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
+  }
+
+  @override
   Widget _buildActionWidget(bool inCard) {
     return FlatButton(
       onPressed: (() {
-        eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
+        sendNewState(null);
       }),
       child: Text(
         "EXECUTE",
@@ -213,18 +230,43 @@ class ButtonEntity extends Entity {
 class InputEntity extends Entity {
   String tmpState;
   FocusNode _focusNode;
+  bool validValue = false;
 
   InputEntity(Map rawData) : super(rawData) {
     _focusNode = FocusNode();
-    //TODO memory leak generator
+    //TODO possible memory leak generator
     _focusNode.addListener(_focusListener);
-    tmpState = state;
+    //tmpState = state;
+  }
+
+  @override
+  void sendNewState(newValue) {
+    if (validate(newValue)) {
+      eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
+          {"value": "${newValue.toString()}"}));
+    }
+  }
+
+  @override
+  void update(Map rawData) {
+    super.update(rawData);
+    tmpState = _state;
+  }
+
+  bool validate(newValue) {
+    if (newValue is String) {
+      //TODO add pattern support
+      validValue = (newValue.length >= this.valueMinLength) && (this.valueMaxLength == -1 || (newValue.length <= this.valueMaxLength));
+    } else {
+      validValue = true;
+    }
+    return validValue;
   }
 
   void _focusListener() {
-    //TheLogger.log("Debug", "Focused ${_focusNode.hasFocus? 'on' : 'of'} $entityId. Old state: $state. New state: $tmpState");
     if (!_focusNode.hasFocus && (tmpState != state)) {
-      eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId, {"value": "$tmpState"}));
+      sendNewState(tmpState);
+      tmpState = state;
     }
   }
 
@@ -241,10 +283,14 @@ class InputEntity extends Entity {
                 max: this.maxValue*10,
                 value: (this.doubleState <= this.maxValue) && (this.doubleState >= this.minValue) ? this.doubleState*10 : this.minValue*10,
                 onChanged: (value) {
-                  eventBus.fire(new StateChangedEvent(_entityId, (value.roundToDouble() / 10).toString(), true));
+                  if (validate(value.roundToDouble() / 10)) {
+                    eventBus.fire(new StateChangedEvent(
+                        _entityId, (value.roundToDouble() / 10).toString(),
+                        true));
+                  }
                 },
                 onChangeEnd: (value) {
-                  eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$_state"}));
+                  sendNewState(value.roundToDouble() / 10);
                 },
               ),
             ),
@@ -267,7 +313,7 @@ class InputEntity extends Entity {
         child: TextField(
           focusNode: inCard ? _focusNode : null,
           obscureText: this.isPasswordField,
-          controller: new TextEditingController.fromValue(new TextEditingValue(text: _state,selection: new TextSelection.collapsed(offset: _state.length))),
+          controller: new TextEditingController.fromValue(new TextEditingValue(text: tmpState,selection: new TextSelection.collapsed(offset: tmpState.length))),
           onChanged: (value) {
             tmpState = value;
           }
