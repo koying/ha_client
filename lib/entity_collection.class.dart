@@ -40,12 +40,16 @@ class EntityCollection {
         return ButtonEntity(rawEntityData);
       }
 
+      case "input_select": {
+        return SelectEntity(rawEntityData);
+      }
+
       case "input_number": {
         return SliderEntity(rawEntityData);
       }
 
       case "input_text": {
-        return InputEntity(rawEntityData);
+        return TextEntity(rawEntityData);
       }
 
       default: {

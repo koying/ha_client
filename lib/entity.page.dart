@@ -56,8 +56,8 @@ class _EntityViewPageState extends State<EntityViewPage> {
 
   @override
   void dispose(){
-    if (_entity is InputEntity && (_entity as InputEntity).tmpState != _entity.state) {
-      eventBus.fire(new ServiceCallEvent(_entity.domain, "set_value", _entity.entityId, {"value": "${(_entity as InputEntity).tmpState}"}));
+    if (_entity is TextEntity && (_entity as TextEntity).tmpState != _entity.state) {
+      eventBus.fire(new ServiceCallEvent(_entity.domain, "set_value", _entity.entityId, {"value": "${(_entity as TextEntity).tmpState}"}));
       TheLogger.log("Debug", "Saving changed input value for ${_entity.entityId}");
     }
     if (_stateSubscription != null) _stateSubscription.cancel();

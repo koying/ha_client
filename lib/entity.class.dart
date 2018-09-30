@@ -16,6 +16,7 @@ class Entity {
   static const STATE_FONT_SIZE = 16.0;
   static const NAME_FONT_SIZE = 16.0;
   static const SMALL_FONT_SIZE = 14.0;
+  static const INPUT_WIDTH = 160.0;
 
   Map _attributes;
   String _domain;
@@ -216,7 +217,6 @@ class ButtonEntity extends Entity {
 }
 
 class SliderEntity extends Entity {
-  double _oldValue;
   int _multiplier = 1;
 
   double get minValue => _attributes["min"] ?? 0.0;
@@ -225,7 +225,6 @@ class SliderEntity extends Entity {
   double get doubleState => double.tryParse(_state) ?? 0.0;
 
   SliderEntity(Map rawData) : super(rawData) {
-    _oldValue = doubleState;
     if (valueStep < 1) {
       _multiplier = 10;
     } else if (valueStep < 0.1) {
@@ -277,7 +276,45 @@ class SliderEntity extends Entity {
   }
 }
 
-class InputEntity extends Entity {
+class SelectEntity extends Entity {
+  List<String> _listOptions = [];
+  String get initialValue => _attributes["initial"] ?? null;
+
+  SelectEntity(Map rawData) : super(rawData) {
+    if (_attributes["options"] != null) {
+      _attributes["options"].forEach((value){
+        _listOptions.add(value.toString());
+      });
+    }
+  }
+
+  @override
+  void sendNewState(newValue) {
+    eventBus.fire(new ServiceCallEvent(_domain, "select_option", _entityId,
+        {"option": "$newValue"}));
+  }
+
+  @override
+  Widget _buildActionWidget(bool inCard) {
+    return Container(
+      width: Entity.INPUT_WIDTH,
+      child: DropdownButton<String>(
+        value: _state,
+        items: this._listOptions.map((String value) {
+          return new DropdownMenuItem<String>(
+            value: value,
+            child: new Text(value),
+          );
+        }).toList(),
+        onChanged: (_) {
+          sendNewState(_);
+        },
+      ),
+    );
+  }
+}
+
+class TextEntity extends Entity {
   String tmpState;
   FocusNode _focusNode;
   bool validValue = false;
@@ -288,7 +325,7 @@ class InputEntity extends Entity {
   bool get isTextField => _attributes["mode"] == "text";
   bool get isPasswordField => _attributes["mode"] == "password";
 
-  InputEntity(Map rawData) : super(rawData) {
+  TextEntity(Map rawData) : super(rawData) {
     _focusNode = FocusNode();
     //TODO possible memory leak generator
     _focusNode.addListener(_focusListener);
@@ -299,7 +336,7 @@ class InputEntity extends Entity {
   void sendNewState(newValue) {
     if (validate(newValue)) {
       eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
-          {"value": "${newValue.toString()}"}));
+          {"value": "{newValue"}));
     }
   }
 
@@ -332,7 +369,7 @@ class InputEntity extends Entity {
   Widget _buildActionWidget(bool inCard) {
     if (this.isTextField || this.isPasswordField) {
       return Container(
-        width: 160.0,
+        width: Entity.INPUT_WIDTH,
         child: TextField(
             focusNode: inCard ? _focusNode : null,
             obscureText: this.isPasswordField,
