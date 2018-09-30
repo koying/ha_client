@@ -40,6 +40,10 @@ class EntityCollection {
         return ButtonEntity(rawEntityData);
       }
 
+      case "input_datetime": {
+        return DateTimeEntity(rawEntityData);
+      }
+
       case "input_select": {
         return SelectEntity(rawEntityData);
       }

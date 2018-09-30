@@ -46,7 +46,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
           padding: EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
-              _entity.buildWidget(false),
+              _entity.buildWidget(false, context),
               _entity.buildAdditionalWidget()
             ],
           ),
