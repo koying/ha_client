@@ -23,25 +23,17 @@ class Entity {
   String _state;
   DateTime _lastUpdated;
 
-  String get displayName => _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
+  String get displayName =>
+      _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
   String get domain => _domain;
   String get entityId => _entityId;
   String get state => _state;
   set state(value) => _state = value;
 
-  double get minValue => _attributes["min"] ?? 0.0;
-  double get maxValue => _attributes["max"] ?? 100.0;
-  double get valueStep => _attributes["step"] ?? 1.0;
-  double get doubleState => double.tryParse(_state) ?? 0.0;
-  int get valueMinLength => _attributes["min"] ?? -1;
-  int get valueMaxLength => _attributes["max"] ?? -1;
-  String get valuePattern => _attributes["pattern"] ?? null;
-  bool get isSliderField => _attributes["mode"] == "slider";
-  bool get isTextField => _attributes["mode"] == "text";
-  bool get isPasswordField => _attributes["mode"] == "password";
-
   String get deviceClass => _attributes["device_class"] ?? null;
-  bool get isView => (_domain == "group") && (_attributes != null ? _attributes["view"] ?? false : false);
+  bool get isView =>
+      (_domain == "group") &&
+      (_attributes != null ? _attributes["view"] ?? false : false);
   bool get isGroup => _domain == "group";
   String get icon => _attributes["icon"] ?? "";
   bool get isOn => state == "on";
@@ -127,20 +119,22 @@ class Entity {
   Widget _buildIconWidget() {
     return Padding(
       padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
-      child: MaterialDesignIcons.createIconWidgetFromEntityData(this, Entity.ICON_SIZE, Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
+      child: MaterialDesignIcons.createIconWidgetFromEntityData(
+          this,
+          Entity.ICON_SIZE,
+          Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
     );
   }
 
   Widget _buildLastUpdatedWidget() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),
+      padding: EdgeInsets.fromLTRB(
+          Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),
       child: Text(
         '${this.lastUpdated}',
         textAlign: TextAlign.left,
-        style: TextStyle(
-            fontSize: Entity.SMALL_FONT_SIZE,
-            color: Colors.black26
-        ),
+        style:
+            TextStyle(fontSize: Entity.SMALL_FONT_SIZE, color: Colors.black26),
       ),
     );
   }
@@ -152,28 +146,24 @@ class Entity {
         "${this.displayName}",
         overflow: TextOverflow.ellipsis,
         softWrap: false,
-        style: TextStyle(
-            fontSize: Entity.NAME_FONT_SIZE
-        ),
+        style: TextStyle(fontSize: Entity.NAME_FONT_SIZE),
       ),
     );
   }
 
   Widget _buildActionWidget(bool inCard) {
     return Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
+        padding:
+            EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
         child: GestureDetector(
           child: Text(
-              this.isPasswordField ? "******" :
               "$_state${this.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
                 fontSize: Entity.STATE_FONT_SIZE,
-              )
-          ),
+              )),
           onTap: openEntityPage,
-        )
-    );
+        ));
   }
 
   /*Widget _buildExtendedActionWidget(BuildContext context, String staticState) {
@@ -182,12 +172,12 @@ class Entity {
 }
 
 class SwitchEntity extends Entity {
-
   SwitchEntity(Map rawData) : super(rawData);
 
   @override
   void sendNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(_domain, (newValue as bool) ? "turn_on" : "turn_off", entityId, null));
+    eventBus.fire(new ServiceCallEvent(
+        _domain, (newValue as bool) ? "turn_on" : "turn_off", entityId, null));
   }
 
   @override
@@ -199,11 +189,9 @@ class SwitchEntity extends Entity {
       }),
     );
   }
-
 }
 
 class ButtonEntity extends Entity {
-
   ButtonEntity(Map rawData) : super(rawData);
 
   @override
@@ -220,17 +208,85 @@ class ButtonEntity extends Entity {
       child: Text(
         "EXECUTE",
         textAlign: TextAlign.right,
-        style: new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
+        style:
+            new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
       ),
     );
   }
+}
 
+class SliderEntity extends Entity {
+  double _oldValue;
+  int _multiplier = 1;
+
+  double get minValue => _attributes["min"] ?? 0.0;
+  double get maxValue => _attributes["max"] ?? 100.0;
+  double get valueStep => _attributes["step"] ?? 1.0;
+  double get doubleState => double.tryParse(_state) ?? 0.0;
+
+  SliderEntity(Map rawData) : super(rawData) {
+    _oldValue = doubleState;
+    if (valueStep < 1) {
+      _multiplier = 10;
+    } else if (valueStep < 0.1) {
+      _multiplier = 100;
+    }
+  }
+
+  @override
+  void sendNewState(newValue) {
+    eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
+      {"value": "${newValue.toString()}"}));
+  }
+
+  @override
+  Widget _buildActionWidget(bool inCard) {
+    return Container(
+      width: 200.0,
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Slider(
+              min: this.minValue * _multiplier,
+              max: this.maxValue * _multiplier,
+              value: (this.doubleState <= this.maxValue) &&
+                      (this.doubleState >= this.minValue)
+                  ? this.doubleState * _multiplier
+                  : this.minValue * _multiplier,
+              onChanged: (value) {
+                //debugPrint("$value");
+                eventBus.fire(new StateChangedEvent(_entityId,
+                  (value.roundToDouble() / _multiplier).toString(), true));
+                },
+              onChangeEnd: (value) {
+                sendNewState(value.roundToDouble() / _multiplier);
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
+            child: Text("$_state${this.unitOfMeasurement}",
+                textAlign: TextAlign.right,
+                style: new TextStyle(
+                  fontSize: Entity.STATE_FONT_SIZE,
+                )),
+          )
+        ],
+      ),
+    );
+  }
 }
 
 class InputEntity extends Entity {
   String tmpState;
   FocusNode _focusNode;
   bool validValue = false;
+
+  int get valueMinLength => _attributes["min"] ?? -1;
+  int get valueMaxLength => _attributes["max"] ?? -1;
+  String get valuePattern => _attributes["pattern"] ?? null;
+  bool get isTextField => _attributes["mode"] == "text";
+  bool get isPasswordField => _attributes["mode"] == "password";
 
   InputEntity(Map rawData) : super(rawData) {
     _focusNode = FocusNode();
@@ -256,7 +312,9 @@ class InputEntity extends Entity {
   bool validate(newValue) {
     if (newValue is String) {
       //TODO add pattern support
-      validValue = (newValue.length >= this.valueMinLength) && (this.valueMaxLength == -1 || (newValue.length <= this.valueMaxLength));
+      validValue = (newValue.length >= this.valueMinLength) &&
+          (this.valueMaxLength == -1 ||
+              (newValue.length <= this.valueMaxLength));
     } else {
       validValue = true;
     }
@@ -272,56 +330,24 @@ class InputEntity extends Entity {
 
   @override
   Widget _buildActionWidget(bool inCard) {
-    if (this.isSliderField) {
-      return Container(
-        width: 200.0,
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Slider(
-                min: this.minValue*10,
-                max: this.maxValue*10,
-                value: (this.doubleState <= this.maxValue) && (this.doubleState >= this.minValue) ? this.doubleState*10 : this.minValue*10,
-                onChanged: (value) {
-                  if (validate(value.roundToDouble() / 10)) {
-                    eventBus.fire(new StateChangedEvent(
-                        _entityId, (value.roundToDouble() / 10).toString(),
-                        true));
-                  }
-                },
-                onChangeEnd: (value) {
-                  sendNewState(value.roundToDouble() / 10);
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
-              child: Text(
-                  "$_state${this.unitOfMeasurement}",
-                  textAlign: TextAlign.right,
-                  style: new TextStyle(
-                    fontSize: Entity.STATE_FONT_SIZE,
-                  )
-              ),
-            )
-          ],
-        ),
-      );
-    } else if (this.isTextField || this.isPasswordField) {
+    if (this.isTextField || this.isPasswordField) {
       return Container(
         width: 160.0,
         child: TextField(
-          focusNode: inCard ? _focusNode : null,
-          obscureText: this.isPasswordField,
-          controller: new TextEditingController.fromValue(new TextEditingValue(text: tmpState,selection: new TextSelection.collapsed(offset: tmpState.length))),
-          onChanged: (value) {
-            tmpState = value;
-          }
-        ),
+            focusNode: inCard ? _focusNode : null,
+            obscureText: this.isPasswordField,
+            controller: new TextEditingController.fromValue(
+                new TextEditingValue(
+                    text: tmpState,
+                    selection:
+                        new TextSelection.collapsed(offset: tmpState.length))),
+            onChanged: (value) {
+              tmpState = value;
+            }),
       );
     } else {
+      TheLogger.log("Warning", "Unsupported input mode for $entityId");
       return super._buildActionWidget(inCard);
     }
   }
-
 }
