@@ -40,9 +40,20 @@ class EntityCollection {
         return ButtonEntity(rawEntityData);
       }
 
-      case "input_text":
+      case "input_datetime": {
+        return DateTimeEntity(rawEntityData);
+      }
+
+      case "input_select": {
+        return SelectEntity(rawEntityData);
+      }
+
       case "input_number": {
-        return InputEntity(rawEntityData);
+        return SliderEntity(rawEntityData);
+      }
+
+      case "input_text": {
+        return TextEntity(rawEntityData);
       }
 
       default: {

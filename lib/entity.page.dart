@@ -12,21 +12,17 @@ class EntityViewPage extends StatefulWidget {
 class _EntityViewPageState extends State<EntityViewPage> {
   String _title;
   Entity _entity;
-  String _lastState;
   StreamSubscription _stateSubscription;
 
   @override
   void initState() {
     super.initState();
     _entity = widget.entity;
-    _lastState = _entity.state;
     if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-      setState(() {
-        if (event.entityId == _entity.entityId) {
-          _lastState = event.newState ?? _entity.state;
-        }
-      });
+      if (event.entityId == _entity.entityId) {
+        setState(() {});
+      }
     });
     _prepareData();
   }
@@ -50,7 +46,8 @@ class _EntityViewPageState extends State<EntityViewPage> {
           padding: EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
-              _entity.buildExtendedWidget(context, _lastState)
+              _entity.buildWidget(false, context),
+              _entity.buildAdditionalWidget()
             ],
           ),
       ),
@@ -59,6 +56,10 @@ class _EntityViewPageState extends State<EntityViewPage> {
 
   @override
   void dispose(){
+    if (_entity is TextEntity && (_entity as TextEntity).tmpState != _entity.state) {
+      eventBus.fire(new ServiceCallEvent(_entity.domain, "set_value", _entity.entityId, {"value": "${(_entity as TextEntity).tmpState}"}));
+      TheLogger.log("Debug", "Saving changed input value for ${_entity.entityId}");
+    }
     if (_stateSubscription != null) _stateSubscription.cancel();
     super.dispose();
   }

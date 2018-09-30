@@ -27,7 +27,7 @@ part 'badge_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.0";
+const appVersion = "0.2.1";
 
 String homeAssistantWebHost;
 
@@ -385,7 +385,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   Widget _buildCardHeader(String name) {
     var result;
-    if (name.length > 0) {
+    if (name.trim().length > 0) {
       result = new ListTile(
         //leading: const Icon(Icons.device_hub),
         //subtitle: Text(".."),
@@ -409,7 +409,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         entities.add(
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: entity.buildWidget(context),
+            child: entity.buildWidget(true, context),
           ));
       }
     });
