@@ -71,50 +71,26 @@ class Entity {
     eventBus.fire(new ShowEntityPageEvent(this));
   }
 
-  Widget buildWidget(GlobalKey<FormState> formKey, bool tapAction) {
+  Widget buildWidget(bool inCard) {
     return SizedBox(
       height: Entity.WIDGET_HEIGHT,
       child: Row(
         children: <Widget>[
           GestureDetector(
             child: _buildIconWidget(),
-            onTap: tapAction ? openEntityPage : null,
+            onTap: inCard ? openEntityPage : null,
           ),
           Expanded(
             child: GestureDetector(
               child: _buildNameWidget(),
-              onTap: tapAction ? openEntityPage : null,
+              onTap: inCard ? openEntityPage : null,
             ),
           ),
-          _buildActionWidget()
+          _buildActionWidget(inCard)
         ],
       ),
     );
   }
-
-  /*Widget buildExtendedWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
-    return Row(
-      children: <Widget>[
-        _buildIconWidget(),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _buildNameWidget(),
-                  ),
-                  _buildExtendedActionWidget(context, staticState)
-                ],
-              ),
-              _buildLastUpdatedWidget()
-            ],
-          ),
-        )
-      ],
-    );
-  }*/
 
   Widget _buildIconWidget() {
     return Padding(
@@ -148,7 +124,7 @@ class Entity {
     );
   }
 
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(bool inCard) {
     return Padding(
         padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
         child: GestureDetector(
@@ -175,7 +151,7 @@ class SwitchEntity extends Entity {
   SwitchEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(bool inCard) {
     return Switch(
       value: this.isOn,
       onChanged: ((switchState) {
@@ -191,7 +167,7 @@ class ButtonEntity extends Entity {
   ButtonEntity(Map rawData) : super(rawData);
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(bool inCard) {
     return FlatButton(
       onPressed: (() {
         eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
@@ -207,35 +183,25 @@ class ButtonEntity extends Entity {
 }
 
 class InputEntity extends Entity {
+  String tmpState;
+  FocusNode _focusNode;
 
-  InputEntity(Map rawData) : super(rawData);
+  InputEntity(Map rawData) : super(rawData) {
+    _focusNode = FocusNode();
+    //TODO memory leak generator
+    _focusNode.addListener(_focusListener);
+    tmpState = state;
+  }
 
-  /*@override
-  Widget buildExtendedWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
-    return Column(
-      children: <Widget>[
-        SizedBox(
-          height: Entity.EXTENDED_WIDGET_HEIGHT,
-          child: Row(
-            children: <Widget>[
-              _buildIconWidget(),
-              Expanded(
-                child: _buildNameWidget(),
-              ),
-              _buildLastUpdatedWidget()
-            ],
-          ),
-        ),
-        SizedBox(
-          height: Entity.EXTENDED_WIDGET_HEIGHT,
-          child: _buildInputWidget(context, formKey, staticState),
-        )
-      ],
-    );
-  }*/
+  void _focusListener() {
+    //TheLogger.log("Debug", "Focused ${_focusNode.hasFocus? 'on' : 'of'} $entityId. Old state: $state. New state: $tmpState");
+    if (!_focusNode.hasFocus && (tmpState != state)) {
+      eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId, {"value": "$tmpState"}));
+    }
+  }
 
   @override
-  Widget _buildActionWidget() {
+  Widget _buildActionWidget(bool inCard) {
     if (this.isSliderField) {
       return Container(
         width: 200.0,
@@ -271,55 +237,17 @@ class InputEntity extends Entity {
       return Container(
         width: 160.0,
         child: TextField(
+          focusNode: inCard ? _focusNode : null,
           obscureText: this.isPasswordField,
-          controller: TextEditingController(
-            text: _state,
-          ),
+          controller: new TextEditingController.fromValue(new TextEditingValue(text: _state,selection: new TextSelection.collapsed(offset: _state.length))),
           onChanged: (value) {
-            //TODO
-            //staticState = value;
-          },
+            tmpState = value;
+          }
         ),
       );
     } else {
-      return super._buildActionWidget();
+      return super._buildActionWidget(inCard);
     }
   }
-
-  /*Widget _buildInputWidget(BuildContext context, GlobalKey<FormState> formKey, String staticState) {
-    return Padding(
-        padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                obscureText: this.isPasswordField,
-                controller: TextEditingController(
-                  text: staticState,
-                ),
-                onChanged: (value) {
-                  staticState = value;
-                },
-              ),
-            ),
-            SizedBox(
-              width: 63.0,
-              child: FlatButton(
-                onPressed: () {
-                  eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,{"value": "$staticState"}));
-                  Navigator.pop(context);
-                },
-                child: Text(
-                    "SET",
-                    textAlign: TextAlign.right,
-                  style: new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
-                ),
-              ),
-            )
-          ],
-        )
-    );
-  }*/
 
 }

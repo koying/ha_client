@@ -13,7 +13,6 @@ class _EntityViewPageState extends State<EntityViewPage> {
   String _title;
   Entity _entity;
   StreamSubscription _stateSubscription;
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -47,7 +46,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
           padding: EdgeInsets.all(10.0),
           child: ListView(
             children: <Widget>[
-              _entity.buildWidget(_formKey, false)
+              _entity.buildWidget(false)
             ],
           ),
       ),
@@ -56,6 +55,10 @@ class _EntityViewPageState extends State<EntityViewPage> {
 
   @override
   void dispose(){
+    if (_entity is InputEntity && (_entity as InputEntity).tmpState != _entity.state) {
+      eventBus.fire(new ServiceCallEvent(_entity.domain, "set_value", _entity.entityId, {"value": "${(_entity as InputEntity).tmpState}"}));
+      TheLogger.log("Debug", "Saving changed input value for ${_entity.entityId}");
+    }
     if (_stateSubscription != null) _stateSubscription.cancel();
     super.dispose();
   }
