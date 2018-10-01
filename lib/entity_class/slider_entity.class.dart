@@ -1,29 +1,31 @@
 part of '../main.dart';
 
-class SliderEntity extends Entity {
+class _SliderEntityWidgetState extends _EntityWidgetState {
   int _multiplier = 1;
 
-  double get minValue => _attributes["min"] ?? 0.0;
-  double get maxValue => _attributes["max"] ?? 100.0;
-  double get valueStep => _attributes["step"] ?? 1.0;
-  double get doubleState => double.tryParse(_state) ?? 0.0;
+  double get minValue => widget.entity._attributes["min"] ?? 0.0;
+  double get maxValue => widget.entity._attributes["max"] ?? 100.0;
+  double get valueStep => widget.entity._attributes["step"] ?? 1.0;
+  double get doubleState => double.tryParse(widget.entity.state) ?? 0.0;
 
-  SliderEntity(Map rawData) : super(rawData) {
-    if (valueStep < 1) {
-      _multiplier = 10;
-    } else if (valueStep < 0.1) {
-      _multiplier = 100;
-    }
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
   void sendNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
+    eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_value", widget.entity.entityId,
         {"value": "${newValue.toString()}"}));
   }
 
   @override
   Widget _buildActionWidget(bool inCard, BuildContext context) {
+    if (valueStep < 1) {
+      _multiplier = 10;
+    } else if (valueStep < 0.1) {
+      _multiplier = 100;
+    }
     return Container(
       width: 200.0,
       child: Row(
@@ -32,13 +34,16 @@ class SliderEntity extends Entity {
             child: Slider(
               min: this.minValue * _multiplier,
               max: this.maxValue * _multiplier,
-              value: (this.doubleState <= this.maxValue) &&
-                  (this.doubleState >= this.minValue)
-                  ? this.doubleState * _multiplier
+              value: (doubleState <= this.maxValue) &&
+                  (doubleState >= this.minValue)
+                  ? doubleState * _multiplier
                   : this.minValue * _multiplier,
               onChanged: (value) {
-                eventBus.fire(new StateChangedEvent(_entityId,
-                    (value.roundToDouble() / _multiplier).toString(), true));
+                setState(() {
+                  widget.entity.state = (value.roundToDouble() / _multiplier).toString();
+                });
+                /*eventBus.fire(new StateChangedEvent(widget.entity.entityId,
+                    (value.roundToDouble() / _multiplier).toString(), true));*/
               },
               onChangeEnd: (value) {
                 sendNewState(value.roundToDouble() / _multiplier);
@@ -47,7 +52,7 @@ class SliderEntity extends Entity {
           ),
           Padding(
             padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
-            child: Text("$_state${this.unitOfMeasurement}",
+            child: Text("${widget.entity.state}${widget.entity.unitOfMeasurement}",
                 textAlign: TextAlign.right,
                 style: new TextStyle(
                   fontSize: Entity.STATE_FONT_SIZE,

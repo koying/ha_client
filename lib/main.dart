@@ -67,7 +67,7 @@ class HAClientApp extends StatelessWidget {
       ),
       initialRoute: "/",
       routes: {
-        "/": (context) => MainPage(title: 'Hass Client'),
+        "/": (context) => MainPage(title: 'HA Client'),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Connection Settings"),
         "/log-view": (context) => LogViewPage(title: "Log")
       },
@@ -416,7 +416,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         entities.add(
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: entity.buildWidget(true, context),
+            child: entity.buildWidget(context, true),
           ));
       }
     });
@@ -487,7 +487,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             title: Text("Report an issue"),
             onTap: () {
               Navigator.of(context).pop();
-              haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
+              HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
             },
           ),
           new AboutListTile(

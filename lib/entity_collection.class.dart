@@ -27,39 +27,7 @@ class EntityCollection {
   }
 
   Entity _createEntityInstance(rawEntityData) {
-    switch (rawEntityData["entity_id"].split(".")[0]) {
-      case "automation":
-      case "input_boolean ":
-      case "switch":
-      case "light": {
-        return SwitchEntity(rawEntityData);
-      }
-
-      case "script":
-      case "scene": {
-        return ButtonEntity(rawEntityData);
-      }
-
-      case "input_datetime": {
-        return DateTimeEntity(rawEntityData);
-      }
-
-      case "input_select": {
-        return SelectEntity(rawEntityData);
-      }
-
-      case "input_number": {
-        return SliderEntity(rawEntityData);
-      }
-
-      case "input_text": {
-        return TextEntity(rawEntityData);
-      }
-
-      default: {
-        return Entity(rawEntityData);
-      }
-    }
+    return Entity(rawEntityData);
   }
 
   void updateState(Map rawStateData) {

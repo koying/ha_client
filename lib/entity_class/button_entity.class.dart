@@ -1,11 +1,10 @@
 part of '../main.dart';
 
-class ButtonEntity extends Entity {
-  ButtonEntity(Map rawData) : super(rawData);
+class _ButtonEntityWidgetState extends _EntityWidgetState {
 
   @override
   void sendNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(_domain, "turn_on", _entityId, null));
+    eventBus.fire(new ServiceCallEvent(widget.entity.domain, "turn_on", widget.entity.entityId, null));
   }
 
   @override

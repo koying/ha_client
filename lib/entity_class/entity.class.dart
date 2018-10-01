@@ -55,6 +55,13 @@ class Entity {
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
+  EntityWidget buildWidget(BuildContext context, bool inCard) {
+    return EntityWidget(
+      entity: this,
+      inCard: inCard,
+    );
+  }
+
   String _getLastUpdatedFormatted() {
     if (_lastUpdated == null) {
       return "-";
@@ -84,33 +91,96 @@ class Entity {
     }
   }
 
-  void openEntityPage() {
-    eventBus.fire(new ShowEntityPageEvent(this));
+
+}
+
+class EntityWidget extends StatefulWidget {
+  EntityWidget({Key key, this.entity, this.inCard}) : super(key: key);
+
+  final Entity entity;
+  final bool inCard;
+
+  @override
+  _EntityWidgetState createState() {
+    switch (entity.domain) {
+      case "automation":
+      case "input_boolean ":
+      case "switch":
+      case "light": {
+        return _SwitchEntityWidgetState();
+      }
+
+      case "script":
+      case "scene": {
+        return _ButtonEntityWidgetState();
+      }
+
+      case "input_datetime": {
+        return _DateTimeEntityWidgetState();
+      }
+
+      case "input_select": {
+        return _SelectEntityWidgetState();
+      }
+
+      case "input_number": {
+        return _SliderEntityWidgetState();
+      }
+
+      case "input_text": {
+        return _TextEntityWidgetState();
+      }
+
+      default: {
+        return _EntityWidgetState();
+      }
+    }
+  }
+}
+
+class _EntityWidgetState extends State<EntityWidget> {
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.inCard) {
+      return _buildMainWidget(context);
+    } else {
+      return ListView(
+        children: <Widget>[
+          _buildMainWidget(context),
+          _buildLastUpdatedWidget()
+        ],
+      );
+    }
   }
 
-  void sendNewState(newState) {
-    return;
-  }
-
-  Widget buildWidget(bool inCard, BuildContext context) {
+  Widget _buildMainWidget(BuildContext context) {
     return SizedBox(
       height: Entity.WIDGET_HEIGHT,
       child: Row(
         children: <Widget>[
           GestureDetector(
             child: _buildIconWidget(),
-            onTap: inCard ? openEntityPage : null,
+            onTap: widget.inCard ? openEntityPage : null,
           ),
           Expanded(
             child: GestureDetector(
               child: _buildNameWidget(),
-              onTap: inCard ? openEntityPage : null,
+              onTap: widget.inCard ? openEntityPage : null,
             ),
           ),
-          _buildActionWidget(inCard, context)
+          _buildActionWidget(widget.inCard, context)
         ],
       ),
     );
+  }
+
+  void openEntityPage() {
+    eventBus.fire(new ShowEntityPageEvent(widget.entity));
+  }
+
+  void sendNewState(newState) {
+    return;
   }
 
   Widget buildAdditionalWidget() {
@@ -121,9 +191,9 @@ class Entity {
     return Padding(
       padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
       child: MaterialDesignIcons.createIconWidgetFromEntityData(
-          this,
+          widget.entity,
           Entity.ICON_SIZE,
-          Entity.STATE_ICONS_COLORS[_state] ?? Colors.blueGrey),
+          Entity.STATE_ICONS_COLORS[widget.entity.state] ?? Colors.blueGrey),
     );
   }
 
@@ -132,10 +202,10 @@ class Entity {
       padding: EdgeInsets.fromLTRB(
           Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),
       child: Text(
-        '${this.lastUpdated}',
+        '${widget.entity.lastUpdated}',
         textAlign: TextAlign.left,
         style:
-            TextStyle(fontSize: Entity.SMALL_FONT_SIZE, color: Colors.black26),
+        TextStyle(fontSize: Entity.SMALL_FONT_SIZE, color: Colors.black26),
       ),
     );
   }
@@ -144,7 +214,7 @@ class Entity {
     return Padding(
       padding: EdgeInsets.only(right: 10.0),
       child: Text(
-        "${this.displayName}",
+        "${widget.entity.displayName}",
         overflow: TextOverflow.ellipsis,
         softWrap: false,
         style: TextStyle(fontSize: Entity.NAME_FONT_SIZE),
@@ -155,10 +225,10 @@ class Entity {
   Widget _buildActionWidget(bool inCard, BuildContext context) {
     return Padding(
         padding:
-            EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
+        EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
         child: GestureDetector(
           child: Text(
-              "$_state${this.unitOfMeasurement}",
+              "${widget.entity.state}${widget.entity.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
                 fontSize: Entity.STATE_FONT_SIZE,

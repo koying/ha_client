@@ -1,20 +1,25 @@
 part of '../main.dart';
 
-class SwitchEntity extends Entity {
-  SwitchEntity(Map rawData) : super(rawData);
+class _SwitchEntityWidgetState extends _EntityWidgetState {
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void sendNewState(newValue) {
     eventBus.fire(new ServiceCallEvent(
-        _domain, (newValue as bool) ? "turn_on" : "turn_off", entityId, null));
+        widget.entity.domain, (newValue as bool) ? "turn_on" : "turn_off", widget.entity.entityId, null));
   }
 
   @override
   Widget _buildActionWidget(bool inCard, BuildContext context) {
     return Switch(
-      value: this.isOn,
+      value: widget.entity.isOn,
       onChanged: ((switchState) {
         sendNewState(switchState);
+        widget.entity.state = switchState ? 'on' : 'off';
       }),
     );
   }
