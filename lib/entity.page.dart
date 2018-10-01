@@ -3,7 +3,7 @@ part of 'main.dart';
 class EntityViewPage extends StatefulWidget {
   EntityViewPage({Key key, this.entity}) : super(key: key);
 
-  Entity entity;
+  final Entity entity;
 
   @override
   _EntityViewPageState createState() => new _EntityViewPageState();
@@ -44,22 +44,13 @@ class _EntityViewPageState extends State<EntityViewPage> {
       ),
       body: Padding(
           padding: EdgeInsets.all(10.0),
-          child: ListView(
-            children: <Widget>[
-              _entity.buildWidget(false, context),
-              _entity.buildAdditionalWidget()
-            ],
-          ),
+          child: _entity.buildWidget(context, false)
       ),
     );
   }
 
   @override
   void dispose(){
-    if (_entity is TextEntity && (_entity as TextEntity).tmpState != _entity.state) {
-      eventBus.fire(new ServiceCallEvent(_entity.domain, "set_value", _entity.entityId, {"value": "${(_entity as TextEntity).tmpState}"}));
-      TheLogger.log("Debug", "Saving changed input value for ${_entity.entityId}");
-    }
     if (_stateSubscription != null) _stateSubscription.cancel();
     super.dispose();
   }

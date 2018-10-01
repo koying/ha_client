@@ -1,29 +1,26 @@
 part of '../main.dart';
 
-class SelectEntity extends Entity {
+class _SelectEntityWidgetState extends _EntityWidgetState {
   List<String> _listOptions = [];
-  String get initialValue => _attributes["initial"] ?? null;
-
-  SelectEntity(Map rawData) : super(rawData) {
-    if (_attributes["options"] != null) {
-      _attributes["options"].forEach((value){
-        _listOptions.add(value.toString());
-      });
-    }
-  }
 
   @override
   void sendNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(_domain, "select_option", _entityId,
+    eventBus.fire(new ServiceCallEvent(widget.entity.domain, "select_option", widget.entity.entityId,
         {"option": "$newValue"}));
   }
 
   @override
   Widget _buildActionWidget(bool inCard, BuildContext context) {
+    _listOptions.clear();
+    if (widget.entity._attributes["options"] != null) {
+      widget.entity._attributes["options"].forEach((value){
+        _listOptions.add(value.toString());
+      });
+    }
     return Container(
       width: Entity.INPUT_WIDTH,
       child: DropdownButton<String>(
-        value: _state,
+        value: widget.entity.state,
         items: this._listOptions.map((String value) {
           return new DropdownMenuItem<String>(
             value: value,

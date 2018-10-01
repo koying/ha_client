@@ -1,40 +1,37 @@
 part of '../main.dart';
 
-class TextEntity extends Entity {
-  String tmpState;
-  FocusNode _focusNode;
+class _TextEntityWidgetState extends _EntityWidgetState {
+  String _tmpValue;
+  FocusNode _focusNode = FocusNode();
   bool validValue = false;
 
-  int get valueMinLength => _attributes["min"] ?? -1;
-  int get valueMaxLength => _attributes["max"] ?? -1;
-  String get valuePattern => _attributes["pattern"] ?? null;
-  bool get isTextField => _attributes["mode"] == "text";
-  bool get isPasswordField => _attributes["mode"] == "password";
+  int get valueMinLength => widget.entity._attributes["min"] ?? -1;
+  int get valueMaxLength => widget.entity._attributes["max"] ?? -1;
+  String get valuePattern => widget.entity._attributes["pattern"] ?? null;
+  bool get isTextField => widget.entity._attributes["mode"] == "text";
+  bool get isPasswordField => widget.entity._attributes["mode"] == "password";
 
-  TextEntity(Map rawData) : super(rawData) {
-    _focusNode = FocusNode();
-    //TODO possible memory leak generator
+  @override
+  void initState() {
+    super.initState();
     _focusNode.addListener(_focusListener);
-    //tmpState = state;
+    _tmpValue = widget.entity.state;
   }
 
   @override
   void sendNewState(newValue) {
     if (validate(newValue)) {
-      eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
+      eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_value", widget.entity.entityId,
           {"value": "$newValue"}));
+    } else {
+      setState(() {
+        _tmpValue = widget.entity.state;
+      });
     }
-  }
-
-  @override
-  void update(Map rawData) {
-    super.update(rawData);
-    tmpState = _state;
   }
 
   bool validate(newValue) {
     if (newValue is String) {
-      //TODO add pattern support
       validValue = (newValue.length >= this.valueMinLength) &&
           (this.valueMaxLength == -1 ||
               (newValue.length <= this.valueMaxLength));
@@ -45,32 +42,42 @@ class TextEntity extends Entity {
   }
 
   void _focusListener() {
-    if (!_focusNode.hasFocus && (tmpState != state)) {
-      sendNewState(tmpState);
-      tmpState = state;
+    if (!_focusNode.hasFocus && (_tmpValue != widget.entity.state)) {
+      sendNewState(_tmpValue);
     }
   }
 
   @override
   Widget _buildActionWidget(bool inCard, BuildContext context) {
+    if (!_focusNode.hasFocus && (_tmpValue != widget.entity.state)) {
+      _tmpValue = widget.entity.state;
+    }
     if (this.isTextField || this.isPasswordField) {
       return Container(
         width: Entity.INPUT_WIDTH,
         child: TextField(
-            focusNode: inCard ? _focusNode : null,
+            focusNode: _focusNode,
             obscureText: this.isPasswordField,
             controller: new TextEditingController.fromValue(
                 new TextEditingValue(
-                    text: tmpState,
+                    text: _tmpValue,
                     selection:
-                    new TextSelection.collapsed(offset: tmpState.length))),
+                    new TextSelection.collapsed(offset: _tmpValue.length))),
             onChanged: (value) {
-              tmpState = value;
+              _tmpValue = value;
             }),
       );
     } else {
-      TheLogger.log("Warning", "Unsupported input mode for $entityId");
+      TheLogger.log("Warning", "Unsupported input mode for ${widget.entity.entityId}");
       return super._buildActionWidget(inCard, context);
     }
   }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_focusListener);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
 }

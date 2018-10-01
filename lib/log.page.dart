@@ -44,7 +44,7 @@ class _LogViewPageState extends State<LogViewPage> {
             onPressed: () {
               String body = "```\n$_logData```";
               String encodedBody = "${Uri.encodeFull(body)}";
-              haUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new?body=$encodedBody");
+              HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new?body=$encodedBody");
             },
           ),
         ],

@@ -32,7 +32,7 @@ class TheLogger {
 
 }
 
-class haUtils {
+class HAUtils {
   static void launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);

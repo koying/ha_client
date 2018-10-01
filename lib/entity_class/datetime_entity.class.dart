@@ -1,18 +1,16 @@
 part of '../main.dart';
 
-class DateTimeEntity extends Entity {
-  bool get hasDate => _attributes["has_date"] ?? false;
-  bool get hasTime => _attributes["has_time"] ?? false;
-  int get year => _attributes["year"] ?? 1970;
-  int get month => _attributes["month"] ?? 1;
-  int get day => _attributes["day"] ?? 1;
-  int get hour => _attributes["hour"] ?? 0;
-  int get minute => _attributes["minute"] ?? 0;
-  int get second => _attributes["second"] ?? 0;
+class _DateTimeEntityWidgetState extends _EntityWidgetState {
+  bool get hasDate => widget.entity._attributes["has_date"] ?? false;
+  bool get hasTime => widget.entity._attributes["has_time"] ?? false;
+  int get year => widget.entity._attributes["year"] ?? 1970;
+  int get month => widget.entity._attributes["month"] ?? 1;
+  int get day => widget.entity._attributes["day"] ?? 1;
+  int get hour => widget.entity._attributes["hour"] ?? 0;
+  int get minute => widget.entity._attributes["minute"] ?? 0;
+  int get second => widget.entity._attributes["second"] ?? 0;
   String get formattedState => _getFormattedState();
   DateTime get dateTimeState => _getDateTimeState();
-
-  DateTimeEntity(Map rawData) : super(rawData);
 
   DateTime _getDateTimeState() {
     return DateTime(this.year, this.month, this.day, this.hour, this.minute, this.second);
@@ -31,7 +29,7 @@ class DateTimeEntity extends Entity {
 
   @override
   void sendNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(_domain, "set_datetime", _entityId,
+    eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_datetime", widget.entity.entityId,
         newValue));
   }
 
@@ -72,7 +70,7 @@ class DateTimeEntity extends Entity {
         }
       });
     } else {
-      TheLogger.log("Warning", "$entityId has no date and no time");
+      TheLogger.log("Warning", "${widget.entity.entityId} has no date and no time");
     }
   }
 
