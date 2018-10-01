@@ -12,13 +12,20 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:date_format/date_format.dart';
 
+part 'entity_class/entity.class.dart';
+part 'entity_class/button_entity.class.dart';
+part 'entity_class/datetime_entity.class.dart';
+part 'entity_class/select_entity.class.dart';
+part 'entity_class/slider_entity.class.dart';
+part 'entity_class/switch_entity.class.dart';
+part 'entity_class/text_entity.class.dart';
+
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
 part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
-part 'entity.class.dart';
 part 'entity_collection.class.dart';
 part 'ui_builder_class.dart';
 part 'view_class.dart';
