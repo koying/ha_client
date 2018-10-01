@@ -432,7 +432,7 @@ class TextEntity extends Entity {
   void sendNewState(newValue) {
     if (validate(newValue)) {
       eventBus.fire(new ServiceCallEvent(_domain, "set_value", _entityId,
-          {"value": "{newValue"}));
+          {"value": "$newValue"}));
     }
   }
 
