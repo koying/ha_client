@@ -22,6 +22,7 @@ class HomeAssistant {
   Completer _configCompleter;
   Completer _connectionCompleter;
   Timer _connectionTimer;
+  Timer _fetchTimer;
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
@@ -42,6 +43,10 @@ class HomeAssistant {
       TheLogger.log("Warning","Previous fetch is not complited");
     } else {
       _fetchCompleter = new Completer();
+      _fetchTimer = Timer(Duration(seconds: 30), () {
+        closeConnection();
+        _finishFetching({"errorCode" : 9,"errorMessage": "Connection timeout or connection issues"});
+      });
       _reConnectSocket().then((r) {
         _getData();
       }).catchError((e) {
@@ -100,17 +105,22 @@ class HomeAssistant {
   }
 
   void _finishFetching(error) {
+    _fetchTimer.cancel();
+    _finishConnecting(error);
     if (error != null) {
-      _fetchCompleter.completeError(error);
+      if (!_fetchCompleter.isCompleted)
+        _fetchCompleter.completeError(error);
     } else {
-      _fetchCompleter.complete();
+      if (!_fetchCompleter.isCompleted)
+        _fetchCompleter.complete();
     }
   }
 
   void _finishConnecting(error) {
     _connectionTimer.cancel();
     if (error != null) {
-      _connectionCompleter.completeError(error);
+      if (!_connectionCompleter.isCompleted)
+        _connectionCompleter.completeError(error);
     } else {
       if (!_connectionCompleter.isCompleted)
         _connectionCompleter.complete();

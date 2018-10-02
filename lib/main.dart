@@ -505,6 +505,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       String message = _lastErrorMessage;
       SnackBarAction action;
       switch (_errorCodeToBeShown) {
+        case 9:
         case 1: {
             action = SnackBarAction(
                 label: "Retry",
