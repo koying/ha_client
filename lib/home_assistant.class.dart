@@ -62,14 +62,14 @@ class HomeAssistant {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
       TheLogger.log("Warning","Previous connection is not complited");
     } else {
-      _connectionCompleter = new Completer();
-      //TODO: Connection timeout timer. Should be removed after #21 fix
-      _connectionTimer = Timer(Duration(seconds: 10), () {
-        closeConnection();
-        _connectionCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
-      });
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
         TheLogger.log("Debug", "Socket connecting...");
+        _connectionCompleter = new Completer();
+        //TODO: Connection timeout timer. Should be removed after #21 fix
+        _connectionTimer = Timer(Duration(seconds: 10), () {
+          closeConnection();
+          _finishConnecting({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
+        });
         _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
         _hassioChannel.stream.handleError((e) {
           TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
@@ -77,7 +77,7 @@ class HomeAssistant {
         _hassioChannel.stream.listen((message) =>
             _handleMessage(_connectionCompleter, message));
       } else {
-        _connectionCompleter.complete();
+        _finishConnecting(null);
       }
     }
     return _connectionCompleter.future;
@@ -99,8 +99,7 @@ class HomeAssistant {
     });
   }
 
-  _finishFetching(error) {
-    _connectionTimer.cancel();
+  void _finishFetching(error) {
     if (error != null) {
       _fetchCompleter.completeError(error);
     } else {
@@ -108,16 +107,27 @@ class HomeAssistant {
     }
   }
 
+  void _finishConnecting(error) {
+    _connectionTimer.cancel();
+    if (error != null) {
+      _connectionCompleter.completeError(error);
+    } else {
+      if (!_connectionCompleter.isCompleted)
+        _connectionCompleter.complete();
+    }
+  }
+
   _handleMessage(Completer connectionCompleter, String message) {
     var data = json.decode(message);
     //TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
+      _finishConnecting(null);
       _sendMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
+      _finishConnecting(null);
       _sendSubscribe();
-      connectionCompleter.complete();
     } else if (data["type"] == "auth_invalid") {
-      connectionCompleter.completeError({"errorCode": 6, "errorMessage": "${data["message"]}"});
+      _finishFetching({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       if (data["id"] == _configMessageId) {
         _parseConfig(data);
@@ -179,12 +189,31 @@ class HomeAssistant {
   }
 
   _sendMessageRaw(String message) {
-    if (message.indexOf('"type": "auth"') > 0) {
-      TheLogger.log("Debug", "[Sending] ==> auth request");
-    } else {
-      TheLogger.log("Debug", "[Sending] ==> $message");
+    var sendCompleter = Completer();
+    _reConnectSocket().then((r) {
+      if (message.indexOf('"type": "auth"') > 0) {
+        TheLogger.log("Debug", "[Sending] ==> auth request");
+      } else {
+        TheLogger.log("Debug", "[Sending] ==> $message");
+      }
+      _hassioChannel.sink.add(message);
+      sendCompleter.complete();
+    }).catchError((e){
+      sendCompleter.completeError(e);
+    });
+    return sendCompleter.future;
+  }
+
+  Future callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
+    _incrementMessageId();
+    String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
+    if (additionalParams != null) {
+      additionalParams.forEach((name, value){
+        message += ', "$name" : "$value"';
+      });
     }
-    _hassioChannel.sink.add(message);
+    message += '}}';
+    return _sendMessageRaw(message);
   }
 
   void _handleEntityStateChange(Map eventData) {
@@ -236,30 +265,5 @@ class HomeAssistant {
     _entities.parse(response["result"]);
     _uiBuilder.build(_entities);
     _statesCompleter.complete();
-  }
-
-  Future callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
-    var sendCompleter = Completer();
-    //TODO: Send service call timeout timer. Should be removed after #21 fix
-    Timer _sendTimer = Timer(Duration(seconds: 7), () {
-      sendCompleter.completeError({"errorCode" : 8,"errorMessage": "Connection timeout"});
-    });
-    _reConnectSocket().then((r) {
-      _incrementMessageId();
-      String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
-      if (additionalParams != null) {
-        additionalParams.forEach((name, value){
-          message += ', "$name" : "$value"';
-        });
-      }
-      message += '}}';
-      _sendMessageRaw(message);
-      _sendTimer.cancel();
-      sendCompleter.complete();
-    }).catchError((e){
-      _sendTimer.cancel();
-      sendCompleter.completeError(e);
-    });
-    return sendCompleter.future;
   }
 }
