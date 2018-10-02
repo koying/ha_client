@@ -20,7 +20,8 @@ class HomeAssistant {
   Completer _statesCompleter;
   Completer _servicesCompleter;
   Completer _configCompleter;
-  Timer _fetchingTimer;
+  Completer _connectionCompleter;
+  Timer _connectionTimer;
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
@@ -40,11 +41,6 @@ class HomeAssistant {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       TheLogger.log("Warning","Previous fetch is not complited");
     } else {
-      //TODO: Fetch timeout timer. Should be removed after #21 fix
-      _fetchingTimer = Timer(Duration(seconds: 15), () {
-        closeConnection();
-        _fetchCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout"});
-      });
       _fetchCompleter = new Completer();
       _reConnectSocket().then((r) {
         _getData();
@@ -63,17 +59,26 @@ class HomeAssistant {
   }
 
   Future _reConnectSocket() {
-    var _connectionCompleter = new Completer();
-    if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
-      TheLogger.log("Debug","Socket connecting...");
-      _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
-      _hassioChannel.stream.handleError((e) {
-        TheLogger.log("Error","Unhandled socket error: ${e.toString()}");
-      });
-      _hassioChannel.stream.listen((message) =>
-          _handleMessage(_connectionCompleter, message));
+    if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
+      TheLogger.log("Warning","Previous connection is not complited");
     } else {
-      _connectionCompleter.complete();
+      _connectionCompleter = new Completer();
+      //TODO: Connection timeout timer. Should be removed after #21 fix
+      _connectionTimer = Timer(Duration(seconds: 10), () {
+        closeConnection();
+        _connectionCompleter.completeError({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
+      });
+      if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+        TheLogger.log("Debug", "Socket connecting...");
+        _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
+        _hassioChannel.stream.handleError((e) {
+          TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
+        });
+        _hassioChannel.stream.listen((message) =>
+            _handleMessage(_connectionCompleter, message));
+      } else {
+        _connectionCompleter.complete();
+      }
     }
     return _connectionCompleter.future;
   }
@@ -95,7 +100,7 @@ class HomeAssistant {
   }
 
   _finishFetching(error) {
-    _fetchingTimer.cancel();
+    _connectionTimer.cancel();
     if (error != null) {
       _fetchCompleter.completeError(error);
     } else {
@@ -183,7 +188,7 @@ class HomeAssistant {
   }
 
   void _handleEntityStateChange(Map eventData) {
-    TheLogger.log("Debug", "New state for ${eventData['entity_id']}");
+    //TheLogger.log("Debug", "New state for ${eventData['entity_id']}");
     _entities.updateState(eventData);
     eventBus.fire(new StateChangedEvent(eventData["entity_id"], null, false));
   }
