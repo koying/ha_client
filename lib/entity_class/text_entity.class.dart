@@ -53,8 +53,8 @@ class _TextEntityWidgetState extends _EntityWidgetState {
       _tmpValue = widget.entity.state;
     }
     if (this.isTextField || this.isPasswordField) {
-      return Container(
-        width: Entity.INPUT_WIDTH,
+      return Expanded(
+        //width: Entity.INPUT_WIDTH,
         child: TextField(
             focusNode: _focusNode,
             obscureText: this.isPasswordField,

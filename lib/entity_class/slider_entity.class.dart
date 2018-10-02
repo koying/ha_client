@@ -26,8 +26,8 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
     } else if (valueStep < 0.1) {
       _multiplier = 100;
     }
-    return Container(
-      width: 200.0,
+    return Expanded(
+      //width: 200.0,
       child: Row(
         children: <Widget>[
           Expanded(

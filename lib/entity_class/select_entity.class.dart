@@ -17,8 +17,8 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
         _listOptions.add(value.toString());
       });
     }
-    return Container(
-      width: Entity.INPUT_WIDTH,
+    return Expanded(
+      //width: Entity.INPUT_WIDTH,
       child: DropdownButton<String>(
         value: widget.entity.state,
         items: this._listOptions.map((String value) {
