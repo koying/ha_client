@@ -197,14 +197,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   void _callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
-    setState(() {
-      _isLoading = true;
-    });
-    _homeAssistant.callService(domain, service, entityId, additionalParams).then((r) {
-      setState(() {
-        _isLoading = false;
-      });
-    }).catchError((e) => _setErrorState(e));
+    _homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
   }
 
   void _showEntityPage(Entity entity) {

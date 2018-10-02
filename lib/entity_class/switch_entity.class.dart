@@ -19,7 +19,9 @@ class _SwitchEntityWidgetState extends _EntityWidgetState {
       value: widget.entity.isOn,
       onChanged: ((switchState) {
         sendNewState(switchState);
-        widget.entity.state = switchState ? 'on' : 'off';
+        setState(() {
+          widget.entity.state = switchState ? 'on' : 'off';
+        });
       }),
     );
   }

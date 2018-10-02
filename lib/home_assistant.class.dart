@@ -25,7 +25,7 @@ class HomeAssistant {
   Timer _connectionTimer;
   Timer _fetchTimer;
 
-  int messageExpirationTime = 20; //seconds
+  int messageExpirationTime = 50; //seconds
   Duration fetchTimeout = Duration(seconds: 30);
   Duration connectTimeout = Duration(seconds: 10);
 
@@ -51,9 +51,9 @@ class HomeAssistant {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
         closeConnection();
-        _finishFetching({"errorCode" : 9,"errorMessage": "Connection timeout or connection issues"});
+        _finishFetching({"errorCode" : 9,"errorMessage": "Couldn't get data from server"});
       });
-      _reConnectSocket().then((r) {
+      _connection().then((r) {
         _getData();
       }).catchError((e) {
         _finishFetching(e);
@@ -69,7 +69,7 @@ class HomeAssistant {
     _hassioChannel = null;
   }
 
-  Future _reConnectSocket() {
+  Future _connection() {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
@@ -78,14 +78,19 @@ class HomeAssistant {
         _connectionCompleter = new Completer();
         _connectionTimer = Timer(connectTimeout, () {
           closeConnection();
-          _finishConnecting({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
+          _finishConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Looks like a network issues"});
         });
-        _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint, pingInterval: Duration(seconds: 60));
+        _hassioChannel = IOWebSocketChannel.connect(
+              _hassioAPIEndpoint, pingInterval: Duration(seconds: 30));
         _hassioChannel.stream.handleError((e) {
           TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
         });
         _hassioChannel.stream.listen((message) =>
             _handleMessage(_connectionCompleter, message));
+        _hassioChannel.sink.done.whenComplete(() {
+          TheLogger.log("Debug","Socket sink finished. Assuming it is closed.");
+          closeConnection();
+        });
       } else {
         //TheLogger.log("Debug","Socket looks connected...${_hassioChannel.protocol}, ${_hassioChannel.closeCode}, ${_hassioChannel.closeReason}");
         _finishConnecting(null);
@@ -211,7 +216,7 @@ class HomeAssistant {
   _sendMessageRaw(String message, bool queued) {
     var sendCompleter = Completer();
     if (queued) _messageQueue.add(message);
-    _reConnectSocket().then((r) {
+    _connection().then((r) {
       _messageQueue.getActualMessages().forEach((message){
         TheLogger.log("Debug", "[Sending queued] ==> $message");
         _hassioChannel.sink.add(message);
