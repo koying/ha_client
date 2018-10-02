@@ -28,7 +28,7 @@ class _DateTimeEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
     eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_datetime", widget.entity.entityId,
         newValue));
   }
@@ -56,17 +56,17 @@ class _DateTimeEntityWidgetState extends _EntityWidgetState {
         if (date != null) {
           if (hasTime) {
             _showTimePicker(context).then((time){
-              sendNewState({"date": "${formatDate(date, [yyyy, '-', mm, '-', dd])}", "time": "${formatDate(DateTime(1970, 1, 1, time.hour, time.minute), [HH, ':', nn])}"});
+              setNewState({"date": "${formatDate(date, [yyyy, '-', mm, '-', dd])}", "time": "${formatDate(DateTime(1970, 1, 1, time.hour, time.minute), [HH, ':', nn])}"});
             });
           } else {
-            sendNewState({"date": "${formatDate(date, [yyyy, '-', mm, '-', dd])}"});
+            setNewState({"date": "${formatDate(date, [yyyy, '-', mm, '-', dd])}"});
           }
         }
       });
     } else if (hasTime) {
       _showTimePicker(context).then((time){
         if (time != null) {
-          sendNewState({"time": "${formatDate(DateTime(1970, 1, 1, time.hour, time.minute), [HH, ':', nn])}"});
+          setNewState({"time": "${formatDate(DateTime(1970, 1, 1, time.hour, time.minute), [HH, ':', nn])}"});
         }
       });
     } else {

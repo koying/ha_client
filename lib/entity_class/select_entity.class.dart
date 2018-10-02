@@ -4,7 +4,7 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
   List<String> _listOptions = [];
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
     eventBus.fire(new ServiceCallEvent(widget.entity.domain, "select_option", widget.entity.entityId,
         {"option": "$newValue"}));
   }
@@ -28,7 +28,7 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
           );
         }).toList(),
         onChanged: (_) {
-          sendNewState(_);
+          setNewState(_);
         },
       ),
     );

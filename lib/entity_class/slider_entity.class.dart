@@ -14,7 +14,7 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
     eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_value", widget.entity.entityId,
         {"value": "${newValue.toString()}"}));
   }
@@ -46,7 +46,7 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
                     (value.roundToDouble() / _multiplier).toString(), true));*/
               },
               onChangeEnd: (value) {
-                sendNewState(value.roundToDouble() / _multiplier);
+                setNewState(value.roundToDouble() / _multiplier);
               },
             ),
           ),

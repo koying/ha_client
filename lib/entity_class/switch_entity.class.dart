@@ -8,7 +8,15 @@ class _SwitchEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
+    setState(() {
+      widget.entity.assumedState = newValue ? 'on' : 'off';
+    });
+    Timer(Duration(seconds: 2), (){
+      setState(() {
+        widget.entity.assumedState = widget.entity.state;
+      });
+    });
     eventBus.fire(new ServiceCallEvent(
         widget.entity.domain, (newValue as bool) ? "turn_on" : "turn_off", widget.entity.entityId, null));
   }
@@ -16,12 +24,9 @@ class _SwitchEntityWidgetState extends _EntityWidgetState {
   @override
   Widget _buildActionWidget(bool inCard, BuildContext context) {
     return Switch(
-      value: widget.entity.isOn,
+      value: widget.entity.assumedState == 'on',
       onChanged: ((switchState) {
-        sendNewState(switchState);
-        setState(() {
-          widget.entity.state = switchState ? 'on' : 'off';
-        });
+        setNewState(switchState);
       }),
     );
   }

@@ -3,7 +3,7 @@ part of '../main.dart';
 class _ButtonEntityWidgetState extends _EntityWidgetState {
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
     eventBus.fire(new ServiceCallEvent(widget.entity.domain, "turn_on", widget.entity.entityId, null));
   }
 
@@ -11,7 +11,7 @@ class _ButtonEntityWidgetState extends _EntityWidgetState {
   Widget _buildActionWidget(bool inCard, BuildContext context) {
     return FlatButton(
       onPressed: (() {
-        sendNewState(null);
+        setNewState(null);
       }),
       child: Text(
         "EXECUTE",

@@ -22,6 +22,7 @@ class Entity {
   String _domain;
   String _entityId;
   String _state;
+  String assumedState;
   DateTime _lastUpdated;
 
   String get displayName =>
@@ -52,6 +53,7 @@ class Entity {
     _domain = rawData["entity_id"].split(".")[0];
     _entityId = rawData["entity_id"];
     _state = rawData["state"];
+    assumedState = _state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
@@ -179,7 +181,7 @@ class _EntityWidgetState extends State<EntityWidget> {
     eventBus.fire(new ShowEntityPageEvent(widget.entity));
   }
 
-  void sendNewState(newState) {
+  void setNewState(newState) {
     return;
   }
 

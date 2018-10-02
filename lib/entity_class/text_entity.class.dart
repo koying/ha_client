@@ -19,7 +19,7 @@ class _TextEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  void sendNewState(newValue) {
+  void setNewState(newValue) {
     if (validate(newValue)) {
       eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_value", widget.entity.entityId,
           {"value": "$newValue"}));
@@ -43,7 +43,7 @@ class _TextEntityWidgetState extends _EntityWidgetState {
 
   void _focusListener() {
     if (!_focusNode.hasFocus && (_tmpValue != widget.entity.state)) {
-      sendNewState(_tmpValue);
+      setNewState(_tmpValue);
     }
   }
 
