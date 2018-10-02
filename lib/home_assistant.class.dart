@@ -77,13 +77,14 @@ class HomeAssistant {
           closeConnection();
           _finishConnecting({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
         });
-        _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint);
+        _hassioChannel = IOWebSocketChannel.connect(_hassioAPIEndpoint, pingInterval: Duration(seconds: 60));
         _hassioChannel.stream.handleError((e) {
           TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
         });
         _hassioChannel.stream.listen((message) =>
             _handleMessage(_connectionCompleter, message));
       } else {
+        //TheLogger.log("Debug","Socket looks connected...${_hassioChannel.protocol}, ${_hassioChannel.closeCode}, ${_hassioChannel.closeReason}");
         _finishConnecting(null);
       }
     }
