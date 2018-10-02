@@ -25,6 +25,10 @@ class HomeAssistant {
   Timer _connectionTimer;
   Timer _fetchTimer;
 
+  int messageExpirationTime = 20; //seconds
+  Duration fetchTimeout = Duration(seconds: 30);
+  Duration connectTimeout = Duration(seconds: 10);
+
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
   UIBuilder get uiBuilder => _uiBuilder;
@@ -37,7 +41,7 @@ class HomeAssistant {
     _hassioAuthType = authType;
     _entities = EntityCollection();
     _uiBuilder = UIBuilder();
-    _messageQueue = SendMessageQueue(20);
+    _messageQueue = SendMessageQueue(messageExpirationTime);
   }
 
   Future fetch() {
@@ -45,7 +49,7 @@ class HomeAssistant {
       TheLogger.log("Warning","Previous fetch is not complited");
     } else {
       _fetchCompleter = new Completer();
-      _fetchTimer = Timer(Duration(seconds: 30), () {
+      _fetchTimer = Timer(fetchTimeout, () {
         closeConnection();
         _finishFetching({"errorCode" : 9,"errorMessage": "Connection timeout or connection issues"});
       });
@@ -69,11 +73,10 @@ class HomeAssistant {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
-      if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+      if ((_hassioChannel == null) || (_hassioChannel.sink == null) || (_hassioChannel.closeCode != null)) {
         TheLogger.log("Debug", "Socket connecting...");
         _connectionCompleter = new Completer();
-        //TODO: Connection timeout timer. Should be removed after #21 fix
-        _connectionTimer = Timer(Duration(seconds: 10), () {
+        _connectionTimer = Timer(connectTimeout, () {
           closeConnection();
           _finishConnecting({"errorCode" : 1,"errorMessage": "Connection timeout or connection issues"});
         });
