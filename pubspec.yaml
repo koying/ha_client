@@ -13,7 +13,6 @@ dependencies:
   progress_indicators: ^0.1.2
   event_bus: ^1.0.1
   package_info: ^0.3.2
-  flutter_launcher_icons: ^0.6.1
   cached_network_image: ^0.4.1
   url_launcher: ^3.0.3
   date_format: ^1.0.5
@@ -25,6 +24,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.6.1
 
 flutter_icons:
   android: true
