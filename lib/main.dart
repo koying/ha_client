@@ -34,7 +34,7 @@ part 'badge_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.4";
+const appVersion = "0.2.5";
 
 String homeAssistantWebHost;
 
@@ -100,6 +100,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
   bool _isLoading = true;
+  bool _settingsLoaded = false;
 
   Map<String, Color> _badgeColors = {
     "default": Color.fromRGBO(223, 76, 30, 1.0),
@@ -109,6 +110,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
     _homeAssistant = HomeAssistant();
@@ -144,7 +146,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     TheLogger.log("Debug","$state");
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && _settingsLoaded) {
       _refreshData();
     }
   }
@@ -161,6 +163,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if ((domain == null) || (port == null) || (_apiPassword == null) ||
         (domain.length == 0) || (port.length == 0) || (_apiPassword.length == 0)) {
       throw("Check connection settings");
+    } else {
+      _settingsLoaded = true;
     }
   }
 
