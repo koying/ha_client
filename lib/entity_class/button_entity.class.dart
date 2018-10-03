@@ -8,7 +8,7 @@ class _ButtonEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     return FlatButton(
       onPressed: (() {
         setNewState(null);

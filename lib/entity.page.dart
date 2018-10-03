@@ -44,7 +44,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
       ),
       body: Padding(
           padding: EdgeInsets.all(10.0),
-          child: _entity.buildWidget(context, false)
+          child: _entity.buildWidget(context, EntityWidgetType.extended)
       ),
     );
   }

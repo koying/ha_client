@@ -22,7 +22,7 @@ class _SwitchEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     return Switch(
       value: widget.entity.assumedState == 'on',
       onChanged: ((switchState) {

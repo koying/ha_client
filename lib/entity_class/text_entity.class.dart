@@ -48,7 +48,7 @@ class _TextEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     if (!_focusNode.hasFocus && (_tmpValue != widget.entity.state)) {
       _tmpValue = widget.entity.state;
     }
@@ -69,7 +69,7 @@ class _TextEntityWidgetState extends _EntityWidgetState {
       );
     } else {
       TheLogger.log("Warning", "Unsupported input mode for ${widget.entity.entityId}");
-      return super._buildActionWidget(inCard, context);
+      return super._buildActionWidget(context);
     }
   }
 

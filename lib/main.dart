@@ -437,7 +437,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         entities.add(
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: entity.buildWidget(context, true),
+            child: entity.buildWidget(context, EntityWidgetType.regular),
           ));
       }
     });

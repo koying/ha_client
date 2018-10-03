@@ -20,7 +20,7 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     if (valueStep < 1) {
       _multiplier = 10;
     } else if (valueStep < 0.1) {

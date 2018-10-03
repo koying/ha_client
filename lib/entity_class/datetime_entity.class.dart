@@ -34,7 +34,7 @@ class _DateTimeEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     return Padding(
         padding:
         EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),

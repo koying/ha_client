@@ -57,10 +57,10 @@ class Entity {
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
-  EntityWidget buildWidget(BuildContext context, bool inCard) {
+  EntityWidget buildWidget(BuildContext context, int widgetType) {
     return EntityWidget(
       entity: this,
-      inCard: inCard,
+      widgetType: widgetType,
     );
   }
 
@@ -93,14 +93,20 @@ class Entity {
     }
   }
 
+}
 
+class EntityWidgetType {
+  static final int regular = 1;
+  static final int extended = 2;
+  static final int badge = 3;
 }
 
 class EntityWidget extends StatefulWidget {
-  EntityWidget({Key key, this.entity, this.inCard}) : super(key: key);
+
+  EntityWidget({Key key, this.entity, this.widgetType}) : super(key: key);
 
   final Entity entity;
-  final bool inCard;
+  final int widgetType;
 
   @override
   _EntityWidgetState createState() {
@@ -144,15 +150,17 @@ class _EntityWidgetState extends State<EntityWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.inCard) {
+    if (widget.widgetType == EntityWidgetType.regular) {
       return _buildMainWidget(context);
-    } else {
+    } else if (widget.widgetType == EntityWidgetType.extended) {
       return ListView(
         children: <Widget>[
           _buildMainWidget(context),
           _buildLastUpdatedWidget()
         ],
       );
+    } else {
+      TheLogger.log("Error", "Unknown entity widget type: ${widget.widgetType}");
     }
   }
 
@@ -163,15 +171,15 @@ class _EntityWidgetState extends State<EntityWidget> {
         children: <Widget>[
           GestureDetector(
             child: _buildIconWidget(),
-            onTap: widget.inCard ? openEntityPage : null,
+            onTap: widget.widgetType == EntityWidgetType.extended ? null : openEntityPage,
           ),
           Expanded(
             child: GestureDetector(
               child: _buildNameWidget(),
-              onTap: widget.inCard ? openEntityPage : null,
+              onTap: widget.widgetType == EntityWidgetType.extended ? null : openEntityPage,
             ),
           ),
-          _buildActionWidget(widget.inCard, context)
+          _buildActionWidget(context)
         ],
       ),
     );
@@ -224,7 +232,7 @@ class _EntityWidgetState extends State<EntityWidget> {
     );
   }
 
-  Widget _buildActionWidget(bool inCard, BuildContext context) {
+  Widget _buildActionWidget(BuildContext context) {
     return Padding(
         padding:
         EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
