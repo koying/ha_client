@@ -88,6 +88,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   HomeAssistant _homeAssistant;
   EntityCollection _entities;
   //Map _instanceConfig;
+  String _apiEndpoint;
+  String _apiPassword;
+  String _authType;
   int _uiViewsCount = 0;
   String _instanceHost;
   int _errorCodeToBeShown = 0;
@@ -107,14 +110,35 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _homeAssistant = HomeAssistant();
+
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
-      setState(() {
-        _errorCodeToBeShown = 0;
-      });
-      _initConnection();
+      if (event.reconnect) {
+        _homeAssistant.closeConnection();
+        _initConnection().then((b){
+          setState(() {
+            _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
+            _errorCodeToBeShown = 10;
+            _lastErrorMessage = "Connection settings was changed.";
+          });
+          }, onError: (_) {
+            setState(() {
+              _lastErrorMessage = _;
+              _errorCodeToBeShown = 5;
+            });
+          });
+      }
     });
-    _initConnection();
+    _initConnection().then((_){
+      _createConnection();
+    }, onError: (_) {
+      setState(() {
+        _lastErrorMessage = _;
+        _errorCodeToBeShown = 5;
+      });
+    });
   }
 
   @override
@@ -130,62 +154,62 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
     _instanceHost = "$domain:$port";
-    String apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
+    _apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    String apiPassword = prefs.getString('hassio-password');
-    String authType = prefs.getString('hassio-auth-type');
-    if ((domain == null) || (port == null) || (apiPassword == null) ||
-        (domain.length == 0) || (port.length == 0) || (apiPassword.length == 0)) {
-      setState(() {
-        _errorCodeToBeShown = 5;
-      });
-    } else {
-      if (_homeAssistant != null) _homeAssistant.closeConnection();
-      _createConnection(apiEndpoint, apiPassword, authType);
+    _apiPassword = prefs.getString('hassio-password');
+    _authType = prefs.getString('hassio-auth-type');
+    if ((domain == null) || (port == null) || (_apiPassword == null) ||
+        (domain.length == 0) || (port.length == 0) || (_apiPassword.length == 0)) {
+      throw("Check connection settings");
     }
   }
 
-  _createConnection(String apiEndpoint, String apiPassword, String authType) {
-    _homeAssistant = HomeAssistant(apiEndpoint, apiPassword, authType);
+  _createConnection() {
     _refreshData();
-    if (_stateSubscription != null) _stateSubscription.cancel();
-    _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-      setState(() {
-        if (event.localChange) {
-          _entities
-              .get(event.entityId)
-              .state = event.newState;
-        }
+    if (_stateSubscription == null) {
+      _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
+        setState(() {
+          if (event.localChange) {
+            _entities
+                .get(event.entityId)
+                .state = event.newState;
+          }
+        });
       });
-    });
-    if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
-    _serviceCallSubscription = eventBus.on<ServiceCallEvent>().listen((event) {
-      _callService(event.domain, event.service, event.entityId, event.additionalParams);
-    });
+    }
+    if (_serviceCallSubscription == null) {
+      _serviceCallSubscription =
+          eventBus.on<ServiceCallEvent>().listen((event) {
+            _callService(event.domain, event.service, event.entityId,
+                event.additionalParams);
+          });
+    }
 
-    if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
-    _showEntityPageSubscription = eventBus.on<ShowEntityPageEvent>().listen((event) {
-      _showEntityPage(event.entity);
-    });
+    if (_showEntityPageSubscription == null) {
+      _showEntityPageSubscription =
+          eventBus.on<ShowEntityPageEvent>().listen((event) {
+            _showEntityPage(event.entity);
+          });
+    }
   }
 
   _refreshData() async {
+    _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
     setState(() {
       _isLoading = true;
     });
     _errorCodeToBeShown = 0;
-    if (_homeAssistant != null) {
-      await _homeAssistant.fetch().then((result) {
-        setState(() {
-          //_instanceConfig = _homeAssistant.instanceConfig;
-          _entities = _homeAssistant.entities;
-          _uiViewsCount = _homeAssistant.viewsCount;
-          _isLoading = false;
-        });
-      }).catchError((e) {
-        _setErrorState(e);
+    _lastErrorMessage = "";
+    await _homeAssistant.fetch().then((result) {
+      setState(() {
+        //_instanceConfig = _homeAssistant.instanceConfig;
+        _entities = _homeAssistant.entities;
+        _uiViewsCount = _homeAssistant.viewsCount;
+        _isLoading = false;
       });
-    }
+    }).catchError((e) {
+      _setErrorState(e);
+    });
   }
 
   _setErrorState(e) {
@@ -483,6 +507,25 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
             },
           ),
+          Container(
+            height: 30.0,
+            decoration: new BoxDecoration(
+              border: new Border(
+                  top: BorderSide(
+                    width: 2.0,
+                    color: Colors.black26,
+                  )
+                ),
+              )
+          ),
+          new ListTile(
+            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
+            title: Text("By me a coffee"),
+            onTap: () {
+              Navigator.of(context).pop();
+              HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
+            },
+          ),
           new AboutListTile(
             applicationName: appName,
             applicationVersion: appVersion,
@@ -499,6 +542,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       SnackBarAction action;
       switch (_errorCodeToBeShown) {
         case 9:
+        case 11:
+        case 7:
         case 1: {
             action = SnackBarAction(
                 label: "Retry",
@@ -533,9 +578,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           break;
         }
 
-        case 7: {
+        case 10: {
           action = SnackBarAction(
-            label: "Retry",
+            label: "Refresh",
             onPressed: () {
               _scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();

@@ -15,6 +15,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioPassword = "";
   String _socketProtocol = "wss";
   String _authType = "access_token";
+  bool _connectionSettingsChanged = false;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-protocol", _socketProtocol);
     prefs.setString("hassio-res-protocol", _socketProtocol == "wss" ? "https" : "http");
     prefs.setString("hassio-auth-type", _authType);
+    _connectionSettingsChanged = true;
   }
 
   @override
@@ -52,12 +54,24 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     return new Scaffold(
       appBar: new AppBar(
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
-          _saveSettings().then((r){
-            Navigator.pop(context);
-          });
-          eventBus.fire(SettingsChangedEvent(true));
+          Navigator.pop(context);
         }),
         title: new Text(widget.title),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.check),
+            onPressed:(){
+              if (_connectionSettingsChanged) {
+                _saveSettings().then((r){
+                  Navigator.pop(context);
+                  eventBus.fire(SettingsChangedEvent(_connectionSettingsChanged));
+                });
+              } else {
+                Navigator.pop(context);
+              }
+            }
+          )
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20.0),

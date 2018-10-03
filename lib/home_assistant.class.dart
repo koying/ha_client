@@ -37,13 +37,16 @@ class HomeAssistant {
 
   EntityCollection get entities => _entities;
 
-  HomeAssistant(String url, String password, String authType) {
-    _hassioAPIEndpoint = url;
-    _hassioPassword = password;
-    _hassioAuthType = authType;
+  HomeAssistant() {
     _entities = EntityCollection();
     _uiBuilder = UIBuilder();
     _messageQueue = SendMessageQueue(messageExpirationTime);
+  }
+
+  void updateConnectionSettings(String url, String password, String authType) {
+    _hassioAPIEndpoint = url;
+    _hassioPassword = password;
+    _hassioAuthType = authType;
   }
 
   Future fetch() {
