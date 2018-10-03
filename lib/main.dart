@@ -495,6 +495,17 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               Navigator.of(context).pushNamed('/connection-settings');
             },
           ),
+          Container(
+              height: 16.0,
+              decoration: new BoxDecoration(
+                border: new Border(
+                    bottom: BorderSide(
+                      width: 1.0,
+                      color: Colors.black26,
+                    )
+                ),
+              )
+          ),
           new ListTile(
             leading: Icon(Icons.insert_drive_file),
             title: Text("Log"),
@@ -512,28 +523,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             },
           ),
           Container(
-            height: 30.0,
+            height: 16.0,
             decoration: new BoxDecoration(
               border: new Border(
-                  top: BorderSide(
-                    width: 2.0,
+                  bottom: BorderSide(
+                    width: 1.0,
                     color: Colors.black26,
                   )
                 ),
               )
           ),
-          new ListTile(
-            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
-            title: Text("By me a coffee"),
-            onTap: () {
-              Navigator.of(context).pop();
-              HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
-            },
-          ),
           new AboutListTile(
             applicationName: appName,
             applicationVersion: appVersion,
             applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
+          ),
+          new ListTile(
+            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
+            title: Text("Buy me a coffee"),
+            onTap: () {
+              Navigator.of(context).pop();
+              HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
+            },
           )
         ],
       ),
