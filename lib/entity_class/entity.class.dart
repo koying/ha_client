@@ -106,7 +106,7 @@ class EntityWidget extends StatefulWidget {
   _EntityWidgetState createState() {
     switch (entity.domain) {
       case "automation":
-      case "input_boolean ":
+      case "input_boolean":
       case "switch":
       case "light": {
         return _SwitchEntityWidgetState();
