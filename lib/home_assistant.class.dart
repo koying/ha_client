@@ -25,9 +25,11 @@ class HomeAssistant {
   Timer _connectionTimer;
   Timer _fetchTimer;
 
+  StreamSubscription _socketSubscription;
+
   int messageExpirationTime = 50; //seconds
-  Duration fetchTimeout = Duration(seconds: 30);
-  Duration connectTimeout = Duration(seconds: 10);
+  Duration fetchTimeout = Duration(seconds: 45);
+  Duration connectTimeout = Duration(seconds: 15);
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
@@ -51,6 +53,7 @@ class HomeAssistant {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
         closeConnection();
+        TheLogger.log("Error", "Data fetching timeout");
         _finishFetching({"errorCode" : 9,"errorMessage": "Couldn't get data from server"});
       });
       _connection().then((r) {
@@ -63,10 +66,15 @@ class HomeAssistant {
   }
 
   closeConnection() {
-    if (_hassioChannel?.closeCode == null) {
-      _hassioChannel?.sink?.close();
+    if (_socketSubscription != null) {
+      _socketSubscription.cancel();
     }
-    _hassioChannel = null;
+    if (_hassioChannel != null) {
+      if (_hassioChannel.closeCode == null) {
+        _hassioChannel.sink?.close();
+      }
+      _hassioChannel = null;
+    }
   }
 
   Future _connection() {
@@ -74,10 +82,12 @@ class HomeAssistant {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
       if ((_hassioChannel == null) || (_hassioChannel.sink == null) || (_hassioChannel.closeCode != null)) {
+        closeConnection();
         TheLogger.log("Debug", "Socket connecting...");
         _connectionCompleter = new Completer();
         _connectionTimer = Timer(connectTimeout, () {
           closeConnection();
+          TheLogger.log("Error", "Socket connection timeout");
           _finishConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Looks like a network issues"});
         });
         _hassioChannel = IOWebSocketChannel.connect(
@@ -85,7 +95,8 @@ class HomeAssistant {
         _hassioChannel.stream.handleError((e) {
           TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
         });
-        _hassioChannel.stream.listen((message) =>
+        if (_socketSubscription != null) _socketSubscription.cancel();
+        _socketSubscription = _hassioChannel.stream.listen((message) =>
             _handleMessage(_connectionCompleter, message));
         _hassioChannel.sink.done.whenComplete(() {
           TheLogger.log("Debug","Socket sink finished. Assuming it is closed.");
