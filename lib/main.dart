@@ -34,7 +34,7 @@ part 'badge_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.3";
+const appVersion = "0.2.4";
 
 String homeAssistantWebHost;
 
