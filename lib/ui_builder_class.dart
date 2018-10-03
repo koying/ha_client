@@ -27,8 +27,6 @@ class UIBuilder {
 
   void _createDefaultView() {
     Map<String, List<String>> userGroupsList = _entities.getDefaultViewTopLevelEntities();
-    TheLogger.log("RESULT", "${userGroupsList["userGroups"]}");
-    TheLogger.log("RESULT", "${userGroupsList["notGroupedEntities"]}");
     View view = View("group.default_view", 0);
     userGroupsList["userGroups"].forEach((groupId){
       view.add(_entities.get(groupId));
