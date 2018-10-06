@@ -27,10 +27,9 @@ part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
-part 'ui_builder_class.dart';
+part 'view_builder.class.dart';
 part 'view_class.dart';
 part 'card_class.dart';
-part 'badge_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
@@ -99,13 +98,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
+  StreamSubscription _refreshDataSubscription;
   bool _isLoading = true;
   bool _settingsLoaded = false;
-
-  Map<String, Color> _badgeColors = {
-    "default": Color.fromRGBO(223, 76, 30, 1.0),
-    "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
-  };
 
   @override
   void initState() {
@@ -193,6 +188,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             _showEntityPage(event.entity);
           });
     }
+
+    if (_refreshDataSubscription == null) {
+      _refreshDataSubscription = eventBus.on<RefreshDataEvent>().listen((event){
+        _refreshData();
+      });
+    }
   }
 
   _refreshData() async {
@@ -212,6 +213,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }).catchError((e) {
       _setErrorState(e);
     });
+    eventBus.fire(RefreshDataFinishedEvent());
   }
 
   _setErrorState(e) {
@@ -235,217 +237,22 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  List<Widget> _buildViews() {
-    List<Widget> result = [];
-    if ((_entities != null) && (!_homeAssistant.uiBuilder.isEmpty)) {
-      _homeAssistant.uiBuilder.views.forEach((viewId, view) {
+  List<Tab> buildUIViewTabs() {
+    //TODO move somewhere to ViewBuilder
+    List<Tab> result = [];
+    if (!_entities.isEmpty) {
+      if (!_entities.hasDefaultView) {
         result.add(
-            RefreshIndicator(
-              color: Colors.amber,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: _buildSingleView(view),
-              ),
-              onRefresh: () => _refreshData(),
+            Tab(
+                icon:
+                  Icon(
+                    MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
+                    size: 24.0,
+                  )
             )
         );
-      });
-    }
-    return result;
-  }
-
-  List<Widget> _buildSingleView(View view) {
-    List<Widget> result = [];
-    if (view.isThereBadges) {
-      result.add(
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 10.0,
-          runSpacing: 1.0,
-          children: _buildBadges(view.badges),
-        )
-      );
-
-    }
-    view.cards.forEach((id, card) {
-      if (card.entities.isNotEmpty) {
-        result.add(_buildCard(card));
       }
-    });
-
-    return result;
-  }
-
-  List<Widget> _buildBadges( Map<String, Badge> badges) {
-    List<Widget> result = [];
-    badges.forEach((id, badge) {
-      var badgeEntity = _entities.get(id);
-      if (badgeEntity != null) {
-        result.add(
-          _buildSingleBadge(badgeEntity)
-        );
-      }
-    });
-    return result;
-  }
-
-  Widget _buildSingleBadge(Entity data) {
-    double iconSize = 26.0;
-    Widget badgeIcon;
-    String badgeTextValue;
-    Color iconColor = _badgeColors[data.domain] ?? _badgeColors["default"];
-    switch (data.domain) {
-      case "sun": {
-        badgeIcon = data.state == "below_horizon" ?
-          Icon(
-            MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
-            size: iconSize,
-          ) :
-          Icon(
-            MaterialDesignIcons.createIconDataFromIconCode(0xf5a8),
-            size: iconSize,
-          );
-        break;
-      }
-      case "sensor": {
-        badgeTextValue = data.unitOfMeasurement;
-        badgeIcon = Center(
-          child: Text(
-            "${data.state == 'unknown' ? '-' : data.state}",
-            overflow: TextOverflow.fade,
-            softWrap: false,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 17.0),
-          ),
-        );
-        break;
-      }
-      case "device_tracker": {
-        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(data, iconSize,Colors.black);
-        badgeTextValue = data.state;
-        break;
-      }
-      default: {
-       badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(data, iconSize,Colors.black);
-      }
-    }
-    Widget badgeText;
-    if (badgeTextValue == null || badgeTextValue.length == 0) {
-      badgeText = Container(width: 0.0, height: 0.0);
-    } else {
-      badgeText = Container(
-          padding: EdgeInsets.fromLTRB(6.0, 2.0, 6.0, 2.0),
-          child: Text("$badgeTextValue",
-              style: TextStyle(fontSize: 12.0, color: Colors.white),
-              textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.fade),
-          decoration: new BoxDecoration(
-            // Circle shape
-            //shape: BoxShape.circle,
-            color: iconColor,
-            borderRadius: BorderRadius.circular(9.0),
-          )
-      );
-    }
-    return Column(
-      children: <Widget>[
-        Container(
-          margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-          width: 50.0,
-          height: 50.0,
-          decoration: new BoxDecoration(
-            // Circle shape
-            shape: BoxShape.circle,
-            color: Colors.white,
-            // The border you want
-            border: new Border.all(
-              width: 2.0,
-              color: iconColor,
-            ),
-          ),
-          child: Stack(
-            overflow: Overflow.visible,
-            children: <Widget>[
-              Positioned(
-                width: 46.0,
-                height: 46.0,
-                top: 0.0,
-                left: 0.0,
-                child: badgeIcon,
-              ),
-              Positioned(
-                //width: 50.0,
-                bottom: -9.0,
-                left: -10.0,
-                right: -10.0,
-                child: Center(
-                  child: badgeText,
-                )
-              )
-            ],
-          ),
-        ),
-        Container(
-          width: 60.0,
-          child: Text(
-            "${data.displayName}",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12.0),
-            softWrap: true,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Card _buildCard(HACard card) {
-    List<Widget> body = [];
-    body.add(_buildCardHeader(card.friendlyName));
-    body.addAll(_buildCardBody(card.entities));
-    Card result = Card(
-        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
-    );
-    return result;
-  }
-
-  Widget _buildCardHeader(String name) {
-    var result;
-    if (name.trim().length > 0) {
-      result = new ListTile(
-        //leading: const Icon(Icons.device_hub),
-        //subtitle: Text(".."),
-        //trailing: Text("${data["state"]}"),
-        title: Text("$name",
-            textAlign: TextAlign.left,
-            overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
-      );
-    } else {
-      result = new Container(width: 0.0, height: 0.0);
-    }
-    return result;
-  }
-
-  List<Widget> _buildCardBody(List ids) {
-    List<Widget> entities = [];
-    ids.forEach((id) {
-      var entity = _entities.get(id);
-      if (entity != null) {
-        entities.add(
-          Padding(
-            padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: entity.buildWidget(context, EntityWidgetType.regular),
-          ));
-      }
-    });
-    return entities;
-  }
-
-  List<Tab> buildUIViewTabs() {
-    List<Tab> result = [];
-    if ((_entities != null) && (!_homeAssistant.uiBuilder.isEmpty)) {
-      _homeAssistant.uiBuilder.views.forEach((viewId, view) {
+      _entities.viewList.forEach((viewId) {
         result.add(
             Tab(
                 icon: MaterialDesignIcons.createIconWidgetFromEntityData(_entities.get(viewId), 24.0, null) ??
@@ -652,9 +459,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           ),
         )
         :
-        TabBarView(
-            children: _buildViews()
-        ),
+        _homeAssistant.buildViews(context)
     );
   }
 
@@ -679,6 +484,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
+    if (_refreshDataSubscription != null) _refreshDataSubscription.cancel();
     _homeAssistant.disconnect();
     super.dispose();
   }

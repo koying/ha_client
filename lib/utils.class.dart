@@ -56,6 +56,14 @@ class SettingsChangedEvent {
   SettingsChangedEvent(this.reconnect);
 }
 
+class RefreshDataEvent {
+  RefreshDataEvent();
+}
+
+class RefreshDataFinishedEvent {
+  RefreshDataFinishedEvent();
+}
+
 class ServiceCallEvent {
   String domain;
   String service;

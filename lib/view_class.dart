@@ -1,53 +1,129 @@
 part of 'main.dart';
 
 class View {
-  String _entityId;
-  int _count;
-  Map<String, HACard> cards;
-  Map<String, Badge> badges;
+  List<Entity> childEntitiesAsBadges;
+  Map<String, CardSkeleton> childEntitiesAsCards;
 
-  bool get isThereBadges => (badges != null) && (badges.isNotEmpty);
+  int count;
+  List<Entity> entities;
 
-  View(String groupId, int viewCount) {
-    _entityId = groupId;
-    _count = viewCount;
-    cards = {};
-    badges = {};
+  View({
+    Key key,
+    this.count,
+    this.entities
+  }) {
+    childEntitiesAsBadges = [];
+    childEntitiesAsCards = {};
+    _composeEntities();
   }
 
-  void add(Entity entity) {
-    if (!entity.isGroup) {
-      _addEntityWithoutGroup(entity);
-    } else {
-      _addCardWithEntities(entity);
-    }
+  Widget buildWidget(BuildContext context) {
+    return ViewWidget(
+      badges: childEntitiesAsBadges,
+      cards: childEntitiesAsCards,
+    );
   }
 
-  void _addBadge(String entityId) {
-    badges.addAll({entityId: Badge(entityId)});
-  }
-
-  void _addEntityWithoutGroup(Entity entity) {
-    if (UIBuilder.isBadge(entity.domain)) {
-      //This is badge
-      _addBadge(entity.entityId);
-    } else {
-      //This is a standalone entity
-      String groupIdToAdd = "${entity.domain}.${entity.domain}$_count";
-      if (cards[groupIdToAdd] == null) {
-        _addCard(groupIdToAdd, entity.domain);
+  void _composeEntities() {
+    entities.forEach((Entity entity){
+      if (!entity.isGroup) {
+        if (entity.isBadge) {
+          childEntitiesAsBadges.add(entity);
+        } else {
+          String groupIdToAdd = "${entity.domain}.${entity.domain}$count";
+          if (childEntitiesAsCards[groupIdToAdd] == null) {
+            childEntitiesAsCards[groupIdToAdd] = CardSkeleton(
+              displayName: entity.domain,
+            );
+          }
+          childEntitiesAsCards[groupIdToAdd].childEntities.add(entity);
+        }
+      } else {
+        childEntitiesAsCards[entity.entityId] = CardSkeleton(
+          displayName: entity.displayName,
+        );
+        childEntitiesAsCards[entity.entityId].childEntities = entity.childEntities;
       }
-      cards[groupIdToAdd].addEntity(entity.entityId);
+    });
+  }
+
+}
+
+class ViewWidget extends StatelessWidget {
+  final List<Entity> badges;
+  final Map<String, CardSkeleton> cards;
+  final String displayName;
+
+  const ViewWidget({
+    Key key,
+    this.badges,
+    this.cards,
+    this.displayName
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      color: Colors.amber,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: _buildChildren(context),
+      ),
+      onRefresh: () => _refreshData(),
+    );
+  }
+
+  List<Widget> _buildChildren(BuildContext context) {
+    List<Widget> result = [];
+
+    if (badges.isNotEmpty) {
+      result.insert(0,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10.0,
+            runSpacing: 1.0,
+            children: _buildBadges(context, badges),
+          )
+      );
     }
+
+    cards.forEach((String id, CardSkeleton skeleton){
+      result.add(
+          HACard(
+            entities: skeleton.childEntities,
+            friendlyName: skeleton.displayName,
+          )
+      );
+    });
+
+    return result;
   }
 
-  void _addCard(String entityId, String friendlyName) {
-    cards.addAll({"$entityId": HACard(entityId, friendlyName)});
+  List<EntityWidget> _buildBadges(BuildContext context, List<Entity> badges) {
+    List<EntityWidget> result = [];
+    badges.forEach((Entity entity) {
+      result.add(entity.buildWidget(context, EntityWidgetType.badge));
+    });
+    return result;
   }
 
-  void _addCardWithEntities(Entity entity) {
-    cards.addAll({"${entity.entityId}": HACard(entity.entityId, entity.displayName)});
-    cards[entity.entityId].addEntities(entity.childEntities);
-  }
+  Future _refreshData() {
+    Completer refreshCompleter = Completer();
 
+    eventBus.fire(RefreshDataEvent());
+    eventBus.on<RefreshDataFinishedEvent>().listen((event) {
+      refreshCompleter.complete();
+    });
+
+    return refreshCompleter.future;
+  }
+}
+
+class CardSkeleton {
+  String displayName;
+  List<Entity> childEntities;
+
+  CardSkeleton({Key key, this.displayName, this.childEntities}) {
+    childEntities = [];
+  }
 }

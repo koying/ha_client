@@ -14,7 +14,7 @@ class HomeAssistant {
   int _subscriptionMessageId = 0;
   int _configMessageId = 0;
   EntityCollection _entities;
-  UIBuilder _uiBuilder;
+  ViewBuilder _viewBuilder;
   Map _instanceConfig = {};
 
   Completer _fetchCompleter;
@@ -33,13 +33,11 @@ class HomeAssistant {
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
-  UIBuilder get uiBuilder => _uiBuilder;
 
   EntityCollection get entities => _entities;
 
   HomeAssistant() {
     _entities = EntityCollection();
-    _uiBuilder = UIBuilder();
     _messageQueue = SendMessageQueue(messageExpirationTime);
   }
 
@@ -302,8 +300,12 @@ class HomeAssistant {
       return;
     }
     _entities.parse(response["result"]);
-    _uiBuilder.build(_entities);
+    _viewBuilder = ViewBuilder(entityCollection: _entities);
     _statesCompleter.complete();
+  }
+
+  Widget buildViews(BuildContext context) {
+    return _viewBuilder.buildWidget(context);
   }
 }
 

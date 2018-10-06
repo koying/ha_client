@@ -8,6 +8,11 @@ class Entity {
     "unknown": Colors.black12,
     "playing": Colors.amber
   };
+  static const badgeColors = {
+    "default": Color.fromRGBO(223, 76, 30, 1.0),
+    "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
+  };
+  static List badgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
   static const RIGHT_WIDGET_PADDING = 14.0;
   static const LEFT_WIDGET_PADDING = 8.0;
   static const EXTENDED_WIDGET_HEIGHT = 50.0;
@@ -25,6 +30,8 @@ class Entity {
   String assumedState;
   DateTime _lastUpdated;
 
+  List<Entity> childEntities = [];
+
   String get displayName =>
       _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
   String get domain => _domain;
@@ -37,11 +44,12 @@ class Entity {
       (_domain == "group") &&
       (_attributes != null ? _attributes["view"] ?? false : false);
   bool get isGroup => _domain == "group";
+  bool get isBadge => Entity.badgeDomains.contains(_domain);
   String get icon => _attributes["icon"] ?? "";
   bool get isOn => state == "on";
   String get entityPicture => _attributes["entity_picture"];
   String get unitOfMeasurement => _attributes["unit_of_measurement"] ?? "";
-  List get childEntities => _attributes["entity_id"] ?? [];
+  List get childEntityIds => _attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
 
   Entity(Map rawData) {
@@ -159,6 +167,8 @@ class _EntityWidgetState extends State<EntityWidget> {
           _buildLastUpdatedWidget()
         ],
       );
+    } else if (widget.widgetType == EntityWidgetType.badge) {
+      return _buildBadgeWidget(context);
     } else {
       TheLogger.log("Error", "Unknown entity widget type: ${widget.widgetType}");
     }
@@ -245,6 +255,117 @@ class _EntityWidgetState extends State<EntityWidget> {
               )),
           onTap: openEntityPage,
         )
+    );
+  }
+
+  Widget _buildBadgeWidget(BuildContext context) {
+    //TODO separate this by different Entity classes
+    double iconSize = 26.0;
+    Widget badgeIcon;
+    String onBadgeTextValue;
+    Color iconColor = Entity.badgeColors[widget.entity.domain] ?? Entity.badgeColors["default"];
+    switch (widget.entity.domain) {
+      case "sun": {
+        badgeIcon = widget.entity.state == "below_horizon" ?
+        Icon(
+          MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
+          size: iconSize,
+        ) :
+        Icon(
+          MaterialDesignIcons.createIconDataFromIconCode(0xf5a8),
+          size: iconSize,
+        );
+        break;
+      }
+      case "sensor": {
+        onBadgeTextValue = widget.entity.unitOfMeasurement;
+        badgeIcon = Center(
+          child: Text(
+            "${widget.entity.state == 'unknown' ? '-' : widget.entity.state}",
+            overflow: TextOverflow.fade,
+            softWrap: false,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 17.0),
+          ),
+        );
+        break;
+      }
+      case "device_tracker": {
+        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(widget.entity, iconSize,Colors.black);
+        onBadgeTextValue = widget.entity.state;
+        break;
+      }
+      default: {
+        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(widget.entity, iconSize,Colors.black);
+      }
+    }
+    Widget onBadgeText;
+    if (onBadgeTextValue == null || onBadgeTextValue.length == 0) {
+      onBadgeText = Container(width: 0.0, height: 0.0);
+    } else {
+      onBadgeText = Container(
+          padding: EdgeInsets.fromLTRB(6.0, 2.0, 6.0, 2.0),
+          child: Text("$onBadgeTextValue",
+              style: TextStyle(fontSize: 12.0, color: Colors.white),
+              textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.fade),
+          decoration: new BoxDecoration(
+            // Circle shape
+            //shape: BoxShape.circle,
+            color: iconColor,
+            borderRadius: BorderRadius.circular(9.0),
+          )
+      );
+    }
+    return Column(
+      children: <Widget>[
+        Container(
+          margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+          width: 50.0,
+          height: 50.0,
+          decoration: new BoxDecoration(
+            // Circle shape
+            shape: BoxShape.circle,
+            color: Colors.white,
+            // The border you want
+            border: new Border.all(
+              width: 2.0,
+              color: iconColor,
+            ),
+          ),
+          child: Stack(
+            overflow: Overflow.visible,
+            children: <Widget>[
+              Positioned(
+                width: 46.0,
+                height: 46.0,
+                top: 0.0,
+                left: 0.0,
+                child: badgeIcon,
+              ),
+              Positioned(
+                //width: 50.0,
+                  bottom: -9.0,
+                  left: -10.0,
+                  right: -10.0,
+                  child: Center(
+                    child: onBadgeText,
+                  )
+              )
+            ],
+          ),
+        ),
+        Container(
+          width: 60.0,
+          child: Text(
+            "${widget.entity.displayName}",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.0),
+            softWrap: true,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

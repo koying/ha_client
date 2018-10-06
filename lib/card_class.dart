@@ -1,25 +1,54 @@
 part of 'main.dart';
 
-class HACard {
-  String _entityId;
-  List _entities;
-  String _friendlyName;
+class HACard extends StatelessWidget {
 
-  List get entities => _entities;
-  String get friendlyName => _friendlyName;
+  final List<Entity> entities;
+  final String friendlyName;
 
-  HACard(String groupId, String friendlyName) {
-    _entityId = groupId;
-    _entities = [];
-    _friendlyName = friendlyName;
+  const HACard({
+    Key key,
+    this.entities,
+    this.friendlyName
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> body = [];
+    body.add(_buildCardHeader());
+    body.addAll(_buildCardBody(context));
+    return Card(
+        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
+    );
   }
 
-  void addEntity(String entityId) {
-    _entities.add(entityId);
+  Widget _buildCardHeader() {
+    var result;
+    if ((friendlyName != null) && (friendlyName.trim().length > 0)) {
+      result = new ListTile(
+        //leading: const Icon(Icons.device_hub),
+        //subtitle: Text(".."),
+        //trailing: Text("${data["state"]}"),
+        title: Text("$friendlyName",
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
+      );
+    } else {
+      result = new Container(width: 0.0, height: 0.0);
+    }
+    return result;
   }
 
-  void addEntities(List entities) {
-    _entities.addAll(entities);
+  List<Widget> _buildCardBody(BuildContext context) {
+    List<Widget> result = [];
+    entities.forEach((Entity entity) {
+      result.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+          child: entity.buildWidget(context, EntityWidgetType.regular),
+        ));
+    });
+    return result;
   }
 
 }

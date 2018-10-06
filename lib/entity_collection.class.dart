@@ -5,6 +5,8 @@ class EntityCollection {
   Map<String, Entity> _entities;
   List<String> viewList;
 
+  bool get isEmpty => _entities.isEmpty;
+
   EntityCollection() {
     _entities = {};
     viewList = [];
@@ -57,6 +59,16 @@ class EntityCollection {
     return _entities[entityId];
   }
 
+  List<Entity> getAll(List ids) {
+    List<Entity> result = [];
+    _entities.forEach((id, Entity entity){
+      if (ids.contains(id)) {
+        result.add(entity);
+      }
+    });
+    return result;
+  }
+
   bool isExist(String entityId) {
     return _entities[entityId] != null;
   }
@@ -76,7 +88,7 @@ class EntityCollection {
     entities.forEach((entiyId) {
       bool foundInGroup = false;
       result["userGroups"].forEach((userGroupId) {
-        if (_entities[userGroupId].childEntities.contains(entiyId)) {
+        if (_entities[userGroupId].childEntityIds.contains(entiyId)) {
           foundInGroup = true;
         }
       });
