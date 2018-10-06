@@ -62,7 +62,9 @@ class _TextEntityWidgetState extends _EntityWidgetState {
                 new TextEditingValue(
                     text: _tmpValue,
                     selection:
-                    new TextSelection.collapsed(offset: _tmpValue.length))),
+                    new TextSelection.collapsed(offset: _tmpValue.length)
+                )
+            ),
             onChanged: (value) {
               _tmpValue = value;
             }),

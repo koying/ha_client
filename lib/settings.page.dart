@@ -11,15 +11,29 @@ class ConnectionSettingsPage extends StatefulWidget {
 
 class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioDomain = "";
+  String _newHassioDomain = "";
   String _hassioPort = "";
+  String _newHassioPort = "";
   String _hassioPassword = "";
+  String _newHassioPassword = "";
   String _socketProtocol = "wss";
+  String _newSocketProtocol = "wss";
   String _authType = "access_token";
+  String _newAuthType = "access_token";
   bool _edited = false;
+  FocusNode _domainFocusNode;
+  FocusNode _portFocusNode;
+  FocusNode _passwordFocusNode;
 
   @override
   void initState() {
     super.initState();
+    _domainFocusNode = FocusNode();
+    _portFocusNode = FocusNode();
+    _passwordFocusNode = FocusNode();
+    _domainFocusNode.addListener(_checkConfigChanged);
+    _portFocusNode.addListener(_checkConfigChanged);
+    _passwordFocusNode.addListener(_checkConfigChanged);
     _loadSettings();
   }
 
@@ -27,11 +41,21 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      _hassioDomain = prefs.getString("hassio-domain")?? "";
-      _hassioPort = prefs.getString("hassio-port") ?? "";
-      _hassioPassword = prefs.getString("hassio-password") ?? "";
-      _socketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
-      _authType = prefs.getString("hassio-auth-type") ?? 'access_token';
+      _hassioDomain = _newHassioDomain = prefs.getString("hassio-domain")?? "";
+      _hassioPort = _newHassioPort = prefs.getString("hassio-port") ?? "";
+      _hassioPassword = _newHassioPassword = prefs.getString("hassio-password") ?? "";
+      _socketProtocol = _newSocketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
+      _authType = _newAuthType = prefs.getString("hassio-auth-type") ?? 'access_token';
+    });
+  }
+
+  void _checkConfigChanged() {
+    setState(() {
+      _edited = ((_newHassioPassword != _hassioPassword) ||
+          (_newHassioPort != _hassioPort) ||
+          (_newHassioDomain != _hassioDomain) ||
+          (_newSocketProtocol != _socketProtocol) ||
+          (_newAuthType != _authType));
     });
   }
 
@@ -75,12 +99,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             children: [
               Text("Use ssl (HTTPS)"),
               Switch(
-                value: (_socketProtocol == "wss"),
+                value: (_newSocketProtocol == "wss"),
                 onChanged: (value) {
-                  setState(() {
-                    _socketProtocol = value ? "wss" : "ws";
-                    _edited = true;
-                  });
+                  _newSocketProtocol = value ? "wss" : "ws";
+                  _checkConfigChanged();
                 },
               )
             ],
@@ -89,35 +111,45 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             decoration: InputDecoration(
               labelText: "Home Assistant domain or ip address"
             ),
-            controller: TextEditingController(
-              text: _hassioDomain
+            controller: new TextEditingController.fromValue(
+                new TextEditingValue(
+                    text: _newHassioDomain,
+                    selection:
+                    new TextSelection.collapsed(offset: _newHassioDomain.length)
+                )
             ),
             onChanged: (value) {
-              _hassioDomain = value;
+              _newHassioDomain = value;
             },
+            focusNode: _domainFocusNode,
+            onEditingComplete: _checkConfigChanged,
           ),
           new TextField(
             decoration: InputDecoration(
               labelText: "Home Assistant port (default is 8123)"
             ),
-            controller: TextEditingController(
-              text: _hassioPort
+            controller: new TextEditingController.fromValue(
+                new TextEditingValue(
+                    text: _newHassioPort,
+                    selection:
+                    new TextSelection.collapsed(offset: _newHassioPort.length)
+                )
             ),
             onChanged: (value) {
-              _hassioPort = value;
+              _newHassioPort = value;
               //_saveSettings();
             },
+            focusNode: _portFocusNode,
+            onEditingComplete: _checkConfigChanged,
           ),
           new Row(
             children: [
               Text("Login with access token (HA >= 0.78.0)"),
               Switch(
-                value: (_authType == "access_token"),
+                value: (_newAuthType == "access_token"),
                 onChanged: (value) {
-                  setState(() {
-                    _authType = value ? "access_token" : "api_password";
-                    _edited = true;
-                  });
+                  _newAuthType = value ? "access_token" : "api_password";
+                  _checkConfigChanged();
                   //_saveSettings();
                 },
               )
@@ -127,16 +159,33 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             decoration: InputDecoration(
                 labelText: _authType == "access_token" ? "Access token" : "API password"
             ),
-            controller: TextEditingController(
-                text: _hassioPassword
+            controller: new TextEditingController.fromValue(
+                new TextEditingValue(
+                    text: _newHassioPassword,
+                    selection:
+                    new TextSelection.collapsed(offset: _newHassioPassword.length)
+                )
             ),
             onChanged: (value) {
-              _hassioPassword = value;
+              _newHassioPassword = value;
               //_saveSettings();
             },
+            focusNode: _passwordFocusNode,
+            onEditingComplete: _checkConfigChanged,
           )
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _domainFocusNode.removeListener(_checkConfigChanged);
+    _portFocusNode.removeListener(_checkConfigChanged);
+    _passwordFocusNode.removeListener(_checkConfigChanged);
+    _domainFocusNode.dispose();
+    _portFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
   }
 }
