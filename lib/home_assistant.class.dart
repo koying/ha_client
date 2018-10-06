@@ -55,27 +55,23 @@ class HomeAssistant {
     } else {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
-        closeConnection();
         TheLogger.log("Error", "Data fetching timeout");
-        _finishFetching({"errorCode" : 9,"errorMessage": "Couldn't get data from server"});
+        _completeFetching({"errorCode" : 9,"errorMessage": "Couldn't get data from server"});
       });
       _connection().then((r) {
         _getData();
       }).catchError((e) {
-        _finishFetching(e);
+        _completeFetching(e);
       });
     }
     return _fetchCompleter.future;
   }
 
-  closeConnection() {
-    if (_socketSubscription != null) {
-      _socketSubscription.cancel();
-    }
-    if (_hassioChannel != null) {
-      if (_hassioChannel.closeCode == null) {
-        _hassioChannel.sink?.close();
-      }
+  disconnect() async {
+    if ((_hassioChannel != null) && (_hassioChannel.closeCode == null) && (_hassioChannel.sink != null)) {
+      await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
+        onTimeout: () => TheLogger.log("Warning", "Socket sink closing timeout")
+      );
       _hassioChannel = null;
     }
   }
@@ -84,30 +80,35 @@ class HomeAssistant {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
-      if ((_hassioChannel == null) || (_hassioChannel.sink == null) || (_hassioChannel.closeCode != null)) {
-        closeConnection();
-        TheLogger.log("Debug", "Socket connecting...");
-        _connectionCompleter = new Completer();
-        _connectionTimer = Timer(connectTimeout, () {
-          closeConnection();
-          TheLogger.log("Error", "Socket connection timeout");
-          _finishConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Looks like a network issues"});
-        });
-        _hassioChannel = IOWebSocketChannel.connect(
+      _connectionCompleter = new Completer();
+      if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+        disconnect().then((_){
+          TheLogger.log("Debug", "Socket connecting...");
+          _connectionTimer = Timer(connectTimeout, () {
+            TheLogger.log("Error", "Socket connection timeout");
+            _completeConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."});
+          });
+          if (_socketSubscription != null) {
+            _socketSubscription.cancel();
+          }
+          _hassioChannel = IOWebSocketChannel.connect(
               _hassioAPIEndpoint, pingInterval: Duration(seconds: 30));
-        _hassioChannel.stream.handleError((e) {
-          TheLogger.log("Error", "Unhandled socket error: ${e.toString()}");
-        });
-        if (_socketSubscription != null) _socketSubscription.cancel();
-        _socketSubscription = _hassioChannel.stream.listen((message) =>
-            _handleMessage(_connectionCompleter, message));
-        _hassioChannel.sink.done.whenComplete(() {
-          TheLogger.log("Debug","Socket sink finished. Assuming it is closed.");
-          closeConnection();
+          _socketSubscription = _hassioChannel.stream.listen(
+                  (message) => _handleMessage(_connectionCompleter, message),
+              cancelOnError: true,
+              onDone: () {
+                TheLogger.log("Debug","Socket stream closed. Disconnected.");
+                disconnect();
+              },
+              onError: (e) {
+                TheLogger.log("Error","Socket stream Error: $e");
+                disconnect().then((_) => _completeConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."}));
+              }
+          );
         });
       } else {
         //TheLogger.log("Debug","Socket looks connected...${_hassioChannel.protocol}, ${_hassioChannel.closeCode}, ${_hassioChannel.closeReason}");
-        _finishConnecting(null);
+        _completeConnecting(null);
       }
     }
     return _connectionCompleter.future;
@@ -117,38 +118,34 @@ class HomeAssistant {
     _getConfig().then((result) {
       _getStates().then((result) {
         _getServices().then((result) {
-          _finishFetching(null);
-        }).catchError((e) {
-          _finishFetching(e);
+          _completeFetching(null);
         });
-      }).catchError((e) {
-        _finishFetching(e);
       });
     }).catchError((e) {
-      _finishFetching(e);
+      _completeFetching(e);
     });
   }
 
-  void _finishFetching(error) {
+  void _completeFetching(error) {
     _fetchTimer.cancel();
-    _finishConnecting(error);
-    if (error != null) {
-      if (!_fetchCompleter.isCompleted)
+    _completeConnecting(error);
+    if (!_fetchCompleter.isCompleted) {
+      if (error != null) {
         _fetchCompleter.completeError(error);
-    } else {
-      if (!_fetchCompleter.isCompleted)
+      } else {
         _fetchCompleter.complete();
+      }
     }
   }
 
-  void _finishConnecting(error) {
+  void _completeConnecting(error) {
     _connectionTimer.cancel();
-    if (error != null) {
-      if (!_connectionCompleter.isCompleted)
+    if (!_connectionCompleter.isCompleted) {
+      if (error != null) {
         _connectionCompleter.completeError(error);
-    } else {
-      if (!_connectionCompleter.isCompleted)
+      } else {
         _connectionCompleter.complete();
+      }
     }
   }
 
@@ -158,10 +155,10 @@ class HomeAssistant {
     if (data["type"] == "auth_required") {
       _sendAuthMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
     } else if (data["type"] == "auth_ok") {
-      _finishConnecting(null);
+      _completeConnecting(null);
       _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
-      _finishFetching({"errorCode": 6, "errorMessage": "${data["message"]}"});
+      _completeFetching({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       if (data["id"] == _configMessageId) {
         _parseConfig(data);

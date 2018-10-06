@@ -118,22 +118,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        _homeAssistant.closeConnection();
-        _initConnection().then((b){
-          setState(() {
-            _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
-            _errorCodeToBeShown = 10;
-            _lastErrorMessage = "Connection settings was changed.";
-          });
+        _homeAssistant.disconnect().then((_){
+          _loadConnectionSettings().then((b){
+            _refreshData();
           }, onError: (_) {
             setState(() {
               _lastErrorMessage = _;
               _errorCodeToBeShown = 5;
             });
-          });
+          }
+          );
+        });
       }
     });
-    _initConnection().then((_){
+    _loadConnectionSettings().then((_){
       _createConnection();
     }, onError: (_) {
       setState(() {
@@ -151,7 +149,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }
   }
 
-  _initConnection() async {
+  _loadConnectionSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
@@ -681,7 +679,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
-    _homeAssistant.closeConnection();
+    _homeAssistant.disconnect();
     super.dispose();
   }
 }

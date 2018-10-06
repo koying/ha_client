@@ -11,11 +11,11 @@ class ConnectionSettingsPage extends StatefulWidget {
 
 class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _hassioDomain = "";
-  String _hassioPort = "8123";
+  String _hassioPort = "";
   String _hassioPassword = "";
   String _socketProtocol = "wss";
   String _authType = "access_token";
-  bool _connectionSettingsChanged = false;
+  bool _edited = false;
 
   @override
   void initState() {
@@ -27,9 +27,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      _hassioDomain = prefs.getString("hassio-domain");
-      _hassioPort = prefs.getString("hassio-port") ?? '8123';
-      _hassioPassword = prefs.getString("hassio-password");
+      _hassioDomain = prefs.getString("hassio-domain")?? "";
+      _hassioPort = prefs.getString("hassio-port") ?? "";
+      _hassioPassword = prefs.getString("hassio-password") ?? "";
       _socketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
       _authType = prefs.getString("hassio-auth-type") ?? 'access_token';
     });
@@ -46,7 +46,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-protocol", _socketProtocol);
     prefs.setString("hassio-res-protocol", _socketProtocol == "wss" ? "https" : "http");
     prefs.setString("hassio-auth-type", _authType);
-    _connectionSettingsChanged = true;
   }
 
   @override
@@ -60,16 +59,12 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.check),
-            onPressed:(){
-              if (_connectionSettingsChanged) {
+            onPressed: _edited ? (){
                 _saveSettings().then((r){
                   Navigator.pop(context);
-                  eventBus.fire(SettingsChangedEvent(_connectionSettingsChanged));
+                  eventBus.fire(SettingsChangedEvent(true));
                 });
-              } else {
-                Navigator.pop(context);
-              }
-            }
+            } : null
           )
         ],
       ),
@@ -84,8 +79,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
                 onChanged: (value) {
                   setState(() {
                     _socketProtocol = value ? "wss" : "ws";
+                    _edited = true;
                   });
-                  _saveSettings();
                 },
               )
             ],
@@ -99,19 +94,18 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _hassioDomain = value;
-              _saveSettings();
             },
           ),
           new TextField(
             decoration: InputDecoration(
-              labelText: "Home Assistant port"
+              labelText: "Home Assistant port (default is 8123)"
             ),
             controller: TextEditingController(
               text: _hassioPort
             ),
             onChanged: (value) {
               _hassioPort = value;
-              _saveSettings();
+              //_saveSettings();
             },
           ),
           new Row(
@@ -122,8 +116,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
                 onChanged: (value) {
                   setState(() {
                     _authType = value ? "access_token" : "api_password";
+                    _edited = true;
                   });
-                  _saveSettings();
+                  //_saveSettings();
                 },
               )
             ],
@@ -137,7 +132,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _hassioPassword = value;
-              _saveSettings();
+              //_saveSettings();
             },
           )
         ],
