@@ -92,14 +92,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   String _authType;
   int _uiViewsCount = 0;
   String _instanceHost;
-  int _errorCodeToBeShown = 0;
-  String _lastErrorMessage = "";
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _refreshDataSubscription;
-  bool _isLoading = true;
+  StreamSubscription _showErrorSubscription;
+  int _isLoading = 1;
   bool _settingsLoaded = false;
 
   @override
@@ -118,9 +117,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             _refreshData();
           }, onError: (_) {
             setState(() {
-              _lastErrorMessage = _;
-              _errorCodeToBeShown = 5;
+              _isLoading = 2;
             });
+            _showErrorSnackBar(message: _, errorCode: 5);
           }
           );
         });
@@ -130,9 +129,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _createConnection();
     }, onError: (_) {
       setState(() {
-        _lastErrorMessage = _;
-        _errorCodeToBeShown = 5;
+        _isLoading = 2;
       });
+      _showErrorSnackBar(message: _, errorCode: 5);
     });
   }
 
@@ -194,21 +193,25 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         _refreshData();
       });
     }
+
+    if (_showErrorSubscription == null) {
+      _showErrorSubscription = eventBus.on<ShowErrorEvent>().listen((event){
+        _showErrorSnackBar(message: event.text, errorCode: event.errorCode);
+      });
+    }
   }
 
   _refreshData() async {
     _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
     setState(() {
-      _isLoading = true;
+      _isLoading = 1;
     });
-    _errorCodeToBeShown = 0;
-    _lastErrorMessage = "";
     await _homeAssistant.fetch().then((result) {
       setState(() {
         //_instanceConfig = _homeAssistant.instanceConfig;
         _entities = _homeAssistant.entities;
         _uiViewsCount = _homeAssistant.viewsCount;
-        _isLoading = false;
+        _isLoading = 0;
       });
     }).catchError((e) {
       _setErrorState(e);
@@ -218,10 +221,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _setErrorState(e) {
     setState(() {
-      _errorCodeToBeShown = e["errorCode"] != null ? e["errorCode"] : 99;
-      _lastErrorMessage = e["errorMessage"] ?? "Unknown error";
-      _isLoading = false;
+      _isLoading = 2;
     });
+    _showErrorSnackBar(
+        message: e != null ? e["errorMessage"] ?? "$e" : "Unknown error",
+        errorCode: e["errorCode"] != null ? e["errorCode"] : 99
+    );
   }
 
   void _callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
@@ -271,13 +276,22 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     Row titleRow = Row(
       children: [Text(_homeAssistant != null ? _homeAssistant.locationName : "")],
     );
-    if (_isLoading) {
+    if (_isLoading == 1) {
       titleRow.children.add(Padding(
         child: JumpingDotsProgressIndicator(
           fontSize: 26.0,
           color: Colors.white,
         ),
         padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 30.0),
+      ));
+    } else if (_isLoading == 2) {
+      titleRow.children.add(Padding(
+        child: Icon(
+            Icons.error_outline,
+            size: 20.0,
+          color: Colors.red,
+        ),
+        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
       ));
     }
     return titleRow;
@@ -356,11 +370,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  _checkShowInfo() {
-    if (_errorCodeToBeShown > 0) {
-      String message = _lastErrorMessage;
+  _showErrorSnackBar({Key key, @required String message, @required int errorCode}) {
       SnackBarAction action;
-      switch (_errorCodeToBeShown) {
+      switch (errorCode) {
         case 9:
         case 11:
         case 7:
@@ -420,19 +432,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           break;
         }
       }
-      Timer(Duration(seconds: 1), () {
-        _scaffoldKey.currentState.hideCurrentSnackBar();
-        _scaffoldKey.currentState.showSnackBar(
-            SnackBar(
-                content: Text("$message (code: $_errorCodeToBeShown)"),
-                action: action,
-                duration: Duration(hours: 1),
-            )
-        );
-      });
-    } else {
-      _scaffoldKey?.currentState?.hideCurrentSnackBar();
-    }
+      _scaffoldKey.currentState.hideCurrentSnackBar();
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text("$message (code: $errorCode)"),
+          action: action,
+          duration: Duration(hours: 1),
+        )
+      );
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -453,7 +460,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 Icon(
                   MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
                   size: 100.0,
-                  color: _errorCodeToBeShown == 0 ? Colors.blue : Colors.redAccent,
+                  color: _isLoading == 2 ? Colors.redAccent : Colors.blue,
                 ),
               ]
           ),
@@ -465,7 +472,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    _checkShowInfo();
     // This method is rerun every time setState is called.
     if (_entities == null) {
       return _buildScaffold(true);
@@ -485,6 +491,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
     if (_refreshDataSubscription != null) _refreshDataSubscription.cancel();
+    if (_showErrorSubscription != null) _showErrorSubscription.cancel();
     _homeAssistant.disconnect();
     super.dispose();
   }

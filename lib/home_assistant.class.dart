@@ -97,7 +97,9 @@ class HomeAssistant {
               onDone: () {
                 TheLogger.log("Debug","Disconnect detected. Reconnecting...");
                 disconnect().then((_) {
-                  _connection();
+                  _connection().catchError((e){
+                    _completeConnecting(e);
+                  });
                 });
               },
               onError: (e) {
@@ -148,6 +150,8 @@ class HomeAssistant {
       } else {
         _connectionCompleter.complete();
       }
+    } else if (error != null) {
+      eventBus.fire(ShowErrorEvent(error["errorMessage"], error["errorCode"]));
     }
   }
 
