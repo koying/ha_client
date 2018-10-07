@@ -123,17 +123,18 @@ class HomeAssistant {
     return _connectionCompleter.future;
   }
 
-  _getData() {
-    _getConfig().then((result) {
-      _getStates().then((result) {
-        _getServices().then((result) {
-          _getUserInfo();
-          _completeFetching(null);
-        });
-      });
-    }).catchError((e) {
-      _completeFetching(e);
-    });
+  _getData() async {
+    List<Future> futures = [];
+    futures.add(_getStates());
+    futures.add(_getConfig());
+    futures.add(_getServices());
+    //futures.add(_getUserInfo());
+    try {
+      await Future.wait(futures);
+      _completeFetching(null);
+    } catch (error) {
+      _completeFetching(error);
+    }
   }
 
   void _completeFetching(error) {
