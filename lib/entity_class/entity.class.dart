@@ -260,7 +260,6 @@ class _EntityWidgetState extends State<EntityWidget> {
   }
 
   Widget _buildBadgeWidget(BuildContext context) {
-    //TODO separate this by different Entity classes
     double iconSize = 26.0;
     Widget badgeIcon;
     String onBadgeTextValue;

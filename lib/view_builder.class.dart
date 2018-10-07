@@ -30,7 +30,6 @@ class ViewBuilder{
   View _composeDefaultView() {
     Map<String, List<String>> userGroupsList = entityCollection.getDefaultViewTopLevelEntities();
     List<Entity> entitiesForView = [];
-    //TODO WTF? Why two arrays?
     userGroupsList["userGroups"].forEach((groupId){
       entitiesForView.add(entityCollection.get(groupId));
     });

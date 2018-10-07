@@ -51,8 +51,7 @@ class EntityCollection {
   }
 
   void updateFromRaw(Map rawEntityData) {
-    //TODO pass entity in this function and call update from it
-    _entities[rawEntityData["entity_id"]].update(rawEntityData);
+    get("${rawEntityData["entity_id"]}")?.update(rawEntityData);
   }
 
   Entity get(String entityId) {
@@ -61,7 +60,6 @@ class EntityCollection {
 
   List<Entity> getAll(List ids) {
     List<Entity> result = [];
-    //TODO optimize this
     ids.forEach((id){
       Entity en = get(id);
       if (en != null) {
