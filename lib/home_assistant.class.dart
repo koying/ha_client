@@ -1,9 +1,9 @@
 part of 'main.dart';
 
 class HomeAssistant {
-  String _hassioAPIEndpoint;
-  String _hassioPassword;
-  String _hassioAuthType;
+  String _webSocketAPIEndpoint;
+  String _password;
+  String _authType;
 
   IOWebSocketChannel _hassioChannel;
   SendMessageQueue _messageQueue;
@@ -47,9 +47,9 @@ class HomeAssistant {
   }
 
   void updateConnectionSettings(String url, String password, String authType) {
-    _hassioAPIEndpoint = url;
-    _hassioPassword = password;
-    _hassioAuthType = authType;
+    _webSocketAPIEndpoint = url;
+    _password = password;
+    _authType = authType;
   }
 
   Future fetch() {
@@ -98,7 +98,7 @@ class HomeAssistant {
             _socketSubscription.cancel();
           }
           _hassioChannel = IOWebSocketChannel.connect(
-              _hassioAPIEndpoint, pingInterval: Duration(seconds: 30));
+              _webSocketAPIEndpoint, pingInterval: Duration(seconds: 30));
           _socketSubscription = _hassioChannel.stream.listen(
                   (message) => _handleMessage(message),
               cancelOnError: true,
@@ -170,7 +170,7 @@ class HomeAssistant {
     var data = json.decode(message);
     //TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
-      _sendAuthMessageRaw('{"type": "auth","$_hassioAuthType": "$_hassioPassword"}');
+      _sendAuthMessageRaw('{"type": "auth","$_authType": "$_password"}');
     } else if (data["type"] == "auth_ok") {
       _completeConnecting(null);
       _sendSubscribe();
@@ -299,7 +299,6 @@ class HomeAssistant {
   }
 
   void _parseUserInfo(Map data) {
-    TheLogger.log("Debug", "$data");
     if (data["success"] == true) {
       _userName = data["result"]["name"];
     } else {
@@ -346,6 +345,34 @@ class HomeAssistant {
 
   Widget buildViews(BuildContext context) {
     return _viewBuilder.buildWidget(context);
+  }
+
+  Future<List> getHistory(String entityId) async {
+    DateTime now = DateTime.now();
+    //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
+    String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
+    TheLogger.log("Debug", "$startTime");
+    String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId&skip_initial_state";
+    TheLogger.log("Debug", "$url");
+    http.Response historyResponse;
+    if (_authType == "access_token") {
+      historyResponse = await http.get(url, headers: {
+        "authorization": "Bearer $_password",
+        "Content-Type": "application/json"
+      });
+    } else {
+      historyResponse = await http.get(url, headers: {
+        "X-HA-Access": "$_password",
+        "Content-Type": "application/json"
+      });
+    }
+    var _history = json.decode(historyResponse.body);
+    if (_history is Map) {
+      return null;
+    } else if (_history is List) {
+      TheLogger.log("Debug", "${_history[0].toString()}");
+      return _history;
+    }
   }
 }
 

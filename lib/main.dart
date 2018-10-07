@@ -11,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:date_format/date_format.dart';
+import 'package:http/http.dart' as http;
 
 part 'entity_class/entity.class.dart';
 part 'entity_class/button_entity.class.dart';
@@ -34,7 +35,7 @@ part 'card_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.5";
+const appVersion = "0.2.5 .31";
 
 String homeAssistantWebHost;
 
@@ -88,8 +89,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   HomeAssistant _homeAssistant;
   EntityCollection _entities;
   //Map _instanceConfig;
-  String _apiEndpoint;
-  String _apiPassword;
+  String _webSocketApiEndpoint;
+  String _password;
   String _authType;
   int _uiViewsCount = 0;
   String _instanceHost;
@@ -147,12 +148,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
     _instanceHost = "$domain:$port";
-    _apiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
+    _webSocketApiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    _apiPassword = prefs.getString('hassio-password');
+    _password = prefs.getString('hassio-password');
     _authType = prefs.getString('hassio-auth-type');
-    if ((domain == null) || (port == null) || (_apiPassword == null) ||
-        (domain.length == 0) || (port.length == 0) || (_apiPassword.length == 0)) {
+    if ((domain == null) || (port == null) || (_password == null) ||
+        (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
       throw("Check connection settings");
     } else {
       _settingsLoaded = true;
@@ -200,7 +201,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _refreshData() async {
-    _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
+    _homeAssistant.updateConnectionSettings(_webSocketApiEndpoint, _password, _authType);
     setState(() {
       _hideErrorSnackBar();
       _isLoading = 1;
@@ -236,7 +237,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EntityViewPage(entity: entity),
+          builder: (context) => EntityViewPage(entity: entity, homeAssistant: _homeAssistant),
         )
     );
   }
