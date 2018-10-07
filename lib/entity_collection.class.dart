@@ -61,9 +61,11 @@ class EntityCollection {
 
   List<Entity> getAll(List ids) {
     List<Entity> result = [];
-    _entities.forEach((id, Entity entity){
-      if (ids.contains(id)) {
-        result.add(entity);
+    //TODO optimize this
+    ids.forEach((id){
+      Entity en = get(id);
+      if (en != null) {
+        result.add(en);
       }
     });
     return result;
