@@ -449,7 +449,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       key: _scaffoldKey,
       appBar: AppBar(
         title: _buildAppTitle(),
-        bottom: empty ? null : TabBar(tabs: buildUIViewTabs()),
+        bottom: empty ? null : TabBar(
+            tabs: buildUIViewTabs(),
+            isScrollable: true,
+        ),
       ),
       drawer: _buildAppDrawer(),
       body: empty ?
