@@ -113,21 +113,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        _homeAssistant.disconnect().then((_){
-          _loadConnectionSettings().then((b){
-            _refreshData();
-          }, onError: (_) {
-            setState(() {
-              _isLoading = 2;
-            });
-            _showErrorSnackBar(message: _, errorCode: 5);
-          }
-          );
-        });
+        _initialLoad();
       }
     });
+    _initialLoad();
+  }
+
+  void _initialLoad() {
     _loadConnectionSettings().then((_){
-      _createConnection();
+      _subscribe();
+      _refreshData();
     }, onError: (_) {
       setState(() {
         _isLoading = 2;
@@ -161,8 +156,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     }
   }
 
-  _createConnection() {
-    _refreshData();
+  _subscribe() {
     if (_stateSubscription == null) {
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
         setState(() {
@@ -203,9 +197,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _refreshData() async {
-    _hideErrorSnackBar();
     _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
     setState(() {
+      _hideErrorSnackBar();
       _isLoading = 1;
     });
     await _homeAssistant.fetch().then((result) {
