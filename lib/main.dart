@@ -19,6 +19,7 @@ part 'entity_class/select_entity.class.dart';
 part 'entity_class/slider_entity.class.dart';
 part 'entity_class/switch_entity.class.dart';
 part 'entity_class/text_entity.class.dart';
+part 'entity_class/sun_entity.class.dart';
 
 part 'settings.page.dart';
 part 'home_assistant.class.dart';

@@ -3,9 +3,9 @@ part of '../main.dart';
 class _SliderEntityWidgetState extends _EntityWidgetState {
   int _multiplier = 1;
 
-  double get minValue => widget.entity._attributes["min"] ?? 0.0;
-  double get maxValue => widget.entity._attributes["max"] ?? 100.0;
-  double get valueStep => widget.entity._attributes["step"] ?? 1.0;
+  double get minValue => widget.entity.attributes["min"] ?? 0.0;
+  double get maxValue => widget.entity.attributes["max"] ?? 100.0;
+  double get valueStep => widget.entity.attributes["step"] ?? 1.0;
   double get doubleState => double.tryParse(widget.entity.state) ?? 0.0;
 
   @override

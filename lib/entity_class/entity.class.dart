@@ -22,8 +22,9 @@ class Entity {
   static const NAME_FONT_SIZE = 16.0;
   static const SMALL_FONT_SIZE = 14.0;
   static const INPUT_WIDTH = 160.0;
+  static const ROW_PADDING = 10.0;
 
-  Map _attributes;
+  Map attributes;
   String _domain;
   String _entityId;
   String _state;
@@ -33,23 +34,23 @@ class Entity {
   List<Entity> childEntities = [];
 
   String get displayName =>
-      _attributes["friendly_name"] ?? (_attributes["name"] ?? "_");
+      attributes["friendly_name"] ?? (attributes["name"] ?? "_");
   String get domain => _domain;
   String get entityId => _entityId;
   String get state => _state;
   set state(value) => _state = value;
 
-  String get deviceClass => _attributes["device_class"] ?? null;
+  String get deviceClass => attributes["device_class"] ?? null;
   bool get isView =>
       (_domain == "group") &&
-      (_attributes != null ? _attributes["view"] ?? false : false);
+      (attributes != null ? attributes["view"] ?? false : false);
   bool get isGroup => _domain == "group";
   bool get isBadge => Entity.badgeDomains.contains(_domain);
-  String get icon => _attributes["icon"] ?? "";
+  String get icon => attributes["icon"] ?? "";
   bool get isOn => state == "on";
-  String get entityPicture => _attributes["entity_picture"];
-  String get unitOfMeasurement => _attributes["unit_of_measurement"] ?? "";
-  List get childEntityIds => _attributes["entity_id"] ?? [];
+  String get entityPicture => attributes["entity_picture"];
+  String get unitOfMeasurement => attributes["unit_of_measurement"] ?? "";
+  List get childEntityIds => attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
 
   Entity(Map rawData) {
@@ -57,7 +58,7 @@ class Entity {
   }
 
   void update(Map rawData) {
-    _attributes = rawData["attributes"] ?? {};
+    attributes = rawData["attributes"] ?? {};
     _domain = rawData["entity_id"].split(".")[0];
     _entityId = rawData["entity_id"];
     _state = rawData["state"];
@@ -70,6 +71,13 @@ class Entity {
       entity: this,
       widgetType: widgetType,
     );
+  }
+
+  String getAttribute(String attributeName) {
+    if (attributes != null) {
+      return attributes["$attributeName"];
+    }
+    return null;
   }
 
   String _getLastUpdatedFormatted() {
@@ -119,6 +127,9 @@ class EntityWidget extends StatefulWidget {
   @override
   _EntityWidgetState createState() {
     switch (entity.domain) {
+      case 'sun': {
+        return _SunEntityWidgetState();
+      }
       case "automation":
       case "input_boolean":
       case "switch":
@@ -156,6 +167,8 @@ class EntityWidget extends StatefulWidget {
 
 class _EntityWidgetState extends State<EntityWidget> {
 
+  List<String> attributesToShow = ["all"];
+
   @override
   Widget build(BuildContext context) {
     if (widget.widgetType == EntityWidgetType.regular) {
@@ -174,7 +187,8 @@ class _EntityWidgetState extends State<EntityWidget> {
     return ListView(
       children: <Widget>[
         _buildMainWidget(context),
-        _buildSecondRowWidget()
+        _buildSecondRowWidget(),
+        _buildAttributesWidget()
       ],
     );
   }
@@ -200,6 +214,56 @@ class _EntityWidgetState extends State<EntityWidget> {
     );
   }
 
+  Widget _buildAttributesWidget() {
+    List<Widget> attrs = [];
+    if (attributesToShow.contains("all")) {
+      widget.entity.attributes.forEach((name, value){
+        attrs.add(
+            _buildAttributeWidget("$name", "$value")
+        );
+      });
+    } else {
+      attributesToShow.forEach((String attr) {
+        String attrValue = widget.entity.getAttribute("$attr");
+        if (attrValue != null) {
+          attrs.add(
+              _buildAttributeWidget("$attr", "$attrValue")
+          );
+        }
+      });
+    }
+    return Column(
+      children: attrs,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _buildAttributeWidget(String name, String value) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, Entity.ROW_PADDING, 0.0, 0.0),
+            child: Text(
+              "$name",
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(0.0, Entity.ROW_PADDING, Entity.RIGHT_WIDGET_PADDING, 0.0),
+            child: Text(
+              "$value",
+              textAlign: TextAlign.right,
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
   void openEntityPage() {
     eventBus.fire(new ShowEntityPageEvent(widget.entity));
   }
@@ -208,9 +272,9 @@ class _EntityWidgetState extends State<EntityWidget> {
     return;
   }
 
-  Widget buildAdditionalWidget() {
+  /*Widget buildAdditionalWidget() {
     return _buildSecondRowWidget();
-  }
+  }*/
 
   Widget _buildIconWidget() {
     return Padding(
@@ -320,56 +384,59 @@ class _EntityWidgetState extends State<EntityWidget> {
           )
       );
     }
-    return Column(
-      children: <Widget>[
-        Container(
-          margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-          width: 50.0,
-          height: 50.0,
-          decoration: new BoxDecoration(
-            // Circle shape
-            shape: BoxShape.circle,
-            color: Colors.white,
-            // The border you want
-            border: new Border.all(
-              width: 2.0,
-              color: iconColor,
+    return GestureDetector(
+      child: Column(
+        children: <Widget>[
+          Container(
+            margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+            width: 50.0,
+            height: 50.0,
+            decoration: new BoxDecoration(
+              // Circle shape
+              shape: BoxShape.circle,
+              color: Colors.white,
+              // The border you want
+              border: new Border.all(
+                width: 2.0,
+                color: iconColor,
+              ),
+            ),
+            child: Stack(
+              overflow: Overflow.visible,
+              children: <Widget>[
+                Positioned(
+                  width: 46.0,
+                  height: 46.0,
+                  top: 0.0,
+                  left: 0.0,
+                  child: badgeIcon,
+                ),
+                Positioned(
+                  //width: 50.0,
+                    bottom: -9.0,
+                    left: -10.0,
+                    right: -10.0,
+                    child: Center(
+                      child: onBadgeText,
+                    )
+                )
+              ],
             ),
           ),
-          child: Stack(
-            overflow: Overflow.visible,
-            children: <Widget>[
-              Positioned(
-                width: 46.0,
-                height: 46.0,
-                top: 0.0,
-                left: 0.0,
-                child: badgeIcon,
-              ),
-              Positioned(
-                //width: 50.0,
-                  bottom: -9.0,
-                  left: -10.0,
-                  right: -10.0,
-                  child: Center(
-                    child: onBadgeText,
-                  )
-              )
-            ],
+          Container(
+            width: 60.0,
+            child: Text(
+              "${widget.entity.displayName}",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.0),
+              softWrap: true,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-        Container(
-          width: 60.0,
-          child: Text(
-            "${widget.entity.displayName}",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12.0),
-            softWrap: true,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+        ],
+      ),
+      onTap: openEntityPage,
     );
   }
 }

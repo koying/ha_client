@@ -12,8 +12,8 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
   @override
   Widget _buildActionWidget(BuildContext context) {
     _listOptions.clear();
-    if (widget.entity._attributes["options"] != null) {
-      widget.entity._attributes["options"].forEach((value){
+    if (widget.entity.attributes["options"] != null) {
+      widget.entity.attributes["options"].forEach((value){
         _listOptions.add(value.toString());
       });
     }

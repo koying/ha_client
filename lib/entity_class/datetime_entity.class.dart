@@ -1,14 +1,14 @@
 part of '../main.dart';
 
 class _DateTimeEntityWidgetState extends _EntityWidgetState {
-  bool get hasDate => widget.entity._attributes["has_date"] ?? false;
-  bool get hasTime => widget.entity._attributes["has_time"] ?? false;
-  int get year => widget.entity._attributes["year"] ?? 1970;
-  int get month => widget.entity._attributes["month"] ?? 1;
-  int get day => widget.entity._attributes["day"] ?? 1;
-  int get hour => widget.entity._attributes["hour"] ?? 0;
-  int get minute => widget.entity._attributes["minute"] ?? 0;
-  int get second => widget.entity._attributes["second"] ?? 0;
+  bool get hasDate => widget.entity.attributes["has_date"] ?? false;
+  bool get hasTime => widget.entity.attributes["has_time"] ?? false;
+  int get year => widget.entity.attributes["year"] ?? 1970;
+  int get month => widget.entity.attributes["month"] ?? 1;
+  int get day => widget.entity.attributes["day"] ?? 1;
+  int get hour => widget.entity.attributes["hour"] ?? 0;
+  int get minute => widget.entity.attributes["minute"] ?? 0;
+  int get second => widget.entity.attributes["second"] ?? 0;
   String get formattedState => _getFormattedState();
   DateTime get dateTimeState => _getDateTimeState();
 

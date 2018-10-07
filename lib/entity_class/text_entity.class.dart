@@ -5,11 +5,11 @@ class _TextEntityWidgetState extends _EntityWidgetState {
   FocusNode _focusNode = FocusNode();
   bool validValue = false;
 
-  int get valueMinLength => widget.entity._attributes["min"] ?? -1;
-  int get valueMaxLength => widget.entity._attributes["max"] ?? -1;
-  String get valuePattern => widget.entity._attributes["pattern"] ?? null;
-  bool get isTextField => widget.entity._attributes["mode"] == "text";
-  bool get isPasswordField => widget.entity._attributes["mode"] == "password";
+  int get valueMinLength => widget.entity.attributes["min"] ?? -1;
+  int get valueMaxLength => widget.entity.attributes["max"] ?? -1;
+  String get valuePattern => widget.entity.attributes["pattern"] ?? null;
+  bool get isTextField => widget.entity.attributes["mode"] == "text";
+  bool get isPasswordField => widget.entity.attributes["mode"] == "password";
 
   @override
   void initState() {
