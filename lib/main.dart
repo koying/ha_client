@@ -202,6 +202,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _refreshData() async {
+    _hideErrorSnackBar();
     _homeAssistant.updateConnectionSettings(_apiEndpoint, _apiPassword, _authType);
     setState(() {
       _isLoading = 1;
@@ -370,7 +371,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  _showErrorSnackBar({Key key, @required String message, @required int errorCode}) {
+  void _hideErrorSnackBar() {
+    _scaffoldKey?.currentState?.hideCurrentSnackBar();
+  }
+
+  void _showErrorSnackBar({Key key, @required String message, @required int errorCode}) {
       SnackBarAction action;
       switch (errorCode) {
         case 9:

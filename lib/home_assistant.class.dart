@@ -27,9 +27,9 @@ class HomeAssistant {
 
   StreamSubscription _socketSubscription;
 
-  int messageExpirationTime = 50; //seconds
-  Duration fetchTimeout = Duration(seconds: 30);
-  Duration connectTimeout = Duration(seconds: 10);
+  int messageExpirationTime = 45; //seconds
+  Duration fetchTimeout = Duration(seconds: 45);
+  Duration connectTimeout = Duration(seconds: 15);
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
@@ -353,6 +353,6 @@ class HAMessage {
   }
   
   bool isExpired() {
-    return _timeStamp.difference(DateTime.now()).inSeconds > _messageTimeout;
+    return DateTime.now().difference(_timeStamp).inSeconds > _messageTimeout;
   }
 }
