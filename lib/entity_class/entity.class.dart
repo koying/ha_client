@@ -161,18 +161,22 @@ class _EntityWidgetState extends State<EntityWidget> {
     if (widget.widgetType == EntityWidgetType.regular) {
       return _buildMainWidget(context);
     } else if (widget.widgetType == EntityWidgetType.extended) {
-      return ListView(
-        children: <Widget>[
-          _buildMainWidget(context),
-          _buildLastUpdatedWidget()
-        ],
-      );
+      return _buildExtendedWidget(context);
     } else if (widget.widgetType == EntityWidgetType.badge) {
       return _buildBadgeWidget(context);
     } else {
       TheLogger.log("Error", "Unknown entity widget type: ${widget.widgetType}");
       return Container(width: 0.0, height: 0.0);
     }
+  }
+
+  Widget _buildExtendedWidget(BuildContext context) {
+    return ListView(
+      children: <Widget>[
+        _buildMainWidget(context),
+        _buildSecondRowWidget()
+      ],
+    );
   }
 
   Widget _buildMainWidget(BuildContext context) {
@@ -205,7 +209,7 @@ class _EntityWidgetState extends State<EntityWidget> {
   }
 
   Widget buildAdditionalWidget() {
-    return _buildLastUpdatedWidget();
+    return _buildSecondRowWidget();
   }
 
   Widget _buildIconWidget() {
@@ -218,7 +222,7 @@ class _EntityWidgetState extends State<EntityWidget> {
     );
   }
 
-  Widget _buildLastUpdatedWidget() {
+  Widget _buildSecondRowWidget() {
     return Padding(
       padding: EdgeInsets.fromLTRB(
           Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),

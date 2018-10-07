@@ -11,6 +11,11 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   @override
   void initState() {
     super.initState();
+    if (valueStep < 1) {
+      _multiplier = 10;
+    } else if (valueStep < 0.1) {
+      _multiplier = 100;
+    }
   }
 
   @override
@@ -20,46 +25,80 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildActionWidget(BuildContext context) {
-    if (valueStep < 1) {
-      _multiplier = 10;
-    } else if (valueStep < 0.1) {
-      _multiplier = 100;
-    }
-    return Expanded(
-      //width: 200.0,
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: Slider(
-              min: this.minValue * _multiplier,
-              max: this.maxValue * _multiplier,
-              value: (doubleState <= this.maxValue) &&
-                  (doubleState >= this.minValue)
-                  ? doubleState * _multiplier
-                  : this.minValue * _multiplier,
-              onChanged: (value) {
-                setState(() {
-                  widget.entity.state = (value.roundToDouble() / _multiplier).toString();
-                });
-                /*eventBus.fire(new StateChangedEvent(widget.entity.entityId,
-                    (value.roundToDouble() / _multiplier).toString(), true));*/
-              },
-              onChangeEnd: (value) {
-                setNewState(value.roundToDouble() / _multiplier);
-              },
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
-            child: Text("${widget.entity.state}${widget.entity.unitOfMeasurement}",
-                textAlign: TextAlign.right,
-                style: new TextStyle(
-                  fontSize: Entity.STATE_FONT_SIZE,
-                )),
-          )
-        ],
-      ),
+  Widget _buildExtendedWidget(BuildContext context) {
+    return ListView(
+      children: <Widget>[
+        _buildMainWidget(context),
+        _buildExtendedSlider(),
+        _buildSecondRowWidget()
+      ],
     );
+  }
+
+  Widget _buildExtendedSlider() {
+    return Slider(
+      min: this.minValue * _multiplier,
+      max: this.maxValue * _multiplier,
+      value: (doubleState <= this.maxValue) &&
+          (doubleState >= this.minValue)
+          ? doubleState * _multiplier
+          : this.minValue * _multiplier,
+      onChanged: (value) {
+        setState(() {
+          widget.entity.state =
+              (value.roundToDouble() / _multiplier).toString();
+        });
+        /*eventBus.fire(new StateChangedEvent(widget.entity.entityId,
+                      (value.roundToDouble() / _multiplier).toString(), true));*/
+      },
+      onChangeEnd: (value) {
+        setNewState(value.roundToDouble() / _multiplier);
+      },
+    );
+  }
+
+  @override
+  Widget _buildActionWidget(BuildContext context) {
+    Widget stateWidget = Padding(
+      padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
+      child: Text("${widget.entity.state}${widget.entity.unitOfMeasurement}",
+          textAlign: TextAlign.right,
+          style: new TextStyle(
+            fontSize: Entity.STATE_FONT_SIZE,
+          )),
+    );
+    if (widget.widgetType == EntityWidgetType.regular) {
+      return Expanded(
+        //width: 200.0,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Slider(
+                min: this.minValue * _multiplier,
+                max: this.maxValue * _multiplier,
+                value: (doubleState <= this.maxValue) &&
+                    (doubleState >= this.minValue)
+                    ? doubleState * _multiplier
+                    : this.minValue * _multiplier,
+                onChanged: (value) {
+                  setState(() {
+                    widget.entity.state =
+                        (value.roundToDouble() / _multiplier).toString();
+                  });
+                  /*eventBus.fire(new StateChangedEvent(widget.entity.entityId,
+                      (value.roundToDouble() / _multiplier).toString(), true));*/
+                },
+                onChangeEnd: (value) {
+                  setNewState(value.roundToDouble() / _multiplier);
+                },
+              ),
+            ),
+            stateWidget
+          ],
+        ),
+      );
+    } else {
+      return stateWidget;
+    }
   }
 }
