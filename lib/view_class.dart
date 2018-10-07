@@ -49,7 +49,7 @@ class View {
 
 }
 
-class ViewWidget extends StatelessWidget {
+class ViewWidget extends StatefulWidget {
   final List<Entity> badges;
   final Map<String, CardSkeleton> cards;
   final String displayName;
@@ -60,6 +60,28 @@ class ViewWidget extends StatelessWidget {
     this.cards,
     this.displayName
   }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return ViewWidgetState();
+  }
+
+}
+
+class ViewWidgetState extends State<ViewWidget> {
+
+  StreamSubscription _refreshDataSubscription;
+  Completer _refreshCompleter;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshDataSubscription = eventBus.on<RefreshDataFinishedEvent>().listen((event) {
+      if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
+        _refreshCompleter.complete();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,18 +98,18 @@ class ViewWidget extends StatelessWidget {
   List<Widget> _buildChildren(BuildContext context) {
     List<Widget> result = [];
 
-    if (badges.isNotEmpty) {
+    if (widget.badges.isNotEmpty) {
       result.insert(0,
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 10.0,
             runSpacing: 1.0,
-            children: _buildBadges(context, badges),
+            children: _buildBadges(context, widget.badges),
           )
       );
     }
 
-    cards.forEach((String id, CardSkeleton skeleton){
+    widget.cards.forEach((String id, CardSkeleton skeleton){
       result.add(
           HACard(
             entities: skeleton.childEntities,
@@ -108,15 +130,22 @@ class ViewWidget extends StatelessWidget {
   }
 
   Future _refreshData() {
-    Completer refreshCompleter = Completer();
-
-    eventBus.fire(RefreshDataEvent());
-    eventBus.on<RefreshDataFinishedEvent>().listen((event) {
-      refreshCompleter.complete();
-    });
-
-    return refreshCompleter.future;
+    if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
+      TheLogger.log("Debug","Previous data refresh is still in progress");
+    } else {
+      _refreshCompleter = Completer();
+      eventBus.fire(RefreshDataEvent());
+    }
+    return _refreshCompleter.future;
   }
+
+  @override
+  void dispose() {
+    _refreshDataSubscription.cancel();
+    super.dispose();
+  }
+
+
 }
 
 class CardSkeleton {

@@ -28,8 +28,8 @@ class HomeAssistant {
   StreamSubscription _socketSubscription;
 
   int messageExpirationTime = 50; //seconds
-  Duration fetchTimeout = Duration(seconds: 45);
-  Duration connectTimeout = Duration(seconds: 15);
+  Duration fetchTimeout = Duration(seconds: 30);
+  Duration connectTimeout = Duration(seconds: 10);
 
   String get locationName => _instanceConfig["location_name"] ?? "";
   int get viewsCount => _entities.viewList.length ?? 0;
@@ -95,8 +95,10 @@ class HomeAssistant {
                   (message) => _handleMessage(_connectionCompleter, message),
               cancelOnError: true,
               onDone: () {
-                TheLogger.log("Debug","Socket stream closed. Disconnected.");
-                disconnect();
+                TheLogger.log("Debug","Disconnect detected. Reconnecting...");
+                disconnect().then((_) {
+                  _connection();
+                });
               },
               onError: (e) {
                 TheLogger.log("Error","Socket stream Error: $e");
@@ -129,7 +131,9 @@ class HomeAssistant {
     _completeConnecting(error);
     if (!_fetchCompleter.isCompleted) {
       if (error != null) {
-        _fetchCompleter.completeError(error);
+        disconnect().then((_){
+          _fetchCompleter.completeError(error);
+        });
       } else {
         _fetchCompleter.complete();
       }

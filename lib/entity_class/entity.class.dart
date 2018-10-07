@@ -171,6 +171,7 @@ class _EntityWidgetState extends State<EntityWidget> {
       return _buildBadgeWidget(context);
     } else {
       TheLogger.log("Error", "Unknown entity widget type: ${widget.widgetType}");
+      return Container(width: 0.0, height: 0.0);
     }
   }
 
