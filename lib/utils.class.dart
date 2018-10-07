@@ -78,3 +78,10 @@ class ShowEntityPageEvent {
 
   ShowEntityPageEvent(this.entity);
 }
+
+class ShowErrorEvent {
+  String text;
+  int errorCode;
+
+  ShowErrorEvent(this.text, this.errorCode);
+}

@@ -356,7 +356,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  _checkShowInfo(BuildContext context) {
+  _checkShowInfo() {
     if (_errorCodeToBeShown > 0) {
       String message = _lastErrorMessage;
       SnackBarAction action;
@@ -465,7 +465,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    _checkShowInfo(context);
+    _checkShowInfo();
     // This method is rerun every time setState is called.
     if (_entities == null) {
       return _buildScaffold(true);

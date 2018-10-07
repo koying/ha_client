@@ -60,16 +60,16 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   }
 
   _saveSettings() async {
-    if (_hassioDomain.indexOf("http") == 0 && _hassioDomain.indexOf("//") > 0) {
-      _hassioDomain = _hassioDomain.split("//")[1];
+    if (_newHassioDomain.indexOf("http") == 0 && _newHassioDomain.indexOf("//") > 0) {
+      _newHassioDomain = _newHassioDomain.split("//")[1];
     }
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString("hassio-domain", _hassioDomain);
-    prefs.setString("hassio-port", _hassioPort);
-    prefs.setString("hassio-password", _hassioPassword);
-    prefs.setString("hassio-protocol", _socketProtocol);
-    prefs.setString("hassio-res-protocol", _socketProtocol == "wss" ? "https" : "http");
-    prefs.setString("hassio-auth-type", _authType);
+    prefs.setString("hassio-domain", _newHassioDomain);
+    prefs.setString("hassio-port", _newHassioPort);
+    prefs.setString("hassio-password", _newHassioPassword);
+    prefs.setString("hassio-protocol", _newSocketProtocol);
+    prefs.setString("hassio-res-protocol", _newSocketProtocol == "wss" ? "https" : "http");
+    prefs.setString("hassio-auth-type", _newAuthType);
   }
 
   @override
