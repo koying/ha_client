@@ -101,6 +101,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _showErrorSubscription;
   int _isLoading = 1;
   bool _settingsLoaded = false;
+  bool _accountMenuExpanded = false;
 
   @override
   void initState() {
@@ -296,74 +297,75 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   Drawer _buildAppDrawer() {
+    List<Widget> menuItems = [];
+    menuItems.add(
+        UserAccountsDrawerHeader(
+          accountName: Text(_homeAssistant.userName),
+          accountEmail: Text(_instanceHost ?? "Not configured"),
+          onDetailsPressed: () {
+            setState(() {
+              _accountMenuExpanded = !_accountMenuExpanded;
+            });
+          },
+          currentAccountPicture: CircleAvatar(
+            child: Text(
+              _homeAssistant.userName[0],
+              style: TextStyle(
+                  fontSize: 32.0
+              ),
+            ),
+          ),
+        )
+    );
+    if (_accountMenuExpanded) {
+      menuItems.addAll([
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text("Connection settings"),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/connection-settings');
+          },
+        ),
+        Divider(),
+      ]);
+    } else {
+      menuItems.addAll([
+        new ListTile(
+          leading: Icon(Icons.insert_drive_file),
+          title: Text("Log"),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/log-view');
+          },
+        ),
+        new ListTile(
+          leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
+          title: Text("Report an issue"),
+          onTap: () {
+            Navigator.of(context).pop();
+            HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
+          },
+        ),
+        Divider(),
+        new AboutListTile(
+          applicationName: appName,
+          applicationVersion: appVersion,
+          applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
+        ),
+        new ListTile(
+          leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
+          title: Text("Buy me a coffee"),
+          onTap: () {
+            Navigator.of(context).pop();
+            HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
+          },
+        )
+      ]);
+    }
     return new Drawer(
       child: ListView(
-        children: <Widget>[
-          new UserAccountsDrawerHeader(
-            accountName: Text(_homeAssistant != null ? _homeAssistant.locationName : "Unknown"),
-            accountEmail: Text(_instanceHost ?? "Not configured"),
-            currentAccountPicture: new Image.asset('images/hassio-192x192.png'),
-          ),
-          new ListTile(
-            leading: Icon(Icons.settings),
-            title: Text("Connection settings"),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/connection-settings');
-            },
-          ),
-          Container(
-              height: 16.0,
-              decoration: new BoxDecoration(
-                border: new Border(
-                    bottom: BorderSide(
-                      width: 1.0,
-                      color: Colors.black26,
-                    )
-                ),
-              )
-          ),
-          new ListTile(
-            leading: Icon(Icons.insert_drive_file),
-            title: Text("Log"),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/log-view');
-            },
-          ),
-          new ListTile(
-            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
-            title: Text("Report an issue"),
-            onTap: () {
-              Navigator.of(context).pop();
-              HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new");
-            },
-          ),
-          Container(
-            height: 16.0,
-            decoration: new BoxDecoration(
-              border: new Border(
-                  bottom: BorderSide(
-                    width: 1.0,
-                    color: Colors.black26,
-                  )
-                ),
-              )
-          ),
-          new AboutListTile(
-            applicationName: appName,
-            applicationVersion: appVersion,
-            applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
-          ),
-          new ListTile(
-            leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
-            title: Text("Buy me a coffee"),
-            onTap: () {
-              Navigator.of(context).pop();
-              HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
-            },
-          )
-        ],
+        children: menuItems,
       ),
     );
   }
@@ -451,6 +453,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       key: _scaffoldKey,
       appBar: AppBar(
         title: _buildAppTitle(),
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            _scaffoldKey.currentState.openDrawer();
+            setState(() {
+              _accountMenuExpanded = false;
+            });
+          },
+        ),
         bottom: empty ? null : TabBar(
             tabs: buildUIViewTabs(),
             isScrollable: true,

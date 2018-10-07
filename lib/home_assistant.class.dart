@@ -17,12 +17,14 @@ class HomeAssistant {
   EntityCollection _entities;
   ViewBuilder _viewBuilder;
   Map _instanceConfig = {};
+  String _userName;
 
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
   Completer _configCompleter;
   Completer _connectionCompleter;
+  Completer _userInfoCompleter;
   Timer _connectionTimer;
   Timer _fetchTimer;
   bool autoReconnect = false;
@@ -33,7 +35,8 @@ class HomeAssistant {
   Duration fetchTimeout = Duration(seconds: 45);
   Duration connectTimeout = Duration(seconds: 15);
 
-  String get locationName => _instanceConfig["location_name"] ?? "";
+  String get locationName => _instanceConfig["location_name"] ?? "...";
+  String get userName => _userName ?? locationName;
   int get viewsCount => _entities.viewList.length ?? 0;
 
   EntityCollection get entities => _entities;
@@ -128,7 +131,7 @@ class HomeAssistant {
     futures.add(_getStates());
     futures.add(_getConfig());
     futures.add(_getServices());
-    //futures.add(_getUserInfo());
+    futures.add(_getUserInfo());
     try {
       await Future.wait(futures);
       _completeFetching(null);
@@ -181,7 +184,7 @@ class HomeAssistant {
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
       } else if (data["id"] == _userInfoMessageId) {
-        TheLogger.log("Debug","User ingo: $message");
+        _parseUserInfo(data);
       } else if (data["id"] == _currentMessageId) {
         TheLogger.log("Debug","Request id:$_currentMessageId was successful");
       }
@@ -222,13 +225,13 @@ class HomeAssistant {
     return _statesCompleter.future;
   }
 
-  void _getUserInfo() {
-    //_servicesCompleter = new Completer();
+  Future _getUserInfo() {
+    _userInfoCompleter = new Completer();
     _incrementMessageId();
     _userInfoMessageId = _currentMessageId;
     _sendMessageRaw('{"id": $_userInfoMessageId, "type": "auth/current_user"}', false);
 
-    //return _servicesCompleter.future;
+    return _userInfoCompleter.future;
   }
 
   Future _getServices() {
@@ -293,6 +296,16 @@ class HomeAssistant {
     } else {
       _configCompleter.completeError({"errorCode": 2, "errorMessage": data["error"]["message"]});
     }
+  }
+
+  void _parseUserInfo(Map data) {
+    TheLogger.log("Debug", "$data");
+    if (data["success"] == true) {
+      _userName = data["result"]["name"];
+    } else {
+      _userName = null;
+    }
+    _userInfoCompleter.complete();
   }
 
   void _parseServices(response) {
