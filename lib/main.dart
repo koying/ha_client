@@ -113,7 +113,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        _initialLoad();
+        _homeAssistant.disconnect().then((_){
+          _initialLoad();
+        });
       }
     });
     _initialLoad();

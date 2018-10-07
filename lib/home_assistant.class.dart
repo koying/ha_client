@@ -13,6 +13,7 @@ class HomeAssistant {
   int _servicesMessageId = 0;
   int _subscriptionMessageId = 0;
   int _configMessageId = 0;
+  int _userInfoMessageId = 0;
   EntityCollection _entities;
   ViewBuilder _viewBuilder;
   Map _instanceConfig = {};
@@ -24,6 +25,7 @@ class HomeAssistant {
   Completer _connectionCompleter;
   Timer _connectionTimer;
   Timer _fetchTimer;
+  bool autoReconnect = false;
 
   StreamSubscription _socketSubscription;
 
@@ -70,8 +72,10 @@ class HomeAssistant {
       await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
         onTimeout: () => TheLogger.log("Warning", "Socket sink closing timeout")
       );
+      await _socketSubscription.cancel();
       _hassioChannel = null;
     }
+
   }
 
   Future _connection() {
@@ -79,6 +83,7 @@ class HomeAssistant {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
       _connectionCompleter = new Completer();
+      autoReconnect = false;
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
         disconnect().then((_){
           TheLogger.log("Debug", "Socket connecting...");
@@ -92,15 +97,17 @@ class HomeAssistant {
           _hassioChannel = IOWebSocketChannel.connect(
               _hassioAPIEndpoint, pingInterval: Duration(seconds: 30));
           _socketSubscription = _hassioChannel.stream.listen(
-                  (message) => _handleMessage(_connectionCompleter, message),
+                  (message) => _handleMessage(message),
               cancelOnError: true,
               onDone: () {
-                TheLogger.log("Debug","Disconnect detected. Reconnecting...");
-                disconnect().then((_) {
-                  _connection().catchError((e){
-                    _completeConnecting(e);
+                TheLogger.log("Debug","Socket disconnected. Automatic reconnect is $autoReconnect");
+                if (autoReconnect) {
+                  disconnect().then((_) {
+                    _connection().catchError((e){
+                      _completeConnecting(e);
+                    });
                   });
-                });
+                }
               },
               onError: (e) {
                 TheLogger.log("Error","Socket stream Error: $e");
@@ -120,6 +127,7 @@ class HomeAssistant {
     _getConfig().then((result) {
       _getStates().then((result) {
         _getServices().then((result) {
+          _getUserInfo();
           _completeFetching(null);
         });
       });
@@ -133,11 +141,10 @@ class HomeAssistant {
     _completeConnecting(error);
     if (!_fetchCompleter.isCompleted) {
       if (error != null) {
-        disconnect().then((_){
-          _fetchCompleter.completeError(error);
-        });
+        _fetchCompleter.completeError(error);
       } else {
         _fetchCompleter.complete();
+        autoReconnect = true;
       }
     }
   }
@@ -155,7 +162,7 @@ class HomeAssistant {
     }
   }
 
-  _handleMessage(Completer connectionCompleter, String message) {
+  _handleMessage(String message) {
     var data = json.decode(message);
     //TheLogger.log("Debug","[Received] => Message type: ${data['type']}");
     if (data["type"] == "auth_required") {
@@ -164,7 +171,7 @@ class HomeAssistant {
       _completeConnecting(null);
       _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
-      _completeFetching({"errorCode": 6, "errorMessage": "${data["message"]}"});
+      _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       if (data["id"] == _configMessageId) {
         _parseConfig(data);
@@ -172,6 +179,8 @@ class HomeAssistant {
         _parseEntities(data);
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
+      } else if (data["id"] == _userInfoMessageId) {
+        TheLogger.log("Debug","User ingo: $message");
       } else if (data["id"] == _currentMessageId) {
         TheLogger.log("Debug","Request id:$_currentMessageId was successful");
       }
@@ -210,6 +219,15 @@ class HomeAssistant {
     _sendMessageRaw('{"id": $_statesMessageId, "type": "get_states"}', false);
 
     return _statesCompleter.future;
+  }
+
+  void _getUserInfo() {
+    //_servicesCompleter = new Completer();
+    _incrementMessageId();
+    _userInfoMessageId = _currentMessageId;
+    _sendMessageRaw('{"id": $_userInfoMessageId, "type": "auth/current_user"}', false);
+
+    //return _servicesCompleter.future;
   }
 
   Future _getServices() {
