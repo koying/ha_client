@@ -31,12 +31,13 @@ class HomeAssistant {
 
   StreamSubscription _socketSubscription;
 
-  int messageExpirationTime = 45; //seconds
-  Duration fetchTimeout = Duration(seconds: 45);
+  int messageExpirationTime = 30; //seconds
+  Duration fetchTimeout = Duration(seconds: 30);
   Duration connectTimeout = Duration(seconds: 15);
 
-  String get locationName => _instanceConfig["location_name"] ?? "...";
+  String get locationName => _instanceConfig["location_name"] ?? "";
   String get userName => _userName ?? locationName;
+  String get userAvatarText => userName.length > 0 ? userName[0] : "";
   int get viewsCount => _entities.viewList.length ?? 0;
 
   EntityCollection get entities => _entities;
@@ -59,7 +60,12 @@ class HomeAssistant {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
         TheLogger.log("Error", "Data fetching timeout");
-        _completeFetching({"errorCode" : 9,"errorMessage": "Couldn't get data from server"});
+        disconnect().then((_) {
+          _completeFetching({
+            "errorCode": 9,
+            "errorMessage": "Couldn't get data from server"
+          });
+        });
       });
       _connection().then((r) {
         _getData();
@@ -73,7 +79,7 @@ class HomeAssistant {
   disconnect() async {
     if ((_hassioChannel != null) && (_hassioChannel.closeCode == null) && (_hassioChannel.sink != null)) {
       await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
-        onTimeout: () => TheLogger.log("Warning", "Socket sink closing timeout")
+        onTimeout: () => TheLogger.log("Debug", "Socket sink closed")
       );
       await _socketSubscription.cancel();
       _hassioChannel = null;
@@ -85,14 +91,14 @@ class HomeAssistant {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
       TheLogger.log("Debug","Previous connection is not complited");
     } else {
-      _connectionCompleter = new Completer();
-      autoReconnect = false;
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+        _connectionCompleter = new Completer();
+        autoReconnect = false;
         disconnect().then((_){
           TheLogger.log("Debug", "Socket connecting...");
           _connectionTimer = Timer(connectTimeout, () {
             TheLogger.log("Error", "Socket connection timeout");
-            _completeConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."});
+            _handleSocketError(null);
           });
           if (_socketSubscription != null) {
             _socketSubscription.cancel();
@@ -102,28 +108,45 @@ class HomeAssistant {
           _socketSubscription = _hassioChannel.stream.listen(
                   (message) => _handleMessage(message),
               cancelOnError: true,
-              onDone: () {
-                TheLogger.log("Debug","Socket disconnected. Automatic reconnect is $autoReconnect");
-                if (autoReconnect) {
-                  disconnect().then((_) {
-                    _connection().catchError((e){
-                      _completeConnecting(e);
-                    });
-                  });
-                }
-              },
-              onError: (e) {
-                TheLogger.log("Error","Socket stream Error: $e");
-                disconnect().then((_) => _completeConnecting({"errorCode" : 1,"errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."}));
-              }
+              onDone: () => _handleSocketClose(),
+              onError: (e) => _handleSocketError(e)
           );
         });
       } else {
-        //TheLogger.log("Debug","Socket looks connected...${_hassioChannel.protocol}, ${_hassioChannel.closeCode}, ${_hassioChannel.closeReason}");
         _completeConnecting(null);
       }
     }
     return _connectionCompleter.future;
+  }
+
+  void _handleSocketClose() {
+    TheLogger.log("Debug","Socket disconnected. Automatic reconnect is $autoReconnect");
+    if (autoReconnect) {
+      _reconnect();
+    }
+  }
+
+  void _handleSocketError(e) {
+    TheLogger.log("Error","Socket stream Error: $e");
+    TheLogger.log("Debug","Automatic reconnect is $autoReconnect");
+    if (autoReconnect) {
+      _reconnect();
+    } else {
+      disconnect().then((_) {
+        _completeConnecting({
+          "errorCode": 1,
+          "errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."
+        });
+      });
+    }
+  }
+
+  void _reconnect() {
+    disconnect().then((_) {
+      _connection().catchError((e){
+        _completeConnecting(e);
+      });
+    });
   }
 
   _getData() async {
@@ -147,8 +170,9 @@ class HomeAssistant {
       if (error != null) {
         _fetchCompleter.completeError(error);
       } else {
-        _fetchCompleter.complete();
         autoReconnect = true;
+        TheLogger.log("Debug", "Fetch complete successful");
+        _fetchCompleter.complete();
       }
     }
   }

@@ -35,7 +35,7 @@ part 'card_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.5 .31";
+const appVersion = "0.2.5.31";
 
 String homeAssistantWebHost;
 
@@ -310,7 +310,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           },
           currentAccountPicture: CircleAvatar(
             child: Text(
-              _homeAssistant.userName[0],
+              _homeAssistant.userAvatarText,
               style: TextStyle(
                   fontSize: 32.0
               ),

@@ -32,11 +32,11 @@ class _EntityViewPageState extends State<EntityViewPage> {
   }
 
   void _getHistory() {
-    widget.homeAssistant.getHistory(widget.entity.entityId).then((List history) {
+   /* widget.homeAssistant.getHistory(widget.entity.entityId).then((List history) {
       if (history != null) {
         
       }
-    });
+    });*/
   }
 
 
