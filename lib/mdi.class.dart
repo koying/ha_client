@@ -16,7 +16,8 @@ class MaterialDesignIcons {
     "input_text": "mdi:textbox",
     "sun": "mdi:white-balance-sunny",
     "scene": "mdi:google-pages",
-    "media_player": "mdi:cast"
+    "media_player": "mdi:cast",
+    "climate": "mdi:thermostat"
   };
 
   static Map _defaultIconsByDeviceClass = {

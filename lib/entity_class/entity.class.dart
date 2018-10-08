@@ -4,6 +4,7 @@ class Entity {
   static const STATE_ICONS_COLORS = {
     "on": Colors.amber,
     "off": Color.fromRGBO(68, 115, 158, 1.0),
+    "default": Color.fromRGBO(68, 115, 158, 1.0),
     "unavailable": Colors.black12,
     "unknown": Colors.black12,
     "playing": Colors.amber
@@ -282,7 +283,7 @@ class _EntityWidgetState extends State<EntityWidget> {
       child: MaterialDesignIcons.createIconWidgetFromEntityData(
           widget.entity,
           Entity.ICON_SIZE,
-          Entity.STATE_ICONS_COLORS[widget.entity.state] ?? Colors.blueGrey),
+          Entity.STATE_ICONS_COLORS[widget.entity.state] ?? Entity.STATE_ICONS_COLORS["default"]),
     );
   }
 
