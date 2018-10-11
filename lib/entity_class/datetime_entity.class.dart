@@ -37,13 +37,13 @@ class _DateTimeEntityWidgetState extends _EntityWidgetState {
   Widget _buildActionWidget(BuildContext context) {
     return Padding(
         padding:
-        EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
+        EdgeInsets.fromLTRB(0.0, 0.0, rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text(
               "$formattedState",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: Entity.STATE_FONT_SIZE,
+                fontSize: stateFontSize,
               )),
           onTap: () => _handleStateTap(context),
         )

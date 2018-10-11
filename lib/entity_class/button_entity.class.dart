@@ -17,7 +17,7 @@ class _ButtonEntityWidgetState extends _EntityWidgetState {
         "EXECUTE",
         textAlign: TextAlign.right,
         style:
-        new TextStyle(fontSize: Entity.STATE_FONT_SIZE, color: Colors.blue),
+        new TextStyle(fontSize: stateFontSize, color: Colors.blue),
       ),
     );
   }

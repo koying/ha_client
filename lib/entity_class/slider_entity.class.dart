@@ -25,12 +25,12 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   }
 
   @override
-  Widget _buildExtendedWidget(BuildContext context) {
-    return ListView(
+  Widget _buildSecondRowWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _buildMainWidget(context),
-        _buildExtendedSlider(),
-        _buildSecondRowWidget()
+        super._buildSecondRowWidget(),
+        _buildExtendedSlider()
       ],
     );
   }
@@ -60,11 +60,11 @@ class _SliderEntityWidgetState extends _EntityWidgetState {
   @override
   Widget _buildActionWidget(BuildContext context) {
     Widget stateWidget = Padding(
-      padding: EdgeInsets.only(right: Entity.RIGHT_WIDGET_PADDING),
+      padding: EdgeInsets.only(right: rightWidgetPadding),
       child: Text("${widget.entity.state}${widget.entity.unitOfMeasurement}",
           textAlign: TextAlign.right,
           style: new TextStyle(
-            fontSize: Entity.STATE_FONT_SIZE,
+            fontSize: stateFontSize,
           )),
     );
     if (widget.widgetType == EntityWidgetType.regular) {

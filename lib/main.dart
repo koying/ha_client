@@ -21,6 +21,7 @@ part 'entity_class/slider_entity.class.dart';
 part 'entity_class/switch_entity.class.dart';
 part 'entity_class/text_entity.class.dart';
 part 'entity_class/sun_entity.class.dart';
+part 'entity_class/climate_entity.class.dart';
 
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
@@ -35,7 +36,7 @@ part 'card_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.5.31";
+const appVersion = "0.2.5.33";
 
 String homeAssistantWebHost;
 
@@ -353,14 +354,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           applicationName: appName,
           applicationVersion: appVersion,
           applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
-        ),
-        new ListTile(
-          leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:coffee")),
-          title: Text("Buy me a coffee"),
-          onTap: () {
-            Navigator.of(context).pop();
-            HAUtils.launchURL("https://www.buymeacoffee.com/estevez");
-          },
         )
       ]);
     }

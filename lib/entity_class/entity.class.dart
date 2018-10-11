@@ -14,21 +14,11 @@ class Entity {
     "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
   };
   static List badgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
-  static const RIGHT_WIDGET_PADDING = 14.0;
-  static const LEFT_WIDGET_PADDING = 8.0;
-  static const EXTENDED_WIDGET_HEIGHT = 50.0;
-  static const WIDGET_HEIGHT = 34.0;
-  static const ICON_SIZE = 28.0;
-  static const STATE_FONT_SIZE = 16.0;
-  static const NAME_FONT_SIZE = 16.0;
-  static const SMALL_FONT_SIZE = 14.0;
-  static const INPUT_WIDTH = 160.0;
-  static const ROW_PADDING = 10.0;
 
   Map attributes;
-  String _domain;
-  String _entityId;
-  String _state;
+  String domain;
+  String entityId;
+  String state;
   String assumedState;
   DateTime _lastUpdated;
 
@@ -36,17 +26,15 @@ class Entity {
 
   String get displayName =>
       attributes["friendly_name"] ?? (attributes["name"] ?? "_");
-  String get domain => _domain;
-  String get entityId => _entityId;
-  String get state => _state;
-  set state(value) => _state = value;
+
+
 
   String get deviceClass => attributes["device_class"] ?? null;
   bool get isView =>
-      (_domain == "group") &&
+      (domain == "group") &&
       (attributes != null ? attributes["view"] ?? false : false);
-  bool get isGroup => _domain == "group";
-  bool get isBadge => Entity.badgeDomains.contains(_domain);
+  bool get isGroup => domain == "group";
+  bool get isBadge => Entity.badgeDomains.contains(domain);
   String get icon => attributes["icon"] ?? "";
   bool get isOn => state == "on";
   String get entityPicture => attributes["entity_picture"];
@@ -60,10 +48,10 @@ class Entity {
 
   void update(Map rawData) {
     attributes = rawData["attributes"] ?? {};
-    _domain = rawData["entity_id"].split(".")[0];
-    _entityId = rawData["entity_id"];
-    _state = rawData["state"];
-    assumedState = _state;
+    domain = rawData["entity_id"].split(".")[0];
+    entityId = rawData["entity_id"];
+    state = rawData["state"];
+    assumedState = state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
@@ -137,28 +125,25 @@ class EntityWidget extends StatefulWidget {
       case "light": {
         return _SwitchEntityWidgetState();
       }
-
       case "script":
       case "scene": {
         return _ButtonEntityWidgetState();
       }
-
       case "input_datetime": {
         return _DateTimeEntityWidgetState();
       }
-
       case "input_select": {
         return _SelectEntityWidgetState();
       }
-
       case "input_number": {
         return _SliderEntityWidgetState();
       }
-
       case "input_text": {
         return _TextEntityWidgetState();
       }
-
+      case "climate": {
+        return _ClimateEntityWidgetState();
+      }
       default: {
         return _EntityWidgetState();
       }
@@ -169,6 +154,17 @@ class EntityWidget extends StatefulWidget {
 class _EntityWidgetState extends State<EntityWidget> {
 
   List<String> attributesToShow = ["all"];
+  double rightWidgetPadding = 14.0;
+  double leftWidgetPadding = 8.0;
+  double extendedWidgetHeight = 50.0;
+  double widgetHeight = 34.0;
+  double iconSize = 28.0;
+  double stateFontSize = 16.0;
+  double nameFontSize = 16.0;
+  double smallFontSize = 14.0;
+  double largeFontSize = 24.0;
+  double inputWidth = 160.0;
+  double rowPadding = 10.0;
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +185,7 @@ class _EntityWidgetState extends State<EntityWidget> {
       children: <Widget>[
         _buildMainWidget(context),
         _buildSecondRowWidget(),
+        Divider(),
         _buildAttributesWidget()
       ],
     );
@@ -196,7 +193,7 @@ class _EntityWidgetState extends State<EntityWidget> {
 
   Widget _buildMainWidget(BuildContext context) {
     return SizedBox(
-      height: Entity.WIDGET_HEIGHT,
+      height: widgetHeight,
       child: Row(
         children: <Widget>[
           GestureDetector(
@@ -245,7 +242,7 @@ class _EntityWidgetState extends State<EntityWidget> {
       children: <Widget>[
         Expanded(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, Entity.ROW_PADDING, 0.0, 0.0),
+            padding: EdgeInsets.fromLTRB(leftWidgetPadding, rowPadding, 0.0, 0.0),
             child: Text(
               "$name",
               textAlign: TextAlign.left,
@@ -254,7 +251,7 @@ class _EntityWidgetState extends State<EntityWidget> {
         ),
         Expanded(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, Entity.ROW_PADDING, Entity.RIGHT_WIDGET_PADDING, 0.0),
+            padding: EdgeInsets.fromLTRB(0.0, rowPadding, rightWidgetPadding, 0.0),
             child: Text(
               "$value",
               textAlign: TextAlign.right,
@@ -279,10 +276,10 @@ class _EntityWidgetState extends State<EntityWidget> {
 
   Widget _buildIconWidget() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(Entity.LEFT_WIDGET_PADDING, 0.0, 12.0, 0.0),
+      padding: EdgeInsets.fromLTRB(leftWidgetPadding, 0.0, 12.0, 0.0),
       child: MaterialDesignIcons.createIconWidgetFromEntityData(
           widget.entity,
-          Entity.ICON_SIZE,
+          iconSize,
           Entity.STATE_ICONS_COLORS[widget.entity.state] ?? Entity.STATE_ICONS_COLORS["default"]),
     );
   }
@@ -290,12 +287,12 @@ class _EntityWidgetState extends State<EntityWidget> {
   Widget _buildSecondRowWidget() {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          Entity.LEFT_WIDGET_PADDING, Entity.SMALL_FONT_SIZE, 0.0, 0.0),
+          leftWidgetPadding, smallFontSize, 0.0, 0.0),
       child: Text(
         '${widget.entity.lastUpdated}',
         textAlign: TextAlign.left,
         style:
-        TextStyle(fontSize: Entity.SMALL_FONT_SIZE, color: Colors.black26),
+        TextStyle(fontSize: smallFontSize, color: Colors.black26),
       ),
     );
   }
@@ -307,7 +304,7 @@ class _EntityWidgetState extends State<EntityWidget> {
         "${widget.entity.displayName}",
         overflow: TextOverflow.ellipsis,
         softWrap: false,
-        style: TextStyle(fontSize: Entity.NAME_FONT_SIZE),
+        style: TextStyle(fontSize: nameFontSize),
       ),
     );
   }
@@ -315,13 +312,13 @@ class _EntityWidgetState extends State<EntityWidget> {
   Widget _buildActionWidget(BuildContext context) {
     return Padding(
         padding:
-        EdgeInsets.fromLTRB(0.0, 0.0, Entity.RIGHT_WIDGET_PADDING, 0.0),
+        EdgeInsets.fromLTRB(0.0, 0.0, rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text(
               "${widget.entity.state}${widget.entity.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: Entity.STATE_FONT_SIZE,
+                fontSize: stateFontSize,
               )),
           onTap: openEntityPage,
         )
@@ -350,7 +347,7 @@ class _EntityWidgetState extends State<EntityWidget> {
         onBadgeTextValue = widget.entity.unitOfMeasurement;
         badgeIcon = Center(
           child: Text(
-            "${widget.entity.state == 'unknown' ? '-' : widget.entity.state}",
+            "${widget.entity.state}",
             overflow: TextOverflow.fade,
             softWrap: false,
             textAlign: TextAlign.center,
