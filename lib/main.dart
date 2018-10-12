@@ -36,7 +36,7 @@ part 'card_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.5.33";
+const appVersion = "0.2.5.34";
 
 String homeAssistantWebHost;
 

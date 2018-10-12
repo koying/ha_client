@@ -11,15 +11,15 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
 
   @override
   Widget _buildActionWidget(BuildContext context) {
+    Widget ctrl;
     _listOptions.clear();
     if (widget.entity.attributes["options"] != null) {
       widget.entity.attributes["options"].forEach((value){
         _listOptions.add(value.toString());
       });
     }
-    return Expanded(
-      //width: Entity.INPUT_WIDTH,
-      child: DropdownButton<String>(
+    if (_listOptions.isNotEmpty) {
+      ctrl = DropdownButton<String>(
         value: widget.entity.state,
         items: this._listOptions.map((String value) {
           return new DropdownMenuItem<String>(
@@ -30,7 +30,13 @@ class _SelectEntityWidgetState extends _EntityWidgetState {
         onChanged: (_) {
           setNewState(_);
         },
-      ),
+      );
+    } else {
+      ctrl = Text('---');
+    }
+    return Expanded(
+      //width: Entity.INPUT_WIDTH,
+      child: ctrl,
     );
   }
 }

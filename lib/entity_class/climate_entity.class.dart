@@ -3,9 +3,9 @@ part of '../main.dart';
 class _ClimateEntityWidgetState extends _EntityWidgetState {
 
   List<String> _operationList = [];
-  double _temperature;
-  String _operationMode;
-  bool _awayMode;
+  double _temperature1 = 0.0;
+  String _operationMode = "";
+  bool _awayMode = false;
   bool _showPending;
   bool _changedHere;
   double _temperatureStep = 0.2;
@@ -27,7 +27,12 @@ class _ClimateEntityWidgetState extends _EntityWidgetState {
   }
 
   void _resetVars() {
-    _temperature = widget.entity.attributes['temperature'];
+    var temp1 = widget.entity.attributes['temperature'] ?? widget.entity.attributes['target_temp_low'];
+    if (temp1 is int) {
+      _temperature1 = temp1.toDouble();
+    } else if (temp1 is double) {
+      _temperature1 = temp1;
+    }
     _operationMode = widget.entity.attributes['operation_mode'];
     _awayMode = widget.entity.attributes['away_mode'] == "on";
     _showPending = false;
@@ -46,20 +51,20 @@ class _ClimateEntityWidgetState extends _EntityWidgetState {
   }
 
   void _temperatureUp() {
-    _temperature += _temperatureStep;
+    _temperature1 += _temperatureStep;
     _setTemperature();
   }
 
   void _temperatureDown() {
-    _temperature -= _temperatureStep;
+    _temperature1 -= _temperatureStep;
     _setTemperature();
   }
 
   void _setTemperature() {
     setState(() {
-      _temperature = double.parse(_temperature.toStringAsFixed(1));
+      _temperature1 = double.parse(_temperature1.toStringAsFixed(1));
       _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_temperature", widget.entity.entityId,{"temperature": "${_temperature.toStringAsFixed(1)}"}));
+      eventBus.fire(new ServiceCallEvent(widget.entity.domain, "set_temperature", widget.entity.entityId,{"temperature": "${_temperature1.toStringAsFixed(1)}"}));
       _resetStateTimer();
     });
   }
@@ -94,7 +99,7 @@ class _ClimateEntityWidgetState extends _EntityWidgetState {
 
   _buildAdditionalControls() {
     if (_changedHere) {
-      _showPending = (_temperature != widget.entity.attributes['temperature']);
+      _showPending = (_temperature1 != widget.entity.attributes['temperature']);
       _changedHere = false;
     } else {
       _resetTimer?.cancel();
@@ -112,7 +117,7 @@ class _ClimateEntityWidgetState extends _EntityWidgetState {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  "$_temperature",
+                  "$_temperature1",
                   style: TextStyle(
                     fontSize: largeFontSize,
                     color: _showPending ? Colors.red : Colors.black

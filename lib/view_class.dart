@@ -121,8 +121,8 @@ class ViewWidgetState extends State<ViewWidget> {
     return result;
   }
 
-  List<EntityWidget> _buildBadges(BuildContext context, List<Entity> badges) {
-    List<EntityWidget> result = [];
+  List<Widget> _buildBadges(BuildContext context, List<Entity> badges) {
+    List<Widget> result = [];
     badges.forEach((Entity entity) {
       result.add(entity.buildWidget(context, EntityWidgetType.badge));
     });
