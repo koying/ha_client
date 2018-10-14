@@ -233,6 +233,8 @@ class ClimateEntity extends Entity {
 
   List<String> get operationList => (attributes["operation_list"] as List).cast<String>();
   double get temperature => _getTemperature();
+  double get targetHigh => _getTargetHigh();
+  double get targetLow => _getTargetLow();
   String get operationMode => attributes['operation_mode'] ?? "";
   bool get awayMode => attributes['away_mode'] == "on";
 
@@ -249,13 +251,35 @@ class ClimateEntity extends Entity {
   }
 
   double _getTemperature() {
-    var temp1 = attributes['temperature'] ?? attributes['target_temp_low'];
+    var temp1 = attributes['temperature'];
     if (temp1 is int) {
       return temp1.toDouble();
     } else if (temp1 is double) {
       return temp1;
     } else {
-      return 0.0;
+      return null;
+    }
+  }
+
+  double _getTargetHigh() {
+    var temp1 = attributes['target_temp_high'];
+    if (temp1 is int) {
+      return temp1.toDouble();
+    } else if (temp1 is double) {
+      return temp1;
+    } else {
+      return null;
+    }
+  }
+
+  double _getTargetLow() {
+    var temp1 = attributes['target_temp_low'];
+    if (temp1 is int) {
+      return temp1.toDouble();
+    } else if (temp1 is double) {
+      return temp1;
+    } else {
+      return null;
     }
   }
 }

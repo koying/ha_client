@@ -237,13 +237,13 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   bool _showPending = false;
   bool _changedHere = false;
   Timer _resetTimer;
-  double _tmpTemp = 0.0;
+  double _tmpTemperature = 0.0;
   String _tmpOperationMode = "";
   bool _tmpAwayMode = false;
   double _temperatureStep = 0.2;
 
   void _resetVars(ClimateEntity entity) {
-    _tmpTemp = entity.temperature;
+    _tmpTemperature = entity.temperature;
     _tmpOperationMode = entity.operationMode;
     _tmpAwayMode = entity.awayMode;
     _showPending = false;
@@ -251,20 +251,20 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   }
 
   void _temperatureUp(ClimateEntity entity) {
-    _tmpTemp += _temperatureStep;
+    _tmpTemperature += _temperatureStep;
     _setTemperature(entity);
   }
 
   void _temperatureDown(ClimateEntity entity) {
-    _tmpTemp -= _temperatureStep;
+    _tmpTemperature -= _temperatureStep;
     _setTemperature(entity);
   }
 
   void _setTemperature(ClimateEntity entity) {
     setState(() {
-      _tmpTemp = double.parse(_tmpTemp.toStringAsFixed(1));
+      _tmpTemperature = double.parse(_tmpTemperature.toStringAsFixed(1));
       _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"temperature": "${_tmpTemp.toStringAsFixed(1)}"}));
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"temperature": "${_tmpTemperature.toStringAsFixed(1)}"}));
       _resetStateTimer(entity);
     });
   }
@@ -302,7 +302,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     final entityModel = EntityModel.of(context);
     final ClimateEntity entity = entityModel.entity;
     if (_changedHere) {
-      _showPending = (_tmpTemp != entity.temperature);
+      _showPending = (_tmpTemperature != entity.temperature);
       _changedHere = false;
     } else {
       _resetTimer?.cancel();
@@ -320,7 +320,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  "$_tmpTemp",
+                  "$_tmpTemperature",
                   style: TextStyle(
                       fontSize: entity.largeFontSize,
                       color: _showPending ? Colors.red : Colors.black
