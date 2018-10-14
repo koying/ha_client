@@ -45,7 +45,7 @@ class HACard extends StatelessWidget {
       result.add(
         Padding(
           padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-          child: entity.buildWidget(context, EntityWidgetType.regular),
+          child: entity.buildDefaultWidget(context),
         ));
     });
     return result;

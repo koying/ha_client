@@ -15,6 +15,18 @@ class Entity {
   };
   static List badgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
 
+  double rightWidgetPadding = 14.0;
+  double leftWidgetPadding = 8.0;
+  double extendedWidgetHeight = 50.0;
+  double widgetHeight = 34.0;
+  double iconSize = 28.0;
+  double stateFontSize = 16.0;
+  double nameFontSize = 16.0;
+  double smallFontSize = 14.0;
+  double largeFontSize = 24.0;
+  double inputWidth = 160.0;
+  double rowPadding = 10.0;
+
   Map attributes;
   String domain;
   String entityId;
@@ -24,10 +36,10 @@ class Entity {
 
   List<Entity> childEntities = [];
 
+  List<String> attributesToShow = ["all"];
+
   String get displayName =>
       attributes["friendly_name"] ?? (attributes["name"] ?? "_");
-
-
 
   String get deviceClass => attributes["device_class"] ?? null;
   bool get isView =>
@@ -55,10 +67,52 @@ class Entity {
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
-  EntityWidget buildWidget(BuildContext context, int widgetType) {
-    return EntityWidget(
+  Widget buildDefaultWidget(BuildContext context) {
+    return EntityModel(
       entity: this,
-      widgetType: widgetType,
+      child: DefaultEntityContainer(
+          state: _buildStatePart(context)
+      ),
+      handleTap: true,
+    );
+  }
+
+  Widget _buildStatePart(BuildContext context) {
+    return SimpleEntityState();
+  }
+
+  Widget _buildStatePartForPage(BuildContext context) {
+    return _buildStatePart(context);
+  }
+
+  Widget _buildAdditionalControlsForPage(BuildContext context) {
+    return Container(width: 0.0, height: 0.0,);
+  }
+
+  Widget buildEntityPageWidget(BuildContext context) {
+    return EntityModel(
+      entity: this,
+      child: EntityPageContainer(
+          children: <Widget> [
+            DefaultEntityContainer(
+                state: _buildStatePartForPage(context)
+            ),
+            LastUpdatedWidget(),
+            Divider(),
+            _buildAdditionalControlsForPage(context),
+            Divider(),
+            EntityAttributesList()
+          ]
+      ),
+      handleTap: false,
+    );
+  }
+
+  Widget buildBadgeWidget(BuildContext context) {
+    return EntityModel(
+      entity: this,
+      child: Badge(),
+      handleTap: true,
     );
   }
 
@@ -100,341 +154,165 @@ class Entity {
 
 }
 
-class EntityWidgetType {
-  static final int regular = 1;
-  static final int extended = 2;
-  static final int badge = 3;
-}
-
-class EntityWidget extends StatefulWidget {
-
-  EntityWidget({Key key, this.entity, this.widgetType}) : super(key: key);
-
-  final Entity entity;
-  final int widgetType;
+class SwitchEntity extends Entity {
+  SwitchEntity(Map rawData) : super(rawData);
 
   @override
-  _EntityWidgetState createState() {
-    switch (entity.domain) {
-      case 'sun': {
-        return _SunEntityWidgetState();
-      }
-      case "automation":
-      case "input_boolean":
-      case "switch":
-      case "light": {
-        return _SwitchEntityWidgetState();
-      }
-      case "script":
-      case "scene": {
-        return _ButtonEntityWidgetState();
-      }
-      case "input_datetime": {
-        return _DateTimeEntityWidgetState();
-      }
-      case "input_select": {
-        return _SelectEntityWidgetState();
-      }
-      case "input_number": {
-        return _SliderEntityWidgetState();
-      }
-      case "input_text": {
-        return _TextEntityWidgetState();
-      }
-      case "climate": {
-        return _ClimateEntityWidgetState();
-      }
-      default: {
-        return _EntityWidgetState();
-      }
-    }
+  Widget _buildStatePart(BuildContext context) {
+    return SwitchControlWidget();
+  }
+
+}
+
+class ButtonEntity extends Entity {
+  ButtonEntity(Map rawData) : super(rawData);
+
+  @override
+  Widget _buildStatePart(BuildContext context) {
+    return ButtonControlWidget();
+  }
+
+}
+
+class TextEntity extends Entity {
+  TextEntity(Map rawData) : super(rawData);
+
+  int get valueMinLength => attributes["min"] ?? -1;
+  int get valueMaxLength => attributes["max"] ?? -1;
+  String get valuePattern => attributes["pattern"] ?? null;
+  bool get isTextField => attributes["mode"] == "text";
+  bool get isPasswordField => attributes["mode"] == "password";
+
+  @override
+  Widget _buildStatePart(BuildContext context) {
+    return TextControlWidget();
   }
 }
 
-class _EntityWidgetState extends State<EntityWidget> {
+class SunEntity extends Entity {
+  SunEntity(Map rawData) : super(rawData);
+}
 
-  List<String> attributesToShow = ["all"];
-  double rightWidgetPadding = 14.0;
-  double leftWidgetPadding = 8.0;
-  double extendedWidgetHeight = 50.0;
-  double widgetHeight = 34.0;
-  double iconSize = 28.0;
-  double stateFontSize = 16.0;
-  double nameFontSize = 16.0;
-  double smallFontSize = 14.0;
-  double largeFontSize = 24.0;
-  double inputWidth = 160.0;
-  double rowPadding = 10.0;
+class SliderEntity extends Entity {
+  SliderEntity(Map rawData) : super(rawData);
+
+  double get minValue => attributes["min"] ?? 0.0;
+  double get maxValue => attributes["max"] ?? 100.0;
+  double get valueStep => attributes["step"] ?? 1.0;
+  double get doubleState => double.tryParse(state) ?? 0.0;
 
   @override
-  Widget build(BuildContext context) {
-    if (widget.widgetType == EntityWidgetType.regular) {
-      return _buildMainWidget(context);
-    } else if (widget.widgetType == EntityWidgetType.extended) {
-      return _buildExtendedWidget(context);
-    } else if (widget.widgetType == EntityWidgetType.badge) {
-      return _buildBadgeWidget(context);
-    } else {
-      TheLogger.log("Error", "Unknown entity widget type: ${widget.widgetType}");
-      return Container(width: 0.0, height: 0.0);
-    }
-  }
-
-  Widget _buildExtendedWidget(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        _buildMainWidget(context),
-        _buildSecondRowWidget(),
-        Divider(),
-        _buildAttributesWidget()
-      ],
-    );
-  }
-
-  Widget _buildMainWidget(BuildContext context) {
-    return SizedBox(
-      height: widgetHeight,
+  Widget _buildStatePart(BuildContext context) {
+    return Expanded(
+      //width: 200.0,
       child: Row(
         children: <Widget>[
-          GestureDetector(
-            child: _buildIconWidget(),
-            onTap: widget.widgetType == EntityWidgetType.extended ? null : openEntityPage,
-          ),
-          Expanded(
-            child: GestureDetector(
-              child: _buildNameWidget(),
-              onTap: widget.widgetType == EntityWidgetType.extended ? null : openEntityPage,
-            ),
-          ),
-          _buildActionWidget(context)
+          SliderControlWidget(expanded: true,),
+          SimpleEntityState(),
         ],
       ),
     );
   }
 
-  Widget _buildAttributesWidget() {
-    List<Widget> attrs = [];
-    if (attributesToShow.contains("all")) {
-      widget.entity.attributes.forEach((name, value){
-        attrs.add(
-            _buildAttributeWidget("$name", "$value")
-        );
-      });
+  @override
+  Widget _buildStatePartForPage(BuildContext context) {
+    return SimpleEntityState();
+  }
+
+  @override
+  Widget _buildAdditionalControlsForPage(BuildContext context) {
+    return SliderControlWidget(expanded: false,);
+  }
+
+}
+
+class ClimateEntity extends Entity {
+
+  @override
+  double widgetHeight = 38.0;
+
+  List<String> get operationList => (attributes["operation_list"] as List).cast<String>();
+  double get temperature => _getTemperature();
+  String get operationMode => attributes['operation_mode'] ?? "";
+  bool get awayMode => attributes['away_mode'] == "on";
+
+  ClimateEntity(Map rawData) : super(rawData);
+
+  @override
+  Widget _buildStatePart(BuildContext context) {
+    return ClimateStateWidget();
+  }
+
+  @override
+  Widget _buildAdditionalControlsForPage(BuildContext context) {
+    return ClimateControlWidget();
+  }
+
+  double _getTemperature() {
+    var temp1 = attributes['temperature'] ?? attributes['target_temp_low'];
+    if (temp1 is int) {
+      return temp1.toDouble();
+    } else if (temp1 is double) {
+      return temp1;
     } else {
-      attributesToShow.forEach((String attr) {
-        String attrValue = widget.entity.getAttribute("$attr");
-        if (attrValue != null) {
-          attrs.add(
-              _buildAttributeWidget("$attr", "$attrValue")
-          );
-        }
-      });
+      return 0.0;
     }
-    return Column(
-      children: attrs,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-    );
-  }
-
-  Widget _buildAttributeWidget(String name, String value) {
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(leftWidgetPadding, rowPadding, 0.0, 0.0),
-            child: Text(
-              "$name",
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0.0, rowPadding, rightWidgetPadding, 0.0),
-            child: Text(
-              "$value",
-              textAlign: TextAlign.right,
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  void openEntityPage() {
-    eventBus.fire(new ShowEntityPageEvent(widget.entity));
-  }
-
-  void setNewState(newState) {
-    return;
-  }
-
-  /*Widget buildAdditionalWidget() {
-    return _buildSecondRowWidget();
-  }*/
-
-  Widget _buildIconWidget() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(leftWidgetPadding, 0.0, 12.0, 0.0),
-      child: MaterialDesignIcons.createIconWidgetFromEntityData(
-          widget.entity,
-          iconSize,
-          Entity.STATE_ICONS_COLORS[widget.entity.state] ?? Entity.STATE_ICONS_COLORS["default"]),
-    );
-  }
-
-  Widget _buildSecondRowWidget() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          leftWidgetPadding, smallFontSize, 0.0, 0.0),
-      child: Text(
-        '${widget.entity.lastUpdated}',
-        textAlign: TextAlign.left,
-        style:
-        TextStyle(fontSize: smallFontSize, color: Colors.black26),
-      ),
-    );
-  }
-
-  Widget _buildNameWidget() {
-    return Padding(
-      padding: EdgeInsets.only(right: 10.0),
-      child: Text(
-        "${widget.entity.displayName}",
-        overflow: TextOverflow.ellipsis,
-        softWrap: false,
-        style: TextStyle(fontSize: nameFontSize),
-      ),
-    );
-  }
-
-  Widget _buildActionWidget(BuildContext context) {
-    return Padding(
-        padding:
-        EdgeInsets.fromLTRB(0.0, 0.0, rightWidgetPadding, 0.0),
-        child: GestureDetector(
-          child: Text(
-              "${widget.entity.state}${widget.entity.unitOfMeasurement}",
-              textAlign: TextAlign.right,
-              style: new TextStyle(
-                fontSize: stateFontSize,
-              )),
-          onTap: openEntityPage,
-        )
-    );
-  }
-
-  Widget _buildBadgeWidget(BuildContext context) {
-    double iconSize = 26.0;
-    Widget badgeIcon;
-    String onBadgeTextValue;
-    Color iconColor = Entity.badgeColors[widget.entity.domain] ?? Entity.badgeColors["default"];
-    switch (widget.entity.domain) {
-      case "sun": {
-        badgeIcon = widget.entity.state == "below_horizon" ?
-        Icon(
-          MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
-          size: iconSize,
-        ) :
-        Icon(
-          MaterialDesignIcons.createIconDataFromIconCode(0xf5a8),
-          size: iconSize,
-        );
-        break;
-      }
-      case "sensor": {
-        onBadgeTextValue = widget.entity.unitOfMeasurement;
-        badgeIcon = Center(
-          child: Text(
-            "${widget.entity.state}",
-            overflow: TextOverflow.fade,
-            softWrap: false,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 17.0),
-          ),
-        );
-        break;
-      }
-      case "device_tracker": {
-        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(widget.entity, iconSize,Colors.black);
-        onBadgeTextValue = widget.entity.state;
-        break;
-      }
-      default: {
-        badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(widget.entity, iconSize,Colors.black);
-      }
-    }
-    Widget onBadgeText;
-    if (onBadgeTextValue == null || onBadgeTextValue.length == 0) {
-      onBadgeText = Container(width: 0.0, height: 0.0);
-    } else {
-      onBadgeText = Container(
-          padding: EdgeInsets.fromLTRB(6.0, 2.0, 6.0, 2.0),
-          child: Text("$onBadgeTextValue",
-              style: TextStyle(fontSize: 12.0, color: Colors.white),
-              textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.fade),
-          decoration: new BoxDecoration(
-            // Circle shape
-            //shape: BoxShape.circle,
-            color: iconColor,
-            borderRadius: BorderRadius.circular(9.0),
-          )
-      );
-    }
-    return GestureDetector(
-      child: Column(
-        children: <Widget>[
-          Container(
-            margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            width: 50.0,
-            height: 50.0,
-            decoration: new BoxDecoration(
-              // Circle shape
-              shape: BoxShape.circle,
-              color: Colors.white,
-              // The border you want
-              border: new Border.all(
-                width: 2.0,
-                color: iconColor,
-              ),
-            ),
-            child: Stack(
-              overflow: Overflow.visible,
-              children: <Widget>[
-                Positioned(
-                  width: 46.0,
-                  height: 46.0,
-                  top: 0.0,
-                  left: 0.0,
-                  child: badgeIcon,
-                ),
-                Positioned(
-                  //width: 50.0,
-                    bottom: -9.0,
-                    left: -10.0,
-                    right: -10.0,
-                    child: Center(
-                      child: onBadgeText,
-                    )
-                )
-              ],
-            ),
-          ),
-          Container(
-            width: 60.0,
-            child: Text(
-              "${widget.entity.displayName}",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.0),
-              softWrap: true,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-      onTap: openEntityPage,
-    );
   }
 }
+
+class SelectEntity extends Entity {
+
+  List<String> get listOptions => attributes["options"]!= null ? (attributes["options"] as List).cast<String>() : [];
+
+  SelectEntity(Map rawData) : super(rawData);
+
+  @override
+  Widget _buildStatePart(BuildContext context) {
+    return SelectControlWidget();
+  }
+
+}
+
+class DateTimeEntity extends Entity {
+
+  bool get hasDate => attributes["has_date"] ?? false;
+  bool get hasTime => attributes["has_time"] ?? false;
+  int get year => attributes["year"] ?? 1970;
+  int get month => attributes["month"] ?? 1;
+  int get day => attributes["day"] ?? 1;
+  int get hour => attributes["hour"] ?? 0;
+  int get minute => attributes["minute"] ?? 0;
+  int get second => attributes["second"] ?? 0;
+  String get formattedState => _getFormattedState();
+  DateTime get dateTimeState => _getDateTimeState();
+
+  DateTimeEntity(Map rawData) : super(rawData);
+
+  @override
+  Widget _buildStatePart(BuildContext context) {
+    return DateTimeStateWidget();
+  }
+
+  DateTime _getDateTimeState() {
+    return DateTime(this.year, this.month, this.day, this.hour, this.minute, this.second);
+  }
+
+  String _getFormattedState() {
+    String formattedState = "";
+    if (this.hasDate) {
+      formattedState += formatDate(dateTimeState, [M, ' ', d, ', ', yyyy]);
+    }
+    if (this.hasTime) {
+      formattedState += " "+formatDate(dateTimeState, [HH, ':', nn]);
+    }
+    return formattedState;
+  }
+
+  void setNewState(newValue) {
+    eventBus.fire(new ServiceCallEvent(domain, "set_datetime",entityId,
+        newValue));
+  }
+
+}
+
+

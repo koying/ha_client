@@ -14,14 +14,8 @@ import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
 
 part 'entity_class/entity.class.dart';
-part 'entity_class/button_entity.class.dart';
-part 'entity_class/datetime_entity.class.dart';
-part 'entity_class/select_entity.class.dart';
-part 'entity_class/slider_entity.class.dart';
-part 'entity_class/switch_entity.class.dart';
-part 'entity_class/text_entity.class.dart';
-part 'entity_class/sun_entity.class.dart';
-part 'entity_class/climate_entity.class.dart';
+part 'entity_class/stateless_widgets.dart';
+part 'entity_class/stateful_widgets.dart';
 
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
