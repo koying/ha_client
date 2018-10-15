@@ -13,7 +13,15 @@ class Entity {
     "default": Color.fromRGBO(223, 76, 30, 1.0),
     "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
   };
-  static List badgeDomains = ["alarm_control_panel", "binary_sensor", "device_tracker", "updater", "sun", "timer", "sensor"];
+  static List badgeDomains = [
+    "alarm_control_panel",
+    "binary_sensor",
+    "device_tracker",
+    "updater",
+    "sun",
+    "timer",
+    "sensor"
+  ];
 
   double rightWidgetPadding = 14.0;
   double leftWidgetPadding = 8.0;
@@ -70,9 +78,7 @@ class Entity {
   Widget buildDefaultWidget(BuildContext context) {
     return EntityModel(
       entity: this,
-      child: DefaultEntityContainer(
-          state: _buildStatePart(context)
-      ),
+      child: DefaultEntityContainer(state: _buildStatePart(context)),
       handleTap: true,
     );
   }
@@ -86,24 +92,23 @@ class Entity {
   }
 
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    return Container(width: 0.0, height: 0.0,);
+    return Container(
+      width: 0.0,
+      height: 0.0,
+    );
   }
 
   Widget buildEntityPageWidget(BuildContext context) {
     return EntityModel(
       entity: this,
-      child: EntityPageContainer(
-          children: <Widget> [
-            DefaultEntityContainer(
-                state: _buildStatePartForPage(context)
-            ),
-            LastUpdatedWidget(),
-            Divider(),
-            _buildAdditionalControlsForPage(context),
-            Divider(),
-            EntityAttributesList()
-          ]
-      ),
+      child: EntityPageContainer(children: <Widget>[
+        DefaultEntityContainer(state: _buildStatePartForPage(context)),
+        LastUpdatedWidget(),
+        Divider(),
+        _buildAdditionalControlsForPage(context),
+        Divider(),
+        EntityAttributesList()
+      ]),
       handleTap: false,
     );
   }
@@ -151,7 +156,6 @@ class Entity {
       return "$v $text";
     }
   }
-
 }
 
 class SwitchEntity extends Entity {
@@ -161,7 +165,6 @@ class SwitchEntity extends Entity {
   Widget _buildStatePart(BuildContext context) {
     return SwitchControlWidget();
   }
-
 }
 
 class ButtonEntity extends Entity {
@@ -171,7 +174,6 @@ class ButtonEntity extends Entity {
   Widget _buildStatePart(BuildContext context) {
     return ButtonControlWidget();
   }
-
 }
 
 class TextEntity extends Entity {
@@ -207,7 +209,9 @@ class SliderEntity extends Entity {
       //width: 200.0,
       child: Row(
         children: <Widget>[
-          SliderControlWidget(expanded: true,),
+          SliderControlWidget(
+            expanded: true,
+          ),
           SimpleEntityState(),
         ],
       ),
@@ -221,22 +225,88 @@ class SliderEntity extends Entity {
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    return SliderControlWidget(expanded: false,);
+    return SliderControlWidget(
+      expanded: false,
+    );
   }
-
 }
 
 class ClimateEntity extends Entity {
-
   @override
   double widgetHeight = 38.0;
 
-  List<String> get operationList => (attributes["operation_list"] as List).cast<String>();
+  static const SUPPORT_TARGET_TEMPERATURE = 1;
+  static const SUPPORT_TARGET_TEMPERATURE_HIGH = 2;
+  static const SUPPORT_TARGET_TEMPERATURE_LOW = 4;
+  static const SUPPORT_TARGET_HUMIDITY = 8;
+  static const SUPPORT_TARGET_HUMIDITY_HIGH = 16;
+  static const SUPPORT_TARGET_HUMIDITY_LOW = 32;
+  static const SUPPORT_FAN_MODE = 64;
+  static const SUPPORT_OPERATION_MODE = 128;
+  static const SUPPORT_HOLD_MODE = 256;
+  static const SUPPORT_SWING_MODE = 512;
+  static const SUPPORT_AWAY_MODE = 1024;
+  static const SUPPORT_AUX_HEAT = 2048;
+  static const SUPPORT_ON_OFF = 4096;
+
+  bool get supportTargetTemperature => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_TEMPERATURE) ==
+      ClimateEntity.SUPPORT_TARGET_TEMPERATURE);
+  bool get supportTargetTemperatureHigh => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH) ==
+      ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH);
+  bool get supportTargetTemperatureLow => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW) ==
+      ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW);
+  bool get supportTargetHumidity => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_HUMIDITY) ==
+      ClimateEntity.SUPPORT_TARGET_HUMIDITY);
+  bool get supportTargetHumidityHigh => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH) ==
+      ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH);
+  bool get supportTargetHumidityLow => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW) ==
+      ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW);
+  bool get supportFanMode =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_FAN_MODE) ==
+          ClimateEntity.SUPPORT_FAN_MODE);
+  bool get supportOperationMode => ((attributes["supported_features"] &
+          ClimateEntity.SUPPORT_OPERATION_MODE) ==
+      ClimateEntity.SUPPORT_OPERATION_MODE);
+  bool get supportHoldMode =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_HOLD_MODE) ==
+          ClimateEntity.SUPPORT_HOLD_MODE);
+  bool get supportSwingMode =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_SWING_MODE) ==
+          ClimateEntity.SUPPORT_SWING_MODE);
+  bool get supportAwayMode =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_AWAY_MODE) ==
+          ClimateEntity.SUPPORT_AWAY_MODE);
+  bool get supportAuxHeat =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_AUX_HEAT) ==
+          ClimateEntity.SUPPORT_AUX_HEAT);
+  bool get supportOnOff =>
+      ((attributes["supported_features"] & ClimateEntity.SUPPORT_ON_OFF) ==
+          ClimateEntity.SUPPORT_ON_OFF);
+
+  List<String> get operationList => attributes["operation_list"] != null
+      ? (attributes["operation_list"] as List).cast<String>()
+      : null;
+  List<String> get fanList => attributes["fan_list"] != null
+      ? (attributes["fan_list"] as List).cast<String>()
+      : null;
+  List<String> get swingList => attributes["swing_list"] != null
+      ? (attributes["swing_list"] as List).cast<String>()
+      : null;
   double get temperature => _getTemperature();
   double get targetHigh => _getTargetHigh();
   double get targetLow => _getTargetLow();
-  String get operationMode => attributes['operation_mode'] ?? "";
+  String get operationMode => attributes['operation_mode'];
+  String get fanMode => attributes['fan_mode'];
+  String get swingMode => attributes['swing_mode'];
   bool get awayMode => attributes['away_mode'] == "on";
+  bool get isOff => state == "off";
+  bool get auxHeat => attributes['aux_heat'] == "on";
 
   ClimateEntity(Map rawData) : super(rawData);
 
@@ -285,8 +355,9 @@ class ClimateEntity extends Entity {
 }
 
 class SelectEntity extends Entity {
-
-  List<String> get listOptions => attributes["options"]!= null ? (attributes["options"] as List).cast<String>() : [];
+  List<String> get listOptions => attributes["options"] != null
+      ? (attributes["options"] as List).cast<String>()
+      : [];
 
   SelectEntity(Map rawData) : super(rawData);
 
@@ -294,11 +365,9 @@ class SelectEntity extends Entity {
   Widget _buildStatePart(BuildContext context) {
     return SelectControlWidget();
   }
-
 }
 
 class DateTimeEntity extends Entity {
-
   bool get hasDate => attributes["has_date"] ?? false;
   bool get hasTime => attributes["has_time"] ?? false;
   int get year => attributes["year"] ?? 1970;
@@ -318,7 +387,8 @@ class DateTimeEntity extends Entity {
   }
 
   DateTime _getDateTimeState() {
-    return DateTime(this.year, this.month, this.day, this.hour, this.minute, this.second);
+    return DateTime(
+        this.year, this.month, this.day, this.hour, this.minute, this.second);
   }
 
   String _getFormattedState() {
@@ -327,16 +397,13 @@ class DateTimeEntity extends Entity {
       formattedState += formatDate(dateTimeState, [M, ' ', d, ', ', yyyy]);
     }
     if (this.hasTime) {
-      formattedState += " "+formatDate(dateTimeState, [HH, ':', nn]);
+      formattedState += " " + formatDate(dateTimeState, [HH, ':', nn]);
     }
     return formattedState;
   }
 
   void setNewState(newValue) {
-    eventBus.fire(new ServiceCallEvent(domain, "set_datetime",entityId,
-        newValue));
+    eventBus
+        .fire(new ServiceCallEvent(domain, "set_datetime", entityId, newValue));
   }
-
 }
-
-

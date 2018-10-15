@@ -192,7 +192,7 @@ class HomeAssistant {
 
   _handleMessage(String message) {
     var data = json.decode(message);
-    TheLogger.log("Debug","[Received] => $data");
+    TheLogger.log("Debug","[Received] => ${data['type']}");
     if (data["type"] == "auth_required") {
       _sendAuthMessageRaw('{"type": "auth","$_authType": "$_password"}');
     } else if (data["type"] == "auth_ok") {

@@ -238,14 +238,27 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   bool _changedHere = false;
   Timer _resetTimer;
   double _tmpTemperature = 0.0;
-  String _tmpOperationMode = "";
+  double _tmpTargetLow = 0.0;
+  double _tmpTargetHigh = 0.0;
+  String _tmpOperationMode;
+  String _tmpFanMode;
+  String _tmpSwingMode;
   bool _tmpAwayMode = false;
+  bool _tmpIsOff = false;
+  bool _tmpAuxHeat = false;
   double _temperatureStep = 0.2;
 
   void _resetVars(ClimateEntity entity) {
     _tmpTemperature = entity.temperature;
+    _tmpTargetHigh = entity.targetHigh;
+    _tmpTargetLow = entity.targetLow;
     _tmpOperationMode = entity.operationMode;
+    _tmpFanMode = entity.fanMode;
+    _tmpSwingMode = entity.swingMode;
     _tmpAwayMode = entity.awayMode;
+    _tmpIsOff = entity.isOff;
+    _tmpAuxHeat = entity.auxHeat;
+
     _showPending = false;
     _changedHere = false;
   }
@@ -260,11 +273,41 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     _setTemperature(entity);
   }
 
+  void _targetLowUp(ClimateEntity entity) {
+    _tmpTargetLow += _temperatureStep;
+    _setTargetTemp(entity);
+  }
+
+  void _targetLowDown(ClimateEntity entity) {
+    _tmpTargetLow -= _temperatureStep;
+    _setTargetTemp(entity);
+  }
+
+  void _targetHighUp(ClimateEntity entity) {
+    _tmpTargetHigh += _temperatureStep;
+    _setTargetTemp(entity);
+  }
+
+  void _targetHighDown(ClimateEntity entity) {
+    _tmpTargetHigh -= _temperatureStep;
+    _setTargetTemp(entity);
+  }
+
   void _setTemperature(ClimateEntity entity) {
     setState(() {
       _tmpTemperature = double.parse(_tmpTemperature.toStringAsFixed(1));
       _changedHere = true;
       eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"temperature": "${_tmpTemperature.toStringAsFixed(1)}"}));
+      _resetStateTimer(entity);
+    });
+  }
+
+  void _setTargetTemp(ClimateEntity entity) {
+    setState(() {
+      _tmpTargetLow = double.parse(_tmpTargetLow.toStringAsFixed(1));
+      _tmpTargetHigh = double.parse(_tmpTargetHigh.toStringAsFixed(1));
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"target_temp_high": "${_tmpTargetHigh.toStringAsFixed(1)}", "target_temp_low": "${_tmpTargetLow.toStringAsFixed(1)}"}));
       _resetStateTimer(entity);
     });
   }
@@ -278,11 +321,47 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     });
   }
 
+  void _setSwingMode(ClimateEntity entity, value) {
+    setState(() {
+      _tmpSwingMode = value;
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_swing_mode", entity.entityId,{"swing_mode": "$_tmpSwingMode"}));
+      _resetStateTimer(entity);
+    });
+  }
+
+  void _setFanMode(ClimateEntity entity, value) {
+    setState(() {
+      _tmpFanMode = value;
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_fan_mode", entity.entityId,{"fan_mode": "$_tmpFanMode"}));
+      _resetStateTimer(entity);
+    });
+  }
+
   void _setAwayMode(ClimateEntity entity, value) {
     setState(() {
       _tmpAwayMode = value;
       _changedHere = true;
       eventBus.fire(new ServiceCallEvent(entity.domain, "set_away_mode", entity.entityId,{"away_mode": "${_tmpAwayMode ? 'on' : 'off'}"}));
+      _resetStateTimer(entity);
+    });
+  }
+
+  void _setOnOf(ClimateEntity entity, value) {
+    setState(() {
+      _tmpIsOff = !value;
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "${_tmpIsOff ? 'turn_off' : 'turn_on'}", entity.entityId, null));
+      _resetStateTimer(entity);
+    });
+  }
+
+  void _setAuxHeat(ClimateEntity entity, value) {
+    setState(() {
+      _tmpAuxHeat = value;
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_aux_heat", entity.entityId, {"aux_heat": "$_tmpAuxHeat"}));
       _resetStateTimer(entity);
     });
   }
@@ -313,36 +392,92 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text("Target temperature for ${_tmpOperationMode != 'off' ? _tmpOperationMode : ''}", style: TextStyle(
-              fontSize: entity.stateFontSize
-          )),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  "$_tmpTemperature",
-                  style: TextStyle(
-                      fontSize: entity.largeFontSize,
-                      color: _showPending ? Colors.red : Colors.black
-                  ),
-                ),
+          _buildOnOffControl(entity),
+          _buildTemperatureControls(entity),
+          _buildOperationControl(entity),
+          _buildFanControl(entity),
+          _buildSwingControl(entity),
+          _buildAwayModeControl(entity),
+          _buildAuxHeatControl(entity)
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAwayModeControl(ClimateEntity entity) {
+    if (entity.supportAwayMode) {
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Away mode",
+              style: TextStyle(
+                  fontSize: entity.stateFontSize
               ),
-              Column(
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.keyboard_arrow_up),
-                    iconSize: 30.0,
-                    onPressed: () => _temperatureUp(entity),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.keyboard_arrow_down),
-                    iconSize: 30.0,
-                    onPressed: () => _temperatureDown(entity),
-                  )
-                ],
-              )
-            ],
+            ),
           ),
+          Switch(
+            onChanged: (value) => _setAwayMode(entity, value),
+            value: _tmpAwayMode,
+          )
+        ],
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0,);
+    }
+  }
+
+  Widget _buildOnOffControl(ClimateEntity entity) {
+    if (entity.supportOnOff) {
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "On / Off",
+              style: TextStyle(
+                  fontSize: entity.stateFontSize
+              ),
+            ),
+          ),
+          Switch(
+            onChanged: (value) => _setOnOf(entity, value),
+            value: !_tmpIsOff,
+          )
+        ],
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0,);
+    }
+  }
+
+  Widget _buildAuxHeatControl(ClimateEntity entity) {
+    if (entity.supportAwayMode) {
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Aux heat",
+              style: TextStyle(
+                  fontSize: entity.stateFontSize
+              ),
+            ),
+          ),
+          Switch(
+            onChanged: (value) => _setAuxHeat(entity, value),
+            value: _tmpAuxHeat,
+          )
+        ],
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0,);
+    }
+  }
+
+  Widget _buildOperationControl(ClimateEntity entity) {
+    if (entity.supportOperationMode) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
           Text("Operation", style: TextStyle(
               fontSize: entity.stateFontSize
           )),
@@ -361,27 +496,167 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
             }).toList(),
             onChanged: (mode) => _setOperationMode(entity, mode),
           ),
-          Padding(
-            padding: EdgeInsets.only(top: entity.rowPadding),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    "Away mode",
-                    style: TextStyle(
-                        fontSize: entity.stateFontSize
-                    ),
-                  ),
-                ),
-                Switch(
-                  onChanged: (value) => _setAwayMode(entity, value),
-                  value: _tmpAwayMode,
-                )
-              ],
-            ),
-          )
+          Container(height: entity.rowPadding,)
         ],
-      ),
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0);
+    }
+  }
+
+  Widget _buildFanControl(ClimateEntity entity) {
+    if (entity.supportFanMode) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text("Fan mode", style: TextStyle(
+              fontSize: entity.stateFontSize
+          )),
+          DropdownButton<String>(
+            value: "$_tmpFanMode",
+            iconSize: 30.0,
+            style: TextStyle(
+              fontSize: entity.largeFontSize,
+              color: Colors.black,
+            ),
+            items: entity.fanList.map((String value) {
+              return new DropdownMenuItem<String>(
+                value: value,
+                child: new Text(value),
+              );
+            }).toList(),
+            onChanged: (mode) => _setFanMode(entity, mode),
+          ),
+          Container(height: entity.rowPadding,)
+        ],
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0);
+    }
+  }
+
+  Widget _buildSwingControl(ClimateEntity entity) {
+    if (entity.supportSwingMode) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text("Swing mode", style: TextStyle(
+              fontSize: entity.stateFontSize
+          )),
+          DropdownButton<String>(
+            value: "$_tmpSwingMode",
+            iconSize: 30.0,
+            style: TextStyle(
+              fontSize: entity.largeFontSize,
+              color: Colors.black,
+            ),
+            items: entity.swingList.map((String value) {
+              return new DropdownMenuItem<String>(
+                value: value,
+                child: new Text(value),
+              );
+            }).toList(),
+            onChanged: (mode) => _setSwingMode(entity, mode),
+          ),
+          Container(height: entity.rowPadding,)
+        ],
+      );
+    } else {
+      return Container(height: 0.0, width: 0.0);
+    }
+  }
+
+  Widget _buildTemperatureControls(ClimateEntity entity) {
+    List<Widget> result = [];
+    if (entity.supportTargetTemperature) {
+      result.addAll(<Widget>[
+        Expanded(
+          child: Text(
+            "$_tmpTemperature",
+            style: TextStyle(
+                fontSize: entity.largeFontSize,
+                color: _showPending ? Colors.red : Colors.black
+            ),
+          ),
+        ),
+        Column(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_up),
+              iconSize: 30.0,
+              onPressed: () => _temperatureUp(entity),
+            ),
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_down),
+              iconSize: 30.0,
+              onPressed: () => _temperatureDown(entity),
+            )
+          ],
+        )
+      ]);
+    } else if (entity.supportTargetTemperatureHigh && entity.supportTargetTemperatureLow) {
+      result.addAll(<Widget>[
+        Expanded(
+          child: Text(
+            "$_tmpTargetLow",
+            style: TextStyle(
+                fontSize: entity.largeFontSize,
+                color: _showPending ? Colors.red : Colors.black
+            ),
+          ),
+        ),
+        Column(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_up),
+              iconSize: 30.0,
+              onPressed: () => _targetLowUp(entity),
+            ),
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_down),
+              iconSize: 30.0,
+              onPressed: () => _targetLowDown(entity),
+            )
+          ],
+        ),
+        Container(width: 20.0,),
+        Expanded(
+          child: Text(
+            "$_tmpTargetHigh",
+            style: TextStyle(
+                fontSize: entity.largeFontSize,
+                color: _showPending ? Colors.red : Colors.black
+            ),
+          ),
+        ),
+        Column(
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_up),
+              iconSize: 30.0,
+              onPressed: () => _targetHighUp(entity),
+            ),
+            IconButton(
+              icon: Icon(Icons.keyboard_arrow_down),
+              iconSize: 30.0,
+              onPressed: () => _targetHighDown(entity),
+            )
+          ],
+        )
+      ]);
+    } else {
+      result.add(Text("Unsupported temperature controls =("));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text("Target temperature", style: TextStyle(
+            fontSize: entity.stateFontSize
+        )),
+        Row(
+          children: result,
+        )
+      ],
     );
   }
 

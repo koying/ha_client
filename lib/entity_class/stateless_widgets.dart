@@ -350,7 +350,7 @@ class ClimateStateWidget extends StatelessWidget {
                         fontSize: entityModel.entity.stateFontSize,
                       )),
                   Text(
-                      entity.temperature!= null ? " ${entity.temperature}" : " ${entity.targetLow} - ${entity.targetHigh}",
+                      entity.supportTargetTemperature ? " ${entity.temperature}" : " ${entity.targetLow} - ${entity.targetHigh}",
                       textAlign: TextAlign.right,
                       style: new TextStyle(
                         fontSize: entityModel.entity.stateFontSize,
