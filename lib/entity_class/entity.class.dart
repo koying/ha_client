@@ -23,17 +23,18 @@ class Entity {
     "sensor"
   ];
 
-  double rightWidgetPadding = 14.0;
-  double leftWidgetPadding = 8.0;
-  double extendedWidgetHeight = 50.0;
+  static const rightWidgetPadding = 14.0;
+  static const leftWidgetPadding = 8.0;
+  static const extendedWidgetHeight = 50.0;
+  static const iconSize = 28.0;
+  static const stateFontSize = 16.0;
+  static const nameFontSize = 16.0;
+  static const smallFontSize = 14.0;
+  static const largeFontSize = 24.0;
+  static const inputWidth = 160.0;
+  static const rowPadding = 10.0;
+
   double widgetHeight = 34.0;
-  double iconSize = 28.0;
-  double stateFontSize = 16.0;
-  double nameFontSize = 16.0;
-  double smallFontSize = 14.0;
-  double largeFontSize = 24.0;
-  double inputWidth = 160.0;
-  double rowPadding = 10.0;
 
   Map attributes;
   String domain;
@@ -89,7 +90,10 @@ class Entity {
   Widget buildDefaultWidget(BuildContext context) {
     return EntityModel(
       entity: this,
-      child: DefaultEntityContainer(state: _buildStatePart(context)),
+      child: DefaultEntityContainer(
+          state: _buildStatePart(context),
+          height: widgetHeight,
+      ),
       handleTap: true,
     );
   }
@@ -113,7 +117,7 @@ class Entity {
     return EntityModel(
       entity: this,
       child: EntityPageContainer(children: <Widget>[
-        DefaultEntityContainer(state: _buildStatePartForPage(context)),
+        DefaultEntityContainer(state: _buildStatePartForPage(context), height: widgetHeight),
         LastUpdatedWidget(),
         Divider(),
         _buildAdditionalControlsForPage(context),

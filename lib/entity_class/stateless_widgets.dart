@@ -27,15 +27,16 @@ class DefaultEntityContainer extends StatelessWidget {
   DefaultEntityContainer({
     Key key,
     @required this.state,
+    @required this.height
   }) : super(key: key);
 
   final Widget state;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    final entityModel = EntityModel.of(context);
     return SizedBox(
-      height: entityModel.entity.widgetHeight,
+      height: height,
       child: Row(
         children: <Widget>[
           EntityIcon(),
@@ -68,13 +69,13 @@ class SimpleEntityState extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     return Padding(
         padding: EdgeInsets.fromLTRB(
-            0.0, 0.0, entityModel.entity.rightWidgetPadding, 0.0),
+            0.0, 0.0, Entity.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text(
               "${entityModel.entity.state}${entityModel.entity.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: entityModel.entity.stateFontSize,
+                fontSize: Entity.stateFontSize,
               )),
           onTap: () => entityModel.handleTap
               ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))
@@ -94,7 +95,7 @@ class EntityName extends StatelessWidget {
           "${entityModel.entity.displayName}",
           overflow: TextOverflow.ellipsis,
           softWrap: false,
-          style: TextStyle(fontSize: entityModel.entity.nameFontSize),
+          style: TextStyle(fontSize: Entity.nameFontSize),
         ),
       ),
       onTap: () => entityModel.handleTap
@@ -111,11 +112,11 @@ class EntityIcon extends StatelessWidget {
     return GestureDetector(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-            entityModel.entity.leftWidgetPadding, 0.0, 12.0, 0.0),
+            Entity.leftWidgetPadding, 0.0, 12.0, 0.0),
         //TODO: move createIconWidgetFromEntityData into this widget
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
             entityModel.entity,
-            entityModel.entity.iconSize,
+            Entity.iconSize,
             Entity.STATE_ICONS_COLORS[entityModel.entity.state] ??
                 Entity.STATE_ICONS_COLORS["default"]),
       ),
@@ -132,12 +133,12 @@ class LastUpdatedWidget extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          entityModel.entity.leftWidgetPadding, 0.0, 0.0, 0.0),
+          Entity.leftWidgetPadding, 0.0, 0.0, 0.0),
       child: Text(
         '${entityModel.entity.lastUpdated}',
         textAlign: TextAlign.left,
         style: TextStyle(
-            fontSize: entityModel.entity.smallFontSize, color: Colors.black26),
+            fontSize: Entity.smallFontSize, color: Colors.black26),
       ),
     );
   }
@@ -153,14 +154,14 @@ class EntityAttributesList extends StatelessWidget {
     if ((entityModel.entity.attributesToShow == null) ||
         (entityModel.entity.attributesToShow.contains("all"))) {
       entityModel.entity.attributes.forEach((name, value) {
-        attrs.add(_buildSingleAttribute(entityModel.entity, "$name", "$value"));
+        attrs.add(_buildSingleAttribute("$name", "$value"));
       });
     } else {
       entityModel.entity.attributesToShow.forEach((String attr) {
         String attrValue = entityModel.entity.getAttribute("$attr");
         if (attrValue != null) {
           attrs.add(
-              _buildSingleAttribute(entityModel.entity, "$attr", "$attrValue"));
+              _buildSingleAttribute("$attr", "$attrValue"));
         }
       });
     }
@@ -171,13 +172,13 @@ class EntityAttributesList extends StatelessWidget {
     );
   }
 
-  Widget _buildSingleAttribute(Entity entity, String name, String value) {
+  Widget _buildSingleAttribute(String name, String value) {
     return Row(
       children: <Widget>[
         Expanded(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                entity.leftWidgetPadding, entity.rowPadding, 0.0, 0.0),
+                Entity.leftWidgetPadding, Entity.rowPadding, 0.0, 0.0),
             child: Text(
               "$name",
               textAlign: TextAlign.left,
@@ -187,7 +188,7 @@ class EntityAttributesList extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, entity.rowPadding, entity.rightWidgetPadding, 0.0),
+                0.0, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
             child: Text(
               "$value",
               textAlign: TextAlign.right,
@@ -341,7 +342,7 @@ class ClimateStateWidget extends StatelessWidget {
     }
     return Padding(
         padding: EdgeInsets.fromLTRB(
-            0.0, 0.0, entityModel.entity.rightWidgetPadding, 0.0),
+            0.0, 0.0, Entity.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -353,12 +354,12 @@ class ClimateStateWidget extends StatelessWidget {
                       textAlign: TextAlign.right,
                       style: new TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: entityModel.entity.stateFontSize,
+                        fontSize: Entity.stateFontSize,
                       )),
                   Text(" $targetTemp",
                       textAlign: TextAlign.right,
                       style: new TextStyle(
-                        fontSize: entityModel.entity.stateFontSize,
+                        fontSize: Entity.stateFontSize,
                       ))
                 ],
               ),
@@ -366,7 +367,7 @@ class ClimateStateWidget extends StatelessWidget {
               Text("Currently: ${entity.attributes["current_temperature"]}",
                   textAlign: TextAlign.right,
                   style: new TextStyle(
-                      fontSize: entityModel.entity.stateFontSize,
+                      fontSize: Entity.stateFontSize,
                       color: Colors.black45)
               ) :
               Container(height: 0.0,)
@@ -454,12 +455,12 @@ class DateTimeStateWidget extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     final DateTimeEntity entity = entityModel.entity;
     return Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, entity.rightWidgetPadding, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text("${entity.formattedState}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: entity.stateFontSize,
+                fontSize: Entity.stateFontSize,
               )),
           onTap: () => _handleStateTap(context, entity),
         ));
@@ -547,36 +548,36 @@ class CoverEntityControlState extends StatelessWidget {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-up"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: entity.canBeOpened ? () => _open(entity) : null));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
     if (entity.supportStop) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: () => _stop(entity)));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
     if (entity.supportClose) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-down"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: entity.canBeClosed ? () => _close(entity) : null));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
 
@@ -612,24 +613,24 @@ class CoverEntityTiltControlButtons extends StatelessWidget {
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName(
                 "mdi:arrow-top-right"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: entity.canTiltBeOpened ? () => _open(entity) : null));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
     if (entity.supportStopTilt) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: () => _stop(entity)));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
     if (entity.supportCloseTilt) {
@@ -637,12 +638,12 @@ class CoverEntityTiltControlButtons extends StatelessWidget {
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName(
                 "mdi:arrow-bottom-left"),
-            size: entity.iconSize,
+            size: Entity.iconSize,
           ),
           onPressed: entity.canTiltBeClosed ? () => _close(entity) : null));
     } else {
       buttons.add(Container(
-        width: entity.iconSize + 20.0,
+        width: Entity.iconSize + 20.0,
       ));
     }
 
@@ -650,4 +651,91 @@ class CoverEntityTiltControlButtons extends StatelessWidget {
       children: buttons,
     );
   }
+}
+
+class ModeSelectorWidget extends StatelessWidget {
+
+  final String caption;
+  final List<String> options;
+  final String value;
+  final double captionFontSize;
+  final double valueFontSize;
+  final double bottomPadding;
+  final onChange;
+
+  ModeSelectorWidget({
+    Key key,
+    this.caption,
+    @required this.options,
+    this.value,
+    @required this.onChange,
+    this.captionFontSize,
+    this.valueFontSize,
+    this.bottomPadding
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text("$caption", style: TextStyle(
+            fontSize: captionFontSize ?? Entity.stateFontSize
+        )),
+        DropdownButton<String>(
+          value: "$value",
+          iconSize: 30.0,
+          style: TextStyle(
+            fontSize: valueFontSize ?? Entity.largeFontSize,
+            color: Colors.black,
+          ),
+          items: options.map((String value) {
+            return new DropdownMenuItem<String>(
+              value: value,
+              child: new Text(value),
+            );
+          }).toList(),
+          onChanged: (mode) => onChange(mode),
+        ),
+        Container(height: bottomPadding ?? Entity.rowPadding,)
+      ],
+    );
+  }
+}
+
+class ModeSwitchWidget extends StatelessWidget {
+
+  final String caption;
+  final onChange;
+  final double captionFontSize;
+  final bool value;
+
+  ModeSwitchWidget({
+    Key key,
+    @required this.caption,
+    @required this.onChange,
+    this.captionFontSize,
+    this.value
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            "$caption",
+            style: TextStyle(
+                fontSize: captionFontSize ?? Entity.stateFontSize
+            ),
+          ),
+        ),
+        Switch(
+          onChanged: (value) => onChange(value),
+          value: value ?? false,
+        )
+      ],
+    );
+  }
+
 }

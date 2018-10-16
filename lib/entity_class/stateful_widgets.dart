@@ -64,7 +64,7 @@ class _ButtonControlWidgetState extends State<ButtonControlWidget> {
         "EXECUTE",
         textAlign: TextAlign.right,
         style:
-        new TextStyle(fontSize: entityModel.entity.stateFontSize, color: Colors.blue),
+        new TextStyle(fontSize: Entity.stateFontSize, color: Colors.blue),
       ),
     );
   }
@@ -398,7 +398,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       _resetVars(entity);
     }
     return Padding(
-      padding: EdgeInsets.fromLTRB(entity.leftWidgetPadding, entity.rowPadding, entity.rightWidgetPadding, 0.0),
+      padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -418,21 +418,10 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildAwayModeControl(ClimateEntity entity) {
     if (entity.supportAwayMode) {
-      return Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              "Away mode",
-              style: TextStyle(
-                  fontSize: entity.stateFontSize
-              ),
-            ),
-          ),
-          Switch(
-            onChanged: (value) => _setAwayMode(entity, value),
-            value: _tmpAwayMode,
-          )
-        ],
+      return ModeSwitchWidget(
+        caption: "Away mode",
+        onChange: (value) => _setAwayMode(entity, value),
+        value: _tmpAwayMode,
       );
     } else {
       return Container(height: 0.0, width: 0.0,);
@@ -441,21 +430,10 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildOnOffControl(ClimateEntity entity) {
     if (entity.supportOnOff) {
-      return Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              "On / Off",
-              style: TextStyle(
-                  fontSize: entity.stateFontSize
-              ),
-            ),
-          ),
-          Switch(
-            onChanged: (value) => _setOnOf(entity, value),
-            value: !_tmpIsOff,
-          )
-        ],
+      return ModeSwitchWidget(
+        onChange: (value) => _setOnOf(entity, value),
+        caption: "On / Off",
+        value: !_tmpIsOff
       );
     } else {
       return Container(height: 0.0, width: 0.0,);
@@ -464,21 +442,10 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildAuxHeatControl(ClimateEntity entity) {
     if (entity.supportAuxHeat ) {
-      return Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              "Aux heat",
-              style: TextStyle(
-                  fontSize: entity.stateFontSize
-              ),
-            ),
-          ),
-          Switch(
-            onChanged: (value) => _setAuxHeat(entity, value),
-            value: _tmpAuxHeat,
-          )
-        ],
+      return ModeSwitchWidget(
+        caption: "Aux heat",
+        onChange: (value) => _setAuxHeat(entity, value),
+        value: _tmpAuxHeat
       );
     } else {
       return Container(height: 0.0, width: 0.0,);
@@ -487,29 +454,11 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildOperationControl(ClimateEntity entity) {
     if (entity.supportOperationMode) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text("Operation", style: TextStyle(
-              fontSize: entity.stateFontSize
-          )),
-          DropdownButton<String>(
-            value: "$_tmpOperationMode",
-            iconSize: 30.0,
-            style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: Colors.black,
-            ),
-            items: entity.operationList.map((String value) {
-              return new DropdownMenuItem<String>(
-                value: value,
-                child: new Text(value),
-              );
-            }).toList(),
-            onChanged: (mode) => _setOperationMode(entity, mode),
-          ),
-          Container(height: entity.rowPadding,)
-        ],
+      return ModeSelectorWidget(
+        onChange: (mode) => _setOperationMode(entity, mode),
+        options: entity.operationList,
+        caption: "Operation",
+        value: _tmpOperationMode,
       );
     } else {
       return Container(height: 0.0, width: 0.0);
@@ -518,29 +467,11 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildFanControl(ClimateEntity entity) {
     if (entity.supportFanMode) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text("Fan mode", style: TextStyle(
-              fontSize: entity.stateFontSize
-          )),
-          DropdownButton<String>(
-            value: "$_tmpFanMode",
-            iconSize: 30.0,
-            style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: Colors.black,
-            ),
-            items: entity.fanList.map((String value) {
-              return new DropdownMenuItem<String>(
-                value: value,
-                child: new Text(value),
-              );
-            }).toList(),
-            onChanged: (mode) => _setFanMode(entity, mode),
-          ),
-          Container(height: entity.rowPadding,)
-        ],
+      return ModeSelectorWidget(
+        options: entity.fanList,
+        onChange: (mode) => _setFanMode(entity, mode),
+        caption: "Fan mode",
+        value: _tmpFanMode,
       );
     } else {
       return Container(height: 0.0, width: 0.0);
@@ -549,29 +480,11 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildSwingControl(ClimateEntity entity) {
     if (entity.supportSwingMode) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text("Swing mode", style: TextStyle(
-              fontSize: entity.stateFontSize
-          )),
-          DropdownButton<String>(
-            value: "$_tmpSwingMode",
-            iconSize: 30.0,
-            style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: Colors.black,
-            ),
-            items: entity.swingList.map((String value) {
-              return new DropdownMenuItem<String>(
-                value: value,
-                child: new Text(value),
-              );
-            }).toList(),
-            onChanged: (mode) => _setSwingMode(entity, mode),
-          ),
-          Container(height: entity.rowPadding,)
-        ],
+      return ModeSelectorWidget(
+        onChange: (mode) => _setSwingMode(entity, mode),
+        options: entity.swingList,
+        value: _tmpSwingMode,
+        caption: "Swing mode"
       );
     } else {
       return Container(height: 0.0, width: 0.0);
@@ -584,10 +497,11 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text("Target temperature", style: TextStyle(
-              fontSize: entity.stateFontSize
+              fontSize: Entity.stateFontSize
           )),
           TemperatureControlWidget(
             value: _tmpTemperature,
+            fontColor: _showPending ? Colors.red : Colors.black,
             onLargeDec: () => _temperatureDown(entity, 0.5),
             onLargeInc: () => _temperatureUp(entity, 0.5),
             onSmallDec: () => _temperatureDown(entity, 0.1),
@@ -606,6 +520,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       controls.addAll(<Widget>[
           TemperatureControlWidget(
             value: _tmpTargetLow,
+            fontColor: _showPending ? Colors.red : Colors.black,
             onLargeDec: () => _targetLowDown(entity, 0.5),
             onLargeInc: () => _targetLowUp(entity, 0.5),
             onSmallDec: () => _targetLowDown(entity, 0.1),
@@ -620,6 +535,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       controls.add(
           TemperatureControlWidget(
             value: _tmpTargetHigh,
+            fontColor: _showPending ? Colors.red : Colors.black,
             onLargeDec: () => _targetHighDown(entity, 0.5),
             onLargeInc: () => _targetHighUp(entity, 0.5),
             onSmallDec: () => _targetHighDown(entity, 0.1),
@@ -632,7 +548,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text("Target temperature range", style: TextStyle(
-              fontSize: entity.stateFontSize
+              fontSize: Entity.stateFontSize
           )),
           Row(
             children: controls,
@@ -650,7 +566,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       result.addAll(<Widget>[
         Text(
           "$_tmpTargetHumidity%",
-          style: TextStyle(fontSize: entity.largeFontSize),
+          style: TextStyle(fontSize: Entity.largeFontSize),
         ),
         Expanded(
           child: Slider(
@@ -674,9 +590,9 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, entity.rowPadding, 0.0, entity.rowPadding),
+                0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
             child: Text("Target humidity", style: TextStyle(
-                fontSize: entity.stateFontSize
+                fontSize: Entity.stateFontSize
             )),
           ),
           Row(
@@ -684,7 +600,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
             children: result,
           ),
           Container(
-            height: entity.rowPadding,
+            height: Entity.rowPadding,
           )
         ],
       );
@@ -795,7 +711,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
       _resetVars(entity);
     }
     return Padding(
-      padding: EdgeInsets.fromLTRB(entity.leftWidgetPadding, entity.rowPadding, entity.rightWidgetPadding, 0.0),
+      padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -813,9 +729,9 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, entity.rowPadding, 0.0, entity.rowPadding),
+                0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
             child: Text("Position", style: TextStyle(
-                fontSize: entity.stateFontSize
+                fontSize: Entity.stateFontSize
             )),
           ),
           Slider(
@@ -831,7 +747,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
             },
             onChangeEnd: (double value) => _setNewPosition(entity, value),
           ),
-          Container(height: entity.rowPadding,)
+          Container(height: Entity.rowPadding,)
         ],
       );
     } else {
@@ -861,15 +777,15 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
           },
           onChangeEnd: (double value) => _setNewTiltPosition(entity, value),
         ),
-        Container(height: entity.rowPadding,)
+        Container(height: Entity.rowPadding,)
       ]);
     }
     if (controls.isNotEmpty) {
       controls.insert(0, Padding(
         padding: EdgeInsets.fromLTRB(
-            0.0, entity.rowPadding, 0.0, entity.rowPadding),
+            0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
         child: Text("Tilt position", style: TextStyle(
-            fontSize: entity.stateFontSize
+            fontSize: Entity.stateFontSize
         )),
       ));
       return Column(
