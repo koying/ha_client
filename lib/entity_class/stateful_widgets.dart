@@ -404,6 +404,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         children: <Widget>[
           _buildOnOffControl(entity),
           _buildTemperatureControls(entity),
+          _buildTargetTemperatureControls(entity),
           _buildHumidityControls(entity),
           _buildOperationControl(entity),
           _buildFanControl(entity),
@@ -578,139 +579,68 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   }
 
   Widget _buildTemperatureControls(ClimateEntity entity) {
-    List<Widget> result = [];
     if ((entity.supportTargetTemperature) && (entity.temperature != null)) {
-      result.addAll(<Widget>[
-        Text(
-          "$_tmpTemperature",
-          style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: _showPending ? Colors.red : Colors.black
-          ),
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-up')),
-              iconSize: 30.0,
-              onPressed: () => _temperatureUp(entity, 0.1),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-down')),
-              iconSize: 30.0,
-              onPressed: () => _temperatureDown(entity, 0.1),
-            )
-          ],
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-up')),
-              iconSize: 30.0,
-              onPressed: () => _temperatureUp(entity, 0.5),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-down')),
-              iconSize: 30.0,
-              onPressed: () => _temperatureDown(entity, 0.5),
-            )
-          ],
-        )
-      ]);
-    } else if (entity.supportTargetTemperatureHigh && entity.supportTargetTemperatureLow && (entity.targetHigh != null) && (entity.targetLow != null)) {
-      result.addAll(<Widget>[
-        Text(
-          "$_tmpTargetLow",
-          style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: _showPending ? Colors.red : Colors.black
-          ),
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-up')),
-              iconSize: 30.0,
-              onPressed: () => _targetLowUp(entity, 0.1),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-down')),
-              iconSize: 30.0,
-              onPressed: () => _targetLowDown(entity, 0.1),
-            )
-          ],
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-up')),
-              iconSize: 30.0,
-              onPressed: () => _targetLowUp(entity, 0.5),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-down')),
-              iconSize: 30.0,
-              onPressed: () => _targetLowDown(entity, 0.5),
-            )
-          ],
-        ),
-        Expanded(
-          child: Container(height: 10.0),
-        ),
-        Text(
-          "$_tmpTargetHigh",
-          style: TextStyle(
-              fontSize: entity.largeFontSize,
-              color: _showPending ? Colors.red : Colors.black
-          ),
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-up')),
-              iconSize: 30.0,
-              onPressed: () => _targetHighUp(entity, 0.1),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-down')),
-              iconSize: 30.0,
-              onPressed: () => _targetHighDown(entity, 0.1),
-            )
-          ],
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-up')),
-              iconSize: 30.0,
-              onPressed: () => _targetHighUp(entity, 0.5),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName('mdi:chevron-double-down')),
-              iconSize: 30.0,
-              onPressed: () => _targetHighDown(entity, 0.5),
-            )
-          ],
-        )
-      ]);
-    } else if (entity.supportTargetTemperatureHigh || entity.supportTargetTemperatureLow) {
-      result.add(Text("Unsupported temperature control. Please, report an issue."));
-    }
-    if (result.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text("Target temperature", style: TextStyle(
               fontSize: entity.stateFontSize
           )),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: result,
+          TemperatureControlWidget(
+            value: _tmpTemperature,
+            onLargeDec: () => _temperatureDown(entity, 0.5),
+            onLargeInc: () => _temperatureUp(entity, 0.5),
+            onSmallDec: () => _temperatureDown(entity, 0.1),
+            onSmallInc: () => _temperatureUp(entity, 0.1),
           )
         ],
       );
     } else {
-      return Container(height: 0.0, width: 0.0,);
+      return Container(width: 0.0, height: 0.0,);
+    }
+  }
+
+  Widget _buildTargetTemperatureControls(ClimateEntity entity) {
+    List<Widget> controls = [];
+    if ((entity.supportTargetTemperatureLow) && (entity.targetLow != null)) {
+      controls.addAll(<Widget>[
+          TemperatureControlWidget(
+            value: _tmpTargetLow,
+            onLargeDec: () => _targetLowDown(entity, 0.5),
+            onLargeInc: () => _targetLowUp(entity, 0.5),
+            onSmallDec: () => _targetLowDown(entity, 0.1),
+            onSmallInc: () => _targetLowUp(entity, 0.1),
+          ),
+          Expanded(
+            child: Container(height: 10.0),
+          )
+      ]);
+    }
+    if ((entity.supportTargetTemperatureHigh) && (entity.targetHigh != null)) {
+      controls.add(
+          TemperatureControlWidget(
+            value: _tmpTargetHigh,
+            onLargeDec: () => _targetHighDown(entity, 0.5),
+            onLargeInc: () => _targetHighUp(entity, 0.5),
+            onSmallDec: () => _targetHighDown(entity, 0.1),
+            onSmallInc: () => _targetHighUp(entity, 0.1),
+          )
+      );
+    }
+    if (controls.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text("Target temperature range", style: TextStyle(
+              fontSize: entity.stateFontSize
+          )),
+          Row(
+            children: controls,
+          )
+        ],
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
     }
   }
 
