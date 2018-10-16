@@ -17,7 +17,11 @@ class MaterialDesignIcons {
     "sun": "mdi:white-balance-sunny",
     "scene": "mdi:google-pages",
     "media_player": "mdi:cast",
-    "climate": "mdi:thermostat"
+    "climate": "mdi:thermostat",
+    "cover.open": "mdi:window-open",
+    "cover.closed": "mdi:window-closed",
+    "cover.closing": "mdi:window-open",
+    "cover.opening": "mdi:window-open",
   };
 
   static Map _defaultIconsByDeviceClass = {
@@ -69,7 +73,14 @@ class MaterialDesignIcons {
     //"sensor.illuminance": "mdi:",
     "sensor.temperature": "mdi:thermometer",
     //"cover.window": "mdi:",
-    //"cover.garage": "mdi:",
+    "cover.garage.closed": "mdi:garage",
+    "cover.garage.open": "mdi:garage-open",
+    "cover.garage.opening": "mdi:garage-open",
+    "cover.garage.closing": "mdi:garage-open",
+    "cover.window.open": "mdi:window-open",
+    "cover.window.closed": "mdi:window-closed",
+    "cover.window.closing": "mdi:window-open",
+    "cover.window.opening": "mdi:window-open",
   };
   static Map _iconsDataMap = {
     "mdi:access-point": 0xf002,
@@ -2916,7 +2927,7 @@ class MaterialDesignIcons {
 
   static int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
     String domain = entityId.split(".")[0];
-    String iconNameByDomain = _defaultIconsByDomains[domain];
+    String iconNameByDomain = _defaultIconsByDomains["$domain.$state"] ?? _defaultIconsByDomains["$domain"];
     String iconNameByDeviceClass;
     if (deviceClass != null) {
       iconNameByDeviceClass = _defaultIconsByDeviceClass["$domain.$deviceClass.$state"] ?? _defaultIconsByDeviceClass["$domain.$deviceClass"];

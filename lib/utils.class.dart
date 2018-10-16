@@ -68,7 +68,7 @@ class ServiceCallEvent {
   String domain;
   String service;
   String entityId;
-  Map<String, String> additionalParams;
+  Map<String, dynamic> additionalParams;
 
   ServiceCallEvent(this.domain, this.service, this.entityId, this.additionalParams);
 }

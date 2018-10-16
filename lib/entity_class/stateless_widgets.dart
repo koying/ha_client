@@ -435,3 +435,135 @@ class DateTimeStateWidget extends StatelessWidget {
   }
 
 }
+
+class CoverEntityControlState extends StatelessWidget {
+
+  void _open(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "open_cover", entity.entityId, null));
+  }
+
+  void _close(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "close_cover", entity.entityId, null));
+  }
+
+  void _stop(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "stop_cover", entity.entityId, null));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entityModel = EntityModel.of(context);
+    final CoverEntity entity = entityModel.entity;
+    List<Widget> buttons = [];
+    if (entity.supportOpen) {
+      buttons.add(
+        IconButton(
+            icon: Icon(
+                MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-up"),
+                size: entity.iconSize,
+            ),
+            onPressed: entity.canBeOpened ? () =>_open(entity) : null
+        )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+    if (entity.supportStop) {
+      buttons.add(
+          IconButton(
+              icon: Icon(
+                  MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
+                  size: entity.iconSize,
+              ),
+              onPressed: () => _stop(entity)
+          )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+    if (entity.supportClose) {
+      buttons.add(
+          IconButton(
+              icon: Icon(
+                  MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-down"),
+                  size: entity.iconSize,
+              ),
+              onPressed: entity.canBeClosed ? () => _close(entity) : null
+          )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+
+    return Row(
+      children: buttons,
+    );
+  }
+
+}
+
+class CoverEntityTiltControlState extends StatelessWidget {
+
+  void _open(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "open_cover_tilt", entity.entityId, null));
+  }
+
+  void _close(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "close_cover_tilt", entity.entityId, null));
+  }
+
+  void _stop(CoverEntity entity) {
+    eventBus.fire(new ServiceCallEvent(entity.domain, "stop_cover_tilt", entity.entityId, null));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entityModel = EntityModel.of(context);
+    final CoverEntity entity = entityModel.entity;
+    List<Widget> buttons = [];
+    if (entity.supportOpenTilt) {
+      buttons.add(
+          IconButton(
+              icon: Icon(
+                MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-top-right"),
+                size: entity.iconSize,
+              ),
+              onPressed: entity.canTiltBeOpened ? () =>_open(entity) : null
+          )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+    if (entity.supportStopTilt) {
+      buttons.add(
+          IconButton(
+              icon: Icon(
+                MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
+                size: entity.iconSize,
+              ),
+              onPressed: () => _stop(entity)
+          )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+    if (entity.supportCloseTilt) {
+      buttons.add(
+          IconButton(
+              icon: Icon(
+                MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-bottom-left"),
+                size: entity.iconSize,
+              ),
+              onPressed: entity.canTiltBeClosed ? () => _close(entity) : null
+          )
+      );
+    } else {
+      buttons.add(Container(width: entity.iconSize+20.0,));
+    }
+
+    return Row(
+      children: buttons,
+    );
+  }
+
+}

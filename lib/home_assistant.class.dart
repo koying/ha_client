@@ -295,12 +295,16 @@ class HomeAssistant {
     return sendCompleter.future;
   }
 
-  Future callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
+  Future callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
     _incrementMessageId();
     String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
     if (additionalParams != null) {
       additionalParams.forEach((name, value){
-        message += ', "$name" : "$value"';
+        if ((value is double) || (value is int)) {
+          message += ', "$name" : $value';
+        } else {
+          message += ', "$name" : "$value"';
+        }
       });
     }
     message += '}}';

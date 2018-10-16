@@ -58,6 +58,9 @@ class EntityCollection {
       case "climate": {
         return ClimateEntity(rawEntityData);
       }
+      case "cover": {
+        return CoverEntity(rawEntityData);
+      }
       default: {
         return Entity(rawEntityData);
       }

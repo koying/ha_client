@@ -579,9 +579,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildTemperatureControls(ClimateEntity entity) {
     List<Widget> result = [];
-    bool empty = true;
     if (entity.supportTargetTemperature) {
-      empty = false;
       result.addAll(<Widget>[
         Text(
           "$_tmpTemperature",
@@ -620,7 +618,6 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         )
       ]);
     } else if (entity.supportTargetTemperatureHigh && entity.supportTargetTemperatureLow) {
-      empty = false;
       result.addAll(<Widget>[
         Text(
           "$_tmpTargetLow",
@@ -697,10 +694,9 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         )
       ]);
     } else if (entity.supportTargetTemperatureHigh || entity.supportTargetTemperatureLow) {
-      empty = false;
       result.add(Text("Unsupported temperature control. Please, report an issue."));
     }
-    if (!empty) {
+    if (result.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -720,9 +716,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildHumidityControls(ClimateEntity entity) {
     List<Widget> result = [];
-    bool empty = true;
     if (entity.supportTargetHumidity) {
-      empty = false;
       result.addAll(<Widget>[
         Text(
           "$_tmpTargetHumidity%",
@@ -744,7 +738,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         )
       ]);
     }
-    if (!empty) {
+    if (result.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -823,5 +817,138 @@ class _SelectControlWidgetState extends State<SelectControlWidget> {
     );
   }
 
+
+}
+
+class CoverControlWidget extends StatefulWidget {
+
+  CoverControlWidget({Key key}) : super(key: key);
+
+  @override
+  _CoverControlWidgetState createState() => _CoverControlWidgetState();
+}
+
+class _CoverControlWidgetState extends State<CoverControlWidget> {
+
+  double _tmpPosition = 0.0;
+  double _tmpTiltPosition = 0.0;
+  bool _changedHere = false;
+
+  void _setNewPosition(CoverEntity entity, double position) {
+    setState(() {
+      _tmpPosition = position.roundToDouble();
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_cover_position", entity.entityId,{"position": _tmpPosition.round()}));
+    });
+  }
+
+  void _setNewTiltPosition(CoverEntity entity, double position) {
+    setState(() {
+      _tmpTiltPosition = position.roundToDouble();
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_cover_tilt_position", entity.entityId,{"tilt_position": _tmpTiltPosition.round()}));
+    });
+  }
+
+  void _resetVars(CoverEntity entity) {
+    _tmpPosition = entity.currentPosition;
+    _tmpTiltPosition = entity.currentTiltPosition;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entityModel = EntityModel.of(context);
+    final CoverEntity entity = entityModel.entity;
+    if (_changedHere) {
+      _changedHere = false;
+    } else {
+      _resetVars(entity);
+    }
+    return Padding(
+      padding: EdgeInsets.fromLTRB(entity.leftWidgetPadding, entity.rowPadding, entity.rightWidgetPadding, 0.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _buildPositionControls(entity),
+          _buildTiltControls(entity)
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPositionControls(CoverEntity entity) {
+    if (entity.supportSetPosition) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+                0.0, entity.rowPadding, 0.0, entity.rowPadding),
+            child: Text("Position", style: TextStyle(
+                fontSize: entity.stateFontSize
+            )),
+          ),
+          Slider(
+            value: _tmpPosition,
+            min: 0.0,
+            max: 100.0,
+            divisions: 10,
+            onChanged: (double value) {
+              setState(() {
+                _tmpPosition = value.roundToDouble();
+                _changedHere = true;
+              });
+            },
+            onChangeEnd: (double value) => _setNewPosition(entity, value),
+          ),
+          Container(height: entity.rowPadding,)
+        ],
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildTiltControls(CoverEntity entity) {
+    List<Widget> controls = [];
+    if (entity.supportCloseTilt || entity.supportOpenTilt || entity.supportStopTilt) {
+      controls.add(
+        CoverEntityTiltControlState()
+      );
+    }
+    if (entity.supportSetTiltPosition) {
+      controls.addAll(<Widget>[
+        Slider(
+          value: _tmpTiltPosition,
+          min: 0.0,
+          max: 100.0,
+          divisions: 10,
+          onChanged: (double value) {
+            setState(() {
+              _tmpTiltPosition = value.roundToDouble();
+              _changedHere = true;
+            });
+          },
+          onChangeEnd: (double value) => _setNewTiltPosition(entity, value),
+        ),
+        Container(height: entity.rowPadding,)
+      ]);
+    }
+    if (controls.isNotEmpty) {
+      controls.insert(0, Padding(
+        padding: EdgeInsets.fromLTRB(
+            0.0, entity.rowPadding, 0.0, entity.rowPadding),
+        child: Text("Tilt position", style: TextStyle(
+            fontSize: entity.stateFontSize
+        )),
+      ));
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: controls,
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
 
 }

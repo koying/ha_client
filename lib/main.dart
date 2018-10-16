@@ -30,7 +30,7 @@ part 'card_class.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.2.5.36";
+const appVersion = "0.2.5.37";
 
 String homeAssistantWebHost;
 
@@ -224,7 +224,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  void _callService(String domain, String service, String entityId, Map<String, String> additionalParams) {
+  void _callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
     _homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
   }
 
