@@ -35,13 +35,15 @@ class EntityCollection {
       }
       case "automation":
       case "input_boolean":
-      case "switch":
+      case "switch": {
+        return SwitchEntity(rawEntityData);
+      }
       case "light": {
-      return SwitchEntity(rawEntityData);
+        return LightEntity(rawEntityData);
       }
       case "script":
       case "scene": {
-      return ButtonEntity(rawEntityData);
+        return ButtonEntity(rawEntityData);
       }
       case "input_datetime": {
         return DateTimeEntity(rawEntityData);

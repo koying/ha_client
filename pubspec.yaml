@@ -1,7 +1,7 @@
 name: hass_client
 description: Home Assistant Android Client
 
-version: 0.3.0+39
+version: 0.3.0+40
 
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
@@ -15,6 +15,7 @@ dependencies:
   cached_network_image: ^0.4.1
   url_launcher: ^3.0.3
   date_format: ^1.0.5
+  flutter_colorpicker: ^0.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
