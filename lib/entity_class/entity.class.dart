@@ -298,9 +298,14 @@ class ClimateEntity extends Entity {
   List<String> get swingList => attributes["swing_list"] != null
       ? (attributes["swing_list"] as List).cast<String>()
       : null;
-  double get temperature => _getTemperature();
-  double get targetHigh => _getTargetHigh();
-  double get targetLow => _getTargetLow();
+  double get temperature => _getDoubleAttributeValue('temperature');
+  double get targetHigh => _getDoubleAttributeValue('target_temp_high');
+  double get targetLow => _getDoubleAttributeValue('target_temp_low');
+  double get maxTemp => _getDoubleAttributeValue('max_temp') ?? 100.0;
+  double get minTemp => _getDoubleAttributeValue('min_temp') ?? -100.0;
+  double get targetHumidity => _getDoubleAttributeValue('humidity');
+  double get maxHumidity => _getDoubleAttributeValue('max_humidity');
+  double get minHumidity => _getDoubleAttributeValue('min_humidity');
   String get operationMode => attributes['operation_mode'];
   String get fanMode => attributes['fan_mode'];
   String get swingMode => attributes['swing_mode'];
@@ -320,8 +325,8 @@ class ClimateEntity extends Entity {
     return ClimateControlWidget();
   }
 
-  double _getTemperature() {
-    var temp1 = attributes['temperature'];
+  double _getDoubleAttributeValue(String attributeName) {
+    var temp1 = attributes["$attributeName"];
     if (temp1 is int) {
       return temp1.toDouble();
     } else if (temp1 is double) {
@@ -331,27 +336,6 @@ class ClimateEntity extends Entity {
     }
   }
 
-  double _getTargetHigh() {
-    var temp1 = attributes['target_temp_high'];
-    if (temp1 is int) {
-      return temp1.toDouble();
-    } else if (temp1 is double) {
-      return temp1;
-    } else {
-      return null;
-    }
-  }
-
-  double _getTargetLow() {
-    var temp1 = attributes['target_temp_low'];
-    if (temp1 is int) {
-      return temp1.toDouble();
-    } else if (temp1 is double) {
-      return temp1;
-    } else {
-      return null;
-    }
-  }
 }
 
 class SelectEntity extends Entity {
