@@ -682,20 +682,30 @@ class ModeSelectorWidget extends StatelessWidget {
         Text("$caption", style: TextStyle(
             fontSize: captionFontSize ?? Entity.stateFontSize
         )),
-        DropdownButton<String>(
-          value: "$value",
-          iconSize: 30.0,
-          style: TextStyle(
-            fontSize: valueFontSize ?? Entity.largeFontSize,
-            color: Colors.black,
-          ),
-          items: options.map((String value) {
-            return new DropdownMenuItem<String>(
-              value: value,
-              child: new Text(value),
-            );
-          }).toList(),
-          onChanged: (mode) => onChange(mode),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: ButtonTheme(
+                alignedDropdown: true,
+                child: DropdownButton<String>(
+                  value: "$value",
+                  iconSize: 30.0,
+                  isExpanded: true,
+                  style: TextStyle(
+                    fontSize: valueFontSize ?? Entity.largeFontSize,
+                    color: Colors.black,
+                  ),
+                  items: options.map((String value) {
+                    return new DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (mode) => onChange(mode),
+                ),
+              ),
+            )
+          ],
         ),
         Container(height: bottomPadding ?? Entity.rowPadding,)
       ],
