@@ -333,6 +333,15 @@ class ClimateStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     final ClimateEntity entity = entityModel.entity;
+    String targetTemp = "-";
+    if ((entity.supportTargetTemperature) && (entity.temperature!=null)) {
+      targetTemp = "${entity.temperature}";
+    } else if ((entity.supportTargetTemperatureLow) && (entity.targetLow != null)) {
+      targetTemp = "${entity.targetLow}";
+      if ((entity.supportTargetTemperatureHigh) && (entity.targetHigh != null)) {
+        targetTemp += " - ${entity.targetHigh}";
+      }
+    }
     return Padding(
         padding:
         EdgeInsets.fromLTRB(0.0, 0.0, entityModel.entity.rightWidgetPadding, 0.0),
@@ -350,7 +359,7 @@ class ClimateStateWidget extends StatelessWidget {
                         fontSize: entityModel.entity.stateFontSize,
                       )),
                   Text(
-                      entity.supportTargetTemperature ? " ${entity.temperature}" : " ${entity.targetLow} - ${entity.targetHigh}",
+                      " $targetTemp",
                       textAlign: TextAlign.right,
                       style: new TextStyle(
                         fontSize: entityModel.entity.stateFontSize,
@@ -502,7 +511,7 @@ class CoverEntityControlState extends StatelessWidget {
 
 }
 
-class CoverEntityTiltControlState extends StatelessWidget {
+class CoverEntityTiltControlButtons extends StatelessWidget {
 
   void _open(CoverEntity entity) {
     eventBus.fire(new ServiceCallEvent(entity.domain, "open_cover_tilt", entity.entityId, null));

@@ -579,7 +579,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildTemperatureControls(ClimateEntity entity) {
     List<Widget> result = [];
-    if (entity.supportTargetTemperature) {
+    if ((entity.supportTargetTemperature) && (entity.temperature != null)) {
       result.addAll(<Widget>[
         Text(
           "$_tmpTemperature",
@@ -617,7 +617,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
           ],
         )
       ]);
-    } else if (entity.supportTargetTemperatureHigh && entity.supportTargetTemperatureLow) {
+    } else if (entity.supportTargetTemperatureHigh && entity.supportTargetTemperatureLow && (entity.targetHigh != null) && (entity.targetLow != null)) {
       result.addAll(<Widget>[
         Text(
           "$_tmpTargetLow",
@@ -913,7 +913,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
     List<Widget> controls = [];
     if (entity.supportCloseTilt || entity.supportOpenTilt || entity.supportStopTilt) {
       controls.add(
-        CoverEntityTiltControlState()
+        CoverEntityTiltControlButtons()
       );
     }
     if (entity.supportSetTiltPosition) {
