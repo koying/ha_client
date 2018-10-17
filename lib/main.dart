@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_colorpicker/material_picker.dart';
 
 part 'entity_class/entity.class.dart';
 part 'entity_class/stateless_widgets.dart';

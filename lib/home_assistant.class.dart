@@ -300,7 +300,7 @@ class HomeAssistant {
     String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
     if (additionalParams != null) {
       additionalParams.forEach((name, value){
-        if ((value is double) || (value is int)) {
+        if ((value is double) || (value is int) || (value is List)) {
           message += ', "$name" : $value';
         } else {
           message += ', "$name" : "$value"';

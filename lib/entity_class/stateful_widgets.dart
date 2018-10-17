@@ -1,11 +1,11 @@
 part of '../main.dart';
 
-class SwitchControlWidget extends StatefulWidget {
+class SwitchStateWidget extends StatefulWidget {
   @override
-  _SwitchControlWidgetState createState() => _SwitchControlWidgetState();
+  _SwitchStateWidgetState createState() => _SwitchStateWidgetState();
 }
 
-class _SwitchControlWidgetState extends State<SwitchControlWidget> {
+class _SwitchStateWidgetState extends State<SwitchStateWidget> {
 
   @override
   void initState() {
@@ -37,48 +37,15 @@ class _SwitchControlWidgetState extends State<SwitchControlWidget> {
   }
 }
 
-class ButtonControlWidget extends StatefulWidget {
+class TextInputStateWidget extends StatefulWidget {
+
+  TextInputStateWidget({Key key}) : super(key: key);
+
   @override
-  _ButtonControlWidgetState createState() => _ButtonControlWidgetState();
+  _TextInputStateWidgetState createState() => _TextInputStateWidgetState();
 }
 
-class _ButtonControlWidgetState extends State<ButtonControlWidget> {
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void _setNewState(Entity entity) {
-    eventBus.fire(new ServiceCallEvent(entity.domain, "turn_on", entity.entityId, null));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final entityModel = EntityModel.of(context);
-    return FlatButton(
-      onPressed: (() {
-        _setNewState(entityModel.entity);
-      }),
-      child: Text(
-        "EXECUTE",
-        textAlign: TextAlign.right,
-        style:
-        new TextStyle(fontSize: Entity.stateFontSize, color: Colors.blue),
-      ),
-    );
-  }
-}
-
-class TextControlWidget extends StatefulWidget {
-
-  TextControlWidget({Key key}) : super(key: key);
-
-  @override
-  _TextControlWidgetState createState() => _TextControlWidgetState();
-}
-
-class _TextControlWidgetState extends State<TextControlWidget> {
+class _TextInputStateWidgetState extends State<TextInputStateWidget> {
   String _tmpValue;
   String _entityState;
   String _entityDomain;
@@ -167,17 +134,17 @@ class _TextControlWidgetState extends State<TextControlWidget> {
 
 }
 
-class SliderControlWidget extends StatefulWidget {
+class SliderStateWidget extends StatefulWidget {
 
   final bool expanded;
 
-  SliderControlWidget({Key key, @required this.expanded}) : super(key: key);
+  SliderStateWidget({Key key, @required this.expanded}) : super(key: key);
 
   @override
-  _SliderControlWidgetState createState() => _SliderControlWidgetState();
+  _SliderStateWidgetState createState() => _SliderStateWidgetState();
 }
 
-class _SliderControlWidgetState extends State<SliderControlWidget> {
+class _SliderStateWidgetState extends State<SliderStateWidget> {
   int _multiplier = 1;
 
   void setNewState(newValue, domain, entityId) {
@@ -797,5 +764,261 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
       return Container(width: 0.0, height: 0.0);
     }
   }
+
+}
+
+class LightControlsWidget extends StatefulWidget {
+
+  @override
+  _LightControlsWidgetState createState() => _LightControlsWidgetState();
+
+}
+
+class _LightControlsWidgetState extends State<LightControlsWidget> {
+
+  int _tmpBrightness;
+  int _tmpColorTemp;
+  Color _tmpColor;
+  bool _changedHere = false;
+
+  void _resetState(LightEntity entity) {
+    _tmpBrightness = entity.brightness;
+    _tmpColorTemp = entity.colorTemp;
+    _tmpColor = entity.color;
+  }
+
+  void _setBrightness(LightEntity entity, double value) {
+    setState(() {
+      _tmpBrightness = value.round();
+      _changedHere = true;
+      if (_tmpBrightness > 0) {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"brightness": _tmpBrightness}));
+      } else {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_off", entity.entityId,
+            null));
+      }
+    });
+  }
+
+  void _setColorTemp(LightEntity entity, double value) {
+    setState(() {
+      _tmpColorTemp = value.round();
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"color_temp": _tmpColorTemp}));
+    });
+  }
+
+  void _setColor(LightEntity entity, Color color) {
+    setState(() {
+      _tmpColor = color;
+      _changedHere = true;
+      TheLogger.log("Debug", "Color: [${color.red}, ${color.green}, ${color.blue}]");
+      if ((color == Colors.black) || ((color.red == color.green) && (color.green == color.blue)))  {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_off", entity.entityId,
+            null));
+      } else {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"rgb_color": [color.red, color.green, color.blue]}));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entityModel = EntityModel.of(context);
+    final LightEntity entity = entityModel.entity;
+    if (!_changedHere) {
+      _resetState(entity);
+    } else {
+      _changedHere = false;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        _buildBrightnessControl(entity),
+        _buildColorTempControl(entity),
+        _buildColorControl(entity),
+        _buildEffectControl(entity),
+        _buildFlashControl(entity),
+        _buildTransitionControl(entity),
+        _buildWhiteValueControl(entity)
+      ],
+    );
+  }
+
+  Widget _buildBrightnessControl(LightEntity entity) {
+    if ((entity.supportBrightness) && (_tmpBrightness != null)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(height: Entity.rowPadding,),
+          Text(
+              "Brightness",
+            style: TextStyle(fontSize: Entity.stateFontSize),
+          ),
+          Container(height: Entity.rowPadding,),
+          Row(
+            children: <Widget>[
+              Icon(Icons.brightness_5),
+              Expanded(
+                child: Slider(
+                  value: _tmpBrightness.toDouble(),
+                  min: 0.0,
+                  max: 255.0,
+                  onChanged: (value) {
+                    setState(() {
+                      _changedHere = true;
+                      _tmpBrightness = value.round();
+                    });
+                  },
+                  onChangeEnd: (value) => _setBrightness(entity, value),
+                ),
+              )
+            ],
+          ),
+          Container(height: Entity.rowPadding,)
+        ],
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildColorTempControl(LightEntity entity) {
+    if ((entity.supportColorTemp) && (_tmpColorTemp != null)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(height: Entity.rowPadding,),
+          Text(
+            "Color temperature",
+            style: TextStyle(fontSize: Entity.stateFontSize),
+          ),
+          Container(height: Entity.rowPadding,),
+          Row(
+            children: <Widget>[
+              Text("Cold", style: TextStyle(color: Colors.lightBlue),),
+              Expanded(
+                child: Slider(
+                  value: _tmpColorTemp.toDouble(),
+                  min: entity.minMireds,
+                  max: entity.maxMireds,
+                  onChanged: (value) {
+                    setState(() {
+                      _changedHere = true;
+                      _tmpColorTemp = value.round();
+                    });
+                  },
+                  onChangeEnd: (value) => _setColorTemp(entity, value),
+                ),
+              ),
+              Text("Warm", style: TextStyle(color: Colors.amberAccent),),
+            ],
+          ),
+          Container(height: Entity.rowPadding,)
+        ],
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildColorControl(LightEntity entity) {
+    if ((entity.supportColor)&&(entity.color != null)) {
+      Color backColor = Color.fromRGBO(255, 255, 255, 0.0);
+      if ((_tmpColor.red >=228) && (_tmpColor.green >=228) && (_tmpColor.blue >=228)) {
+        backColor = Colors.black12;
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(height: Entity.rowPadding,),
+          GestureDetector(
+            child: Container(
+              width: 250.0,
+              child: Text(
+                "Color",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 50.0,
+                    fontWeight: FontWeight.bold,
+                    color: _tmpColor ?? Colors.black45,
+                ),
+              ),
+              decoration: BoxDecoration(
+                color: backColor
+              ),
+            ),
+            onTap: () => _showColorPicker(entity),
+          ),
+          Container(height: Entity.rowPadding,),
+        ],
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  void _showColorPicker(LightEntity entity) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: EdgeInsets.all(0.0),
+          contentPadding: EdgeInsets.all(0.0),
+          content: SingleChildScrollView(
+            child: MaterialPicker(
+              pickerColor: _tmpColor,
+              onColorChanged: (color) {
+                _setColor(entity, color);
+                Navigator.of(context).pop();
+              },
+              enableLabel: true,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEffectControl(LightEntity entity) {
+    if (entity.supportEffect) {
+      return Text("Effect is not supported yet =(");
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildFlashControl(LightEntity entity) {
+    if (entity.supportFlash) {
+      return Text("Flash is not supported yet =(");
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildTransitionControl(LightEntity entity) {
+    if (entity.supportTransition) {
+      return Text("Transition is not supported yet =(");
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildWhiteValueControl(LightEntity entity) {
+    if (entity.supportWhiteValue) {
+      return Text("White value is not supported yet =(");
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
 
 }
