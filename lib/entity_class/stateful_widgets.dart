@@ -780,11 +780,15 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   int _tmpColorTemp;
   Color _tmpColor;
   bool _changedHere = false;
+  String _tmpEffect;
+  String _tmpFlash;
 
   void _resetState(LightEntity entity) {
     _tmpBrightness = entity.brightness;
     _tmpColorTemp = entity.colorTemp;
     _tmpColor = entity.color;
+    _tmpEffect = null;
+    _tmpFlash = null;
   }
 
   void _setBrightness(LightEntity entity, double value) {
@@ -830,6 +834,30 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     });
   }
 
+  void _setEffect(LightEntity entity, String value) {
+    setState(() {
+      _tmpEffect = value;
+      _changedHere = true;
+      if (_tmpEffect != null) {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"effect": "$value"}));
+      }
+    });
+  }
+
+  void _setFlash(LightEntity entity, String value) {
+    setState(() {
+      _tmpFlash = value;
+      _changedHere = true;
+      if (_tmpFlash != null) {
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"flash": "$value"}));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
@@ -845,10 +873,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         _buildBrightnessControl(entity),
         _buildColorTempControl(entity),
         _buildColorControl(entity),
-        _buildEffectControl(entity),
-        _buildFlashControl(entity),
-        _buildTransitionControl(entity),
-        _buildWhiteValueControl(entity)
+        _buildEffectControl(entity)
       ],
     );
   }
@@ -990,31 +1015,12 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildEffectControl(LightEntity entity) {
     if (entity.supportEffect) {
-      return Text("Effect is not supported yet =(");
-    } else {
-      return Container(width: 0.0, height: 0.0);
-    }
-  }
-
-  Widget _buildFlashControl(LightEntity entity) {
-    if (entity.supportFlash) {
-      return Text("Flash is not supported yet =(");
-    } else {
-      return Container(width: 0.0, height: 0.0);
-    }
-  }
-
-  Widget _buildTransitionControl(LightEntity entity) {
-    if (entity.supportTransition) {
-      return Text("Transition is not supported yet =(");
-    } else {
-      return Container(width: 0.0, height: 0.0);
-    }
-  }
-
-  Widget _buildWhiteValueControl(LightEntity entity) {
-    if (entity.supportWhiteValue) {
-      return Text("White value is not supported yet =(");
+      return ModeSelectorWidget(
+        onChange: (effect) => _setEffect(entity, effect),
+        caption: "Effect",
+        options: entity.effectList,
+        value: _tmpEffect
+      );
     } else {
       return Container(width: 0.0, height: 0.0);
     }

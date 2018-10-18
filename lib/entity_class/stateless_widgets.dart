@@ -711,13 +711,14 @@ class ModeSelectorWidget extends StatelessWidget {
               child: ButtonTheme(
                 alignedDropdown: true,
                 child: DropdownButton<String>(
-                  value: "$value",
+                  value: value,
                   iconSize: 30.0,
                   isExpanded: true,
                   style: TextStyle(
                     fontSize: valueFontSize ?? Entity.largeFontSize,
                     color: Colors.black,
                   ),
+                  hint: Text("Select ${caption.toLowerCase()}"),
                   items: options.map((String value) {
                     return new DropdownMenuItem<String>(
                       value: value,

@@ -518,9 +518,7 @@ class LightEntity extends Entity {
   double get minMireds => _getDoubleAttributeValue("min_mireds");
   Color get color => _getColor();
   bool get isAdditionalControls => ((attributes["supported_features"] != null) && (attributes["supported_features"] != 0));
-  List<String> get effectList => attributes["effect_list"] != null
-      ? (attributes["effect_list"] as List).cast<String>()
-      : null;
+  List<String> get effectList => _getEffectList();
 
   LightEntity(Map rawData) : super(rawData);
 
@@ -533,6 +531,15 @@ class LightEntity extends Entity {
         return null;
       }
     } catch (e) {
+      return null;
+    }
+  }
+
+  List<String> _getEffectList() {
+    if (attributes["effect_list"] != null) {
+      List<String> result = (attributes["effect_list"] as List).cast<String>();
+      return result;
+    } else {
       return null;
     }
   }

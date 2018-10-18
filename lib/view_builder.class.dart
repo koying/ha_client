@@ -31,7 +31,6 @@ class ViewBuilder{
     Map<String, List<String>> userGroupsList = entityCollection.getDefaultViewTopLevelEntities();
     List<Entity> entitiesForView = [];
     userGroupsList["userGroups"].forEach((groupId){
-      TheLogger.log("Debug","----User defined group: $groupId");
       Entity en = entityCollection.get(groupId);
       if (en.isGroup) {
         en.childEntities = entityCollection.getAll(en.childEntityIds);
