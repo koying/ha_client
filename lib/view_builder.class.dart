@@ -13,8 +13,8 @@ class ViewBuilder{
   }
 
   Widget buildWidget(BuildContext context) {
-    return ViewWrapperWidget(
-      children: _views
+    return TabBarView(
+        children: _views
     );
   }
 
@@ -76,22 +76,4 @@ class ViewBuilder{
     });
     return result;
   }
-}
-
-class ViewWrapperWidget extends StatelessWidget {
-
-  final List<View> children;
-
-  const ViewWrapperWidget({
-    Key key,
-    this.children
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return TabBarView(
-        children: children
-    );
-  }
-
 }
