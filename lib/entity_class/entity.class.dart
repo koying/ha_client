@@ -62,7 +62,6 @@ class Entity {
   String get unitOfMeasurement => attributes["unit_of_measurement"] ?? "";
   List get childEntityIds => attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
-  bool get isHidden => attributes["hidden"] ?? false;
 
   Entity(Map rawData) {
     update(rawData);

@@ -1,30 +1,77 @@
 part of 'main.dart';
 
-class View extends StatefulWidget {
-  final String displayName;
-  final List<Entity> childEntities;
-  final int count;
+class View {
+  List<Entity> childEntitiesAsBadges;
+  Map<String, CardSkeleton> childEntitiesAsCards;
+
+  int count;
+  List<Entity> entities;
 
   View({
     Key key,
-    @required this.childEntities,
-    @required this.count,
+    this.count,
+    this.entities
+  }) {
+    childEntitiesAsBadges = [];
+    childEntitiesAsCards = {};
+    _composeEntities();
+  }
+
+  Widget buildWidget(BuildContext context) {
+    return ViewWidget(
+      badges: childEntitiesAsBadges,
+      cards: childEntitiesAsCards,
+    );
+  }
+
+  void _composeEntities() {
+    entities.forEach((Entity entity){
+      if (!entity.isGroup) {
+        if (entity.isBadge) {
+          childEntitiesAsBadges.add(entity);
+        } else {
+          String groupIdToAdd = "${entity.domain}.${entity.domain}$count";
+          if (childEntitiesAsCards[groupIdToAdd] == null) {
+            childEntitiesAsCards[groupIdToAdd] = CardSkeleton(
+              displayName: entity.domain,
+            );
+          }
+          childEntitiesAsCards[groupIdToAdd].childEntities.add(entity);
+        }
+      } else {
+        childEntitiesAsCards[entity.entityId] = CardSkeleton(
+          displayName: entity.displayName,
+        );
+        childEntitiesAsCards[entity.entityId].childEntities = entity.childEntities;
+      }
+    });
+  }
+
+}
+
+class ViewWidget extends StatefulWidget {
+  final List<Entity> badges;
+  final Map<String, CardSkeleton> cards;
+  final String displayName;
+
+  const ViewWidget({
+    Key key,
+    this.badges,
+    this.cards,
     this.displayName
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return ViewState();
+    return ViewWidgetState();
   }
 
 }
 
-class ViewState extends State<View> {
+class ViewWidgetState extends State<ViewWidget> {
 
   StreamSubscription _refreshDataSubscription;
   Completer _refreshCompleter;
-  List<Entity> _childEntitiesAsBadges;
-  Map<String, Entity> _childEntitiesAsCards;
 
   @override
   void initState() {
@@ -32,28 +79,6 @@ class ViewState extends State<View> {
     _refreshDataSubscription = eventBus.on<RefreshDataFinishedEvent>().listen((event) {
       if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
         _refreshCompleter.complete();
-      }
-    });
-    _childEntitiesAsCards = {};
-    _childEntitiesAsBadges = [];
-    _composeEntities();
-  }
-
-  void _composeEntities() {
-    widget.childEntities.forEach((Entity entity){
-      if (!entity.isGroup) {
-        if (entity.isBadge) {
-          _childEntitiesAsBadges.add(entity);
-        } else {
-          String groupIdToAdd = "${entity.domain}.${entity.domain}${widget.count}";
-          if (_childEntitiesAsCards[groupIdToAdd] == null) {
-            _childEntitiesAsCards[groupIdToAdd] = entity;
-          }
-          _childEntitiesAsCards[groupIdToAdd].childEntities.add(entity);
-        }
-      } else {
-        _childEntitiesAsCards[entity.entityId] = entity;
-        _childEntitiesAsCards[entity.entityId].childEntities = entity.childEntities;
       }
     });
   }
@@ -73,23 +98,22 @@ class ViewState extends State<View> {
   List<Widget> _buildChildren(BuildContext context) {
     List<Widget> result = [];
 
-    if (_childEntitiesAsBadges.isNotEmpty) {
+    if (widget.badges.isNotEmpty) {
       result.insert(0,
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 10.0,
             runSpacing: 1.0,
-            children: _buildBadges(context),
+            children: _buildBadges(context, widget.badges),
           )
       );
     }
 
-    _childEntitiesAsCards.forEach((String id, Entity groupEntity){
+    widget.cards.forEach((String id, CardSkeleton skeleton){
       result.add(
           HACard(
-            entities: groupEntity.childEntities,
-            friendlyName: groupEntity.displayName,
-            hidden: groupEntity.isHidden
+            entities: skeleton.childEntities,
+            friendlyName: skeleton.displayName,
           )
       );
     });
@@ -97,9 +121,9 @@ class ViewState extends State<View> {
     return result;
   }
 
-  List<Widget> _buildBadges(BuildContext context) {
+  List<Widget> _buildBadges(BuildContext context, List<Entity> badges) {
     List<Widget> result = [];
-    _childEntitiesAsBadges.forEach((Entity entity) {
+    badges.forEach((Entity entity) {
       result.add(entity.buildBadgeWidget(context));
     });
     return result;
@@ -119,5 +143,16 @@ class ViewState extends State<View> {
   void dispose() {
     _refreshDataSubscription.cancel();
     super.dispose();
+  }
+
+
+}
+
+class CardSkeleton {
+  String displayName;
+  List<Entity> childEntities;
+
+  CardSkeleton({Key key, this.displayName, this.childEntities}) {
+    childEntities = [];
   }
 }
