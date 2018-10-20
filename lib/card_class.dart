@@ -4,11 +4,13 @@ class HACard extends StatelessWidget {
 
   final List<Entity> entities;
   final String friendlyName;
+  final bool hidden;
 
   const HACard({
     Key key,
     this.entities,
-    this.friendlyName
+    this.friendlyName,
+    this.hidden
   }) : super(key: key);
 
   @override
@@ -16,9 +18,13 @@ class HACard extends StatelessWidget {
     List<Widget> body = [];
     body.add(_buildCardHeader());
     body.addAll(_buildCardBody(context));
-    return Card(
-        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
-    );
+    if (hidden) {
+      return Container(height: 0.0,);
+    } else {
+      return Card(
+          child: new Column(mainAxisSize: MainAxisSize.min, children: body)
+      );
+    }
   }
 
   Widget _buildCardHeader() {

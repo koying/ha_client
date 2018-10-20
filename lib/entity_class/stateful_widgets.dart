@@ -781,14 +781,12 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   Color _tmpColor;
   bool _changedHere = false;
   String _tmpEffect;
-  String _tmpFlash;
 
   void _resetState(LightEntity entity) {
     _tmpBrightness = entity.brightness;
     _tmpColorTemp = entity.colorTemp;
     _tmpColor = entity.color;
     _tmpEffect = null;
-    _tmpFlash = null;
   }
 
   void _setBrightness(LightEntity entity, double value) {
@@ -842,18 +840,6 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_on", entity.entityId,
             {"effect": "$value"}));
-      }
-    });
-  }
-
-  void _setFlash(LightEntity entity, String value) {
-    setState(() {
-      _tmpFlash = value;
-      _changedHere = true;
-      if (_tmpFlash != null) {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_on", entity.entityId,
-            {"flash": "$value"}));
       }
     });
   }

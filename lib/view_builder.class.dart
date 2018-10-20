@@ -13,8 +13,8 @@ class ViewBuilder{
   }
 
   Widget buildWidget(BuildContext context) {
-    return ViewBuilderWidget(
-      entities: _views
+    return ViewWrapperWidget(
+      children: _views
     );
   }
 
@@ -41,7 +41,7 @@ class ViewBuilder{
       entitiesForView.add(entityCollection.get(entityId));
     });
     return View(
-      entities: entitiesForView,
+      childEntities: entitiesForView,
       count: 0
     );
   }
@@ -68,7 +68,7 @@ class ViewBuilder{
         });
         result.add(View(
           count: counter,
-          entities: entitiesForView
+          childEntities: entitiesForView
         ));
       /*} catch (error) {
         TheLogger.log("Error","Error parsing view: $viewId");
@@ -78,28 +78,20 @@ class ViewBuilder{
   }
 }
 
-class ViewBuilderWidget extends StatelessWidget {
+class ViewWrapperWidget extends StatelessWidget {
 
-  final List<View> entities;
+  final List<View> children;
 
-  const ViewBuilderWidget({
+  const ViewWrapperWidget({
     Key key,
-    this.entities
+    this.children
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TabBarView(
-        children: _buildChildren(context)
+        children: children
     );
-  }
-
-  List<Widget> _buildChildren(BuildContext context) {
-    List<Widget> result = [];
-    entities.forEach((View view){
-      result.add(view.buildWidget(context));
-    });
-    return result;
   }
 
 }
