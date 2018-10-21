@@ -41,6 +41,7 @@ class View {
       } else {
         childEntitiesAsCards[entity.entityId] = CardSkeleton(
           displayName: entity.displayName,
+          groupEntity: entity
         );
         childEntitiesAsCards[entity.entityId].childEntities = entity.childEntities;
       }
@@ -111,10 +112,14 @@ class ViewWidgetState extends State<ViewWidget> {
 
     widget.cards.forEach((String id, CardSkeleton skeleton){
       result.add(
-          HACard(
-            entities: skeleton.childEntities,
-            friendlyName: skeleton.displayName,
-          )
+        EntityModel(
+            entity: skeleton.groupEntity,
+            handleTap: false,
+            child: CardWidget(
+              entities: skeleton.childEntities,
+              friendlyName: skeleton.displayName,
+            )
+        )
       );
     });
 
@@ -151,8 +156,13 @@ class ViewWidgetState extends State<ViewWidget> {
 class CardSkeleton {
   String displayName;
   List<Entity> childEntities;
+  Entity groupEntity;
 
-  CardSkeleton({Key key, this.displayName, this.childEntities}) {
+  CardSkeleton({
+    Key key,
+    this.displayName,
+    this.childEntities,
+    this.groupEntity}) {
     childEntities = [];
   }
 }

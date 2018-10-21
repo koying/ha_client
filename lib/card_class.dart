@@ -1,11 +1,11 @@
 part of 'main.dart';
 
-class HACard extends StatelessWidget {
+class CardWidget extends StatelessWidget {
 
   final List<Entity> entities;
   final String friendlyName;
 
-  const HACard({
+  const CardWidget({
     Key key,
     this.entities,
     this.friendlyName
@@ -13,6 +13,13 @@ class HACard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final entityModel = EntityModel.of(context);
+    if (entityModel != null) {
+      final groupEntity = entityModel.entity;
+      if (groupEntity.isHidden) {
+        return Container(width: 0.0, height: 0.0,);
+      }
+    }
     List<Widget> body = [];
     body.add(_buildCardHeader());
     body.addAll(_buildCardBody(context));
