@@ -2,28 +2,32 @@ part of 'main.dart';
 
 class EntityCollection {
 
-  Map<String, Entity> _entities;
-  List<String> viewList;
+  Map<String, Entity> _allEntities;
+  Map<String, Entity> views;
 
-  bool get isEmpty => _entities.isEmpty;
+  bool get isEmpty => _allEntities.isEmpty;
 
   EntityCollection() {
-    _entities = {};
-    viewList = [];
+    _allEntities = {};
+    views = {};
   }
 
-  bool get hasDefaultView => _entities["group.default_view"] != null;
+  bool get hasDefaultView => _allEntities["group.default_view"] != null;
 
   void parse(List rawData) {
-    _entities.clear();
-    viewList.clear();
+    _allEntities.clear();
+    views.clear();
 
     TheLogger.log("Debug","Parsing ${rawData.length} Home Assistant entities");
     rawData.forEach((rawEntityData) {
-      Entity newEntity = addFromRaw(rawEntityData);
-
-      if (newEntity.isView) {
-        viewList.add(newEntity.entityId);
+      addFromRaw(rawEntityData);
+    });
+    _allEntities.forEach((entityId, entity){
+      if ((entity.isGroup) && (entity.childEntityIds != null)) {
+        entity.childEntities = getAll(entity.childEntityIds);
+      }
+      if (entity.isView) {
+        views[entityId] = entity;
       }
     });
   }
@@ -78,12 +82,12 @@ class EntityCollection {
   }
 
   void add(Entity entity) {
-    _entities[entity.entityId] = entity;
+    _allEntities[entity.entityId] = entity;
   }
 
   Entity addFromRaw(Map rawEntityData) {
     Entity entity = _createEntityInstance(rawEntityData);
-    _entities[entity.entityId] = entity;
+    _allEntities[entity.entityId] = entity;
     return entity;
   }
 
@@ -92,7 +96,7 @@ class EntityCollection {
   }
 
   Entity get(String entityId) {
-    return _entities[entityId];
+    return _allEntities[entityId];
   }
 
   List<Entity> getAll(List ids) {
@@ -107,13 +111,13 @@ class EntityCollection {
   }
 
   bool isExist(String entityId) {
-    return _entities[entityId] != null;
+    return _allEntities[entityId] != null;
   }
 
   Map<String,List<String>> getDefaultViewTopLevelEntities() {
     Map<String,List<String>> result = {"userGroups": [], "notGroupedEntities": []};
     List<String> entities = [];
-    _entities.forEach((id, entity){
+    _allEntities.forEach((id, entity){
       if ((id.indexOf("group.") == 0) && (id.indexOf(".all_") == -1) && (!entity.isView)) {
         result["userGroups"].add(id);
       }
@@ -125,7 +129,7 @@ class EntityCollection {
     entities.forEach((entiyId) {
       bool foundInGroup = false;
       result["userGroups"].forEach((userGroupId) {
-        if (_entities[userGroupId].childEntityIds.contains(entiyId)) {
+        if (_allEntities[userGroupId].childEntityIds.contains(entiyId)) {
           foundInGroup = true;
         }
       });

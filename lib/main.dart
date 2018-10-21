@@ -207,6 +207,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         //_instanceConfig = _homeAssistant.instanceConfig;
         _entities = _homeAssistant.entities;
         _uiViewsCount = _homeAssistant.viewsCount;
+        TheLogger.log("Debug","_uiViewsCount=$_uiViewsCount");
         _isLoading = 0;
       });
     }).catchError((e) {
@@ -239,7 +240,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   List<Tab> buildUIViewTabs() {
-    //TODO move somewhere to ViewBuilder
     List<Tab> result = [];
     if (!_entities.isEmpty) {
       if (!_entities.hasDefaultView) {
@@ -253,10 +253,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             )
         );
       }
-      _entities.viewList.forEach((viewId) {
+      _entities.views.forEach((viewId, groupEntity) {
         result.add(
             Tab(
-                icon: MaterialDesignIcons.createIconWidgetFromEntityData(_entities.get(viewId), 24.0, null) ??
+                icon: MaterialDesignIcons.createIconWidgetFromEntityData(groupEntity, 24.0, null) ??
                     Icon(
                       MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
                       size: 24.0,

@@ -32,9 +32,6 @@ class ViewBuilder{
     List<Entity> entitiesForView = [];
     userGroupsList["userGroups"].forEach((groupId){
       Entity en = entityCollection.get(groupId);
-      if (en.isGroup) {
-        en.childEntities = entityCollection.getAll(en.childEntityIds);
-      }
       entitiesForView.add(en);
     });
     userGroupsList["notGroupedEntities"].forEach((entityId){
@@ -49,26 +46,12 @@ class ViewBuilder{
   List<View> _composeViews() {
     List<View> result = [];
     int counter = 0;
-    entityCollection.viewList.forEach((viewId) {
+    entityCollection.views.forEach((viewId, viewGroupEntity) {
       counter += 1;
       //try {
-        Entity viewGroupEntity = entityCollection.get(viewId);
-        List<Entity> entitiesForView = [];
-        viewGroupEntity.childEntityIds.forEach((
-            entityId) { //Each entity or group in view
-          if (entityCollection.isExist(entityId)) {
-            Entity en = entityCollection.get(entityId);
-            if (en.isGroup) {
-              en.childEntities = entityCollection.getAll(en.childEntityIds);
-            }
-            entitiesForView.add(en);
-          } else {
-            TheLogger.log("Warning", "Unknown entity inside view: $entityId");
-          }
-        });
         result.add(View(
           count: counter,
-          entities: entitiesForView
+          entities: viewGroupEntity.childEntities
         ));
       /*} catch (error) {
         TheLogger.log("Error","Error parsing view: $viewId");

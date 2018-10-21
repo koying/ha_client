@@ -38,7 +38,7 @@ class HomeAssistant {
   String get locationName => _instanceConfig["location_name"] ?? "";
   String get userName => _userName ?? locationName;
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
-  int get viewsCount => _entities.viewList.length ?? 0;
+  int get viewsCount => _entities.views.length ?? 0;
 
   EntityCollection get entities => _entities;
 
