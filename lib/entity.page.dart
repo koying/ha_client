@@ -17,7 +17,6 @@ class _EntityViewPageState extends State<EntityViewPage> {
   @override
   void initState() {
     super.initState();
-    if (_stateSubscription != null) _stateSubscription.cancel();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
       if (event.entityId == widget.entity.entityId) {
         setState(() {});
