@@ -781,14 +781,12 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   Color _tmpColor;
   bool _changedHere = false;
   String _tmpEffect;
-  String _tmpFlash;
 
   void _resetState(LightEntity entity) {
     _tmpBrightness = entity.brightness;
     _tmpColorTemp = entity.colorTemp;
     _tmpColor = entity.color;
     _tmpEffect = null;
-    _tmpFlash = null;
   }
 
   void _setBrightness(LightEntity entity, double value) {
@@ -842,18 +840,6 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_on", entity.entityId,
             {"effect": "$value"}));
-      }
-    });
-  }
-
-  void _setFlash(LightEntity entity, String value) {
-    setState(() {
-      _tmpFlash = value;
-      _changedHere = true;
-      if (_tmpFlash != null) {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_on", entity.entityId,
-            {"flash": "$value"}));
       }
     });
   }
@@ -956,7 +942,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildColorControl(LightEntity entity) {
-    if ((entity.supportColor)&&(entity.color != null)) {
+    if ((entity.supportColor) && (entity.color != null)) {
       Color backColor = Color.fromRGBO(255, 255, 255, 0.0);
       if ((_tmpColor.red >=228) && (_tmpColor.green >=228) && (_tmpColor.blue >=228)) {
         backColor = Colors.black12;
@@ -1014,7 +1000,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildEffectControl(LightEntity entity) {
-    if (entity.supportEffect) {
+    if ((entity.supportEffect) && (entity.effectList != null)) {
       return ModeSelectorWidget(
         onChange: (effect) => _setEffect(entity, effect),
         caption: "Effect",
