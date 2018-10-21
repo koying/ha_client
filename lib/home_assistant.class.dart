@@ -192,7 +192,6 @@ class HomeAssistant {
 
   _handleMessage(String message) {
     var data = json.decode(message);
-    TheLogger.log("Debug","[Received] => ${data['type']}");
     if (data["type"] == "auth_required") {
       _sendAuthMessageRaw('{"type": "auth","$_authType": "$_password"}');
     } else if (data["type"] == "auth_ok") {
@@ -210,10 +209,11 @@ class HomeAssistant {
       } else if (data["id"] == _userInfoMessageId) {
         _parseUserInfo(data);
       } else if (data["id"] == _currentMessageId) {
-        TheLogger.log("Debug","Request id:$_currentMessageId was successful");
+        TheLogger.log("Debug","[Received] => Request id:$_currentMessageId was successful");
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
+        TheLogger.log("Debug","[Received] => ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
         TheLogger.log("Warning","Unhandled event type: ${data["event"]["event_type"]}");
