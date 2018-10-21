@@ -38,6 +38,7 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
       );
     } else {
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           IconButton(
             onPressed: () => _setNewState(false, entity),
