@@ -16,7 +16,7 @@ class CardWidget extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     if (entityModel != null) {
       final groupEntity = entityModel.entity;
-      if (groupEntity.isHidden) {
+      if ((groupEntity!= null) && (groupEntity.isHidden)) {
         return Container(width: 0.0, height: 0.0,);
       }
     }
