@@ -964,33 +964,24 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildColorControl(LightEntity entity) {
     if ((entity.supportColor) && (entity.color != null)) {
-      Color backColor = Color.fromRGBO(255, 255, 255, 0.0);
-      if ((_tmpColor.red >=228) && (_tmpColor.green >=228) && (_tmpColor.blue >=228)) {
-        backColor = Colors.black12;
-      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(height: Entity.rowPadding,),
-          GestureDetector(
-            child: Container(
-              width: 250.0,
-              child: Text(
-                "Color",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 50.0,
-                    fontWeight: FontWeight.bold,
-                    color: _tmpColor ?? Colors.black45,
-                ),
-              ),
-              decoration: BoxDecoration(
-                color: backColor
+          RaisedButton(
+            onPressed: () => _showColorPicker(entity),
+            color: _tmpColor ?? Colors.black45,
+            child: Text(
+              "COLOR",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 50.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black12,
               ),
             ),
-            onTap: () => _showColorPicker(entity),
           ),
-          Container(height: Entity.rowPadding,),
+          Container(height: 2*Entity.rowPadding,),
         ],
       );
     } else {
