@@ -783,7 +783,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   String _tmpEffect;
 
   void _resetState(LightEntity entity) {
-    _tmpBrightness = entity.brightness;
+    _tmpBrightness = entity.brightness ?? 0;
     _tmpColorTemp = entity.colorTemp;
     _tmpColor = entity.color;
     _tmpEffect = null;
