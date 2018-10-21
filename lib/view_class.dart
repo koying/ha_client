@@ -14,7 +14,7 @@ class View {
   }) {
     childEntitiesAsBadges = [];
     childEntitiesAsCards = {};
-    _composeEntities();
+    _filterEntities();
   }
 
   Widget buildWidget(BuildContext context) {
@@ -24,7 +24,7 @@ class View {
     );
   }
 
-  void _composeEntities() {
+  void _filterEntities() {
     entities.forEach((Entity entity){
       if (!entity.isGroup) {
         if (entity.isBadge) {
