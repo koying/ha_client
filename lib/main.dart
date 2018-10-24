@@ -28,7 +28,7 @@ part 'group_based_ui.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.3";
+const appVersion = "0.3.3.44";
 
 String homeAssistantWebHost;
 
