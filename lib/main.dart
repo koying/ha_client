@@ -85,7 +85,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   String _webSocketApiEndpoint;
   String _password;
   String _authType;
-  int _uiViewsCount = 0;
+  //int _uiViewsCount = 0;
   String _instanceHost;
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
@@ -155,6 +155,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _subscribe() {
     if (_stateSubscription == null) {
+      //TODO Move to homeAssistant or remove
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
         setState(() {
           if (event.localChange) {
@@ -203,8 +204,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       setState(() {
         //_instanceConfig = _homeAssistant.instanceConfig;
         _entities = _homeAssistant.entities;
-        _uiViewsCount = _homeAssistant.viewsCount;
-        TheLogger.log("Debug","_uiViewsCount=$_uiViewsCount");
+        //_uiViewsCount = _homeAssistant.viewsCount;
+        //TheLogger.log("Debug","_uiViewsCount=$_uiViewsCount");
         _isLoading = 0;
       });
     }).catchError((e) {
@@ -238,28 +239,31 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
-    if (!_entities.isEmpty) {
-      if (!_entities.hasDefaultView) {
-        result.add(
-            Tab(
-                icon:
+    if (_homeAssistant.ui.views.isNotEmpty) {
+      _homeAssistant.ui.views.forEach((HACView view) {
+        if (view.linkedEntity == null) {
+          result.add(
+              Tab(
+                  icon:
                   Icon(
                     MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
                     size: 24.0,
                   )
-            )
-        );
-      }
-      _entities.views.forEach((viewId, groupEntity) {
-        result.add(
-            Tab(
-                icon: MaterialDesignIcons.createIconWidgetFromEntityData(groupEntity, 24.0, null) ??
-                    Icon(
-                      MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
-                      size: 24.0,
-                    )
-            )
-        );
+              )
+          );
+        } else {
+          result.add(
+              Tab(
+                  icon: MaterialDesignIcons.createIconWidgetFromEntityData(
+                      view.linkedEntity, 24.0, null) ??
+                      Icon(
+                        MaterialDesignIcons.createIconDataFromIconName(
+                            "mdi:home-assistant"),
+                        size: 24.0,
+                      )
+              )
+          );
+        }
       });
     }
     return result;
@@ -475,11 +479,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called.
-    if (_entities == null) {
+    if (_homeAssistant.entities.isEmpty) {
       return _buildScaffold(true);
     } else {
       return DefaultTabController(
-          length: _uiViewsCount,
+          length: _homeAssistant.ui.views.length,
           child: _buildScaffold(false)
       );
     }

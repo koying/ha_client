@@ -3,21 +3,21 @@ part of 'main.dart';
 class EntityCollection {
 
   Map<String, Entity> _allEntities;
-  Map<String, Entity> views;
+  //Map<String, Entity> views;
 
   bool get isEmpty => _allEntities.isEmpty;
   List<Entity> get viewEntities => _allEntities.values.where((entity) => entity.isView).toList();
 
   EntityCollection() {
     _allEntities = {};
-    views = {};
+    //views = {};
   }
 
   bool get hasDefaultView => _allEntities.keys.contains("group.default_view");
 
   void parse(List rawData) {
     _allEntities.clear();
-    views.clear();
+    //views.clear();
 
     TheLogger.log("Debug","Parsing ${rawData.length} Home Assistant entities");
     rawData.forEach((rawEntityData) {
@@ -27,9 +27,9 @@ class EntityCollection {
       if ((entity.isGroup) && (entity.childEntityIds != null)) {
         entity.childEntities = getAll(entity.childEntityIds);
       }
-      if (entity.isView) {
+      /*if (entity.isView) {
         views[entityId] = entity;
-      }
+      }*/
     });
   }
 

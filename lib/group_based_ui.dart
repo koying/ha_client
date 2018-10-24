@@ -79,7 +79,6 @@ class NewViewWidgetState extends State<NewViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    TheLogger.log("Debug", "--Building view ${widget.view.id}");
     return RefreshIndicator(
       color: Colors.amber,
       child: ListView(
@@ -173,7 +172,6 @@ class NewCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TheLogger.log("Debug", "----Building card ${card.id}");
     if ((card.linkedEntity!= null) && (card.linkedEntity.isHidden)) {
         return Container(width: 0.0, height: 0.0,);
     }
@@ -189,9 +187,6 @@ class NewCardWidget extends StatelessWidget {
     var result;
     if ((card.name != null) && (card.name.trim().length > 0)) {
       result = new ListTile(
-        //leading: const Icon(Icons.device_hub),
-        //subtitle: Text(".."),
-        //trailing: Text("${data["state"]}"),
         title: Text("${card.name}",
             textAlign: TextAlign.left,
             overflow: TextOverflow.ellipsis,
@@ -207,7 +202,6 @@ class NewCardWidget extends StatelessWidget {
     List<Widget> result = [];
     card.entities.forEach((Entity entity) {
       if (!entity.isHidden) {
-        TheLogger.log("Debug", "------entity ${entity.entityId}");
         result.add(
             Padding(
               padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
