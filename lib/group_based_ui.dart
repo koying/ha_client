@@ -116,7 +116,9 @@ class NewViewWidgetState extends State<NewViewWidget> {
   List<Widget> _buildBadges(BuildContext context) {
     List<Widget> result = [];
     widget.view.badges.forEach((Entity entity) {
-      result.add(entity.buildBadgeWidget(context));
+      if (!entity.isHidden) {
+        result.add(entity.buildBadgeWidget(context));
+      }
     });
     return result;
   }
@@ -204,12 +206,14 @@ class NewCardWidget extends StatelessWidget {
   List<Widget> _buildCardBody(BuildContext context) {
     List<Widget> result = [];
     card.entities.forEach((Entity entity) {
-      TheLogger.log("Debug", "------entity ${entity.entityId}");
-      result.add(
-          Padding(
-            padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-            child: entity.buildDefaultWidget(context),
-          ));
+      if (!entity.isHidden) {
+        TheLogger.log("Debug", "------entity ${entity.entityId}");
+        result.add(
+            Padding(
+              padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+              child: entity.buildDefaultWidget(context),
+            ));
+      }
     });
     return result;
   }
