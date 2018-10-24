@@ -6,13 +6,14 @@ class EntityCollection {
   Map<String, Entity> views;
 
   bool get isEmpty => _allEntities.isEmpty;
+  List<Entity> get viewEntities => _allEntities.values.where((entity) => entity.isView).toList();
 
   EntityCollection() {
     _allEntities = {};
     views = {};
   }
 
-  bool get hasDefaultView => _allEntities["group.default_view"] != null;
+  bool get hasDefaultView => _allEntities.keys.contains("group.default_view");
 
   void parse(List rawData) {
     _allEntities.clear();
@@ -114,31 +115,32 @@ class EntityCollection {
     return _allEntities[entityId] != null;
   }
 
-  Map<String,List<String>> getDefaultViewTopLevelEntities() {
-    Map<String,List<String>> result = {"userGroups": [], "notGroupedEntities": []};
-    List<String> entities = [];
+  List<Entity> filterEntitiesForDefaultView() {
+    List<Entity> result = [];
+    List<Entity> groups = [];
+    List<Entity> nonGroupEntities = [];
     _allEntities.forEach((id, entity){
       if ((id.indexOf("group.") == 0) && (id.indexOf(".all_") == -1) && (!entity.isView)) {
-        result["userGroups"].add(id);
+        groups.add(entity);
       }
       if (!entity.isGroup) {
-        entities.add(id);
+        nonGroupEntities.add(entity);
       }
     });
 
-    entities.forEach((entiyId) {
+    nonGroupEntities.forEach((entity) {
       bool foundInGroup = false;
-      result["userGroups"].forEach((userGroupId) {
-        if (_allEntities[userGroupId].childEntityIds.contains(entiyId)) {
+      groups.forEach((groupEntity) {
+        if (groupEntity.childEntityIds.contains(entity.entityId)) {
           foundInGroup = true;
         }
       });
       if (!foundInGroup) {
-        result["notGroupedEntities"].add(entiyId);
+        result.add(entity);
       }
     });
+    result.insertAll(0, groups);
 
     return result;
   }
-
 }

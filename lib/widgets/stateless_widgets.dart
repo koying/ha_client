@@ -113,7 +113,6 @@ class EntityIcon extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(
             Entity.leftWidgetPadding, 0.0, 12.0, 0.0),
-        //TODO: move createIconWidgetFromEntityData into this widget
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
             entityModel.entity,
             Entity.iconSize,

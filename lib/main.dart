@@ -14,10 +14,9 @@ import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
 
-part 'entity_class/entity.class.dart';
-part 'entity_class/stateless_widgets.dart';
-part 'entity_class/stateful_widgets.dart';
-
+part 'entity.class.dart';
+part 'widgets/stateless_widgets.dart';
+part 'widgets/stateful_widgets.dart';
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
@@ -25,9 +24,7 @@ part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
-part 'view_builder.class.dart';
-part 'view_class.dart';
-part 'card_class.dart';
+part 'group_based_ui.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
