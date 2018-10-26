@@ -142,7 +142,7 @@ class _TextInputStateWidgetState extends State<TextInputStateWidget> {
             }),
       );
     } else {
-      TheLogger.log("Warning", "Unsupported input mode for ${entity.entityId}");
+      TheLogger.warning( "Unsupported input mode for ${entity.entityId}");
       return SimpleEntityState();
     }
   }
@@ -694,7 +694,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     final CoverEntity entity = entityModel.entity;
-    TheLogger.log("debug", "${entity.state}");
+    TheLogger.debug("${entity.state}");
     if (_changedHere) {
       _changedHere = false;
     } else {
@@ -841,7 +841,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     setState(() {
       _tmpColor = color;
       _changedHere = true;
-      TheLogger.log("Debug", "Color: [${color.red}, ${color.green}, ${color.blue}]");
+      TheLogger.debug( "Color: [${color.red}, ${color.green}, ${color.blue}]");
       if ((color == Colors.black) || ((color.red == color.green) && (color.green == color.blue)))  {
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_off", entity.entityId,

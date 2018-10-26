@@ -19,7 +19,7 @@ class EntityCollection {
     _allEntities.clear();
     //views.clear();
 
-    TheLogger.log("Debug","Parsing ${rawData.length} Home Assistant entities");
+    TheLogger.debug("Parsing ${rawData.length} Home Assistant entities");
     rawData.forEach((rawEntityData) {
       addFromRaw(rawEntityData);
     });

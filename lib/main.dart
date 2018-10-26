@@ -34,7 +34,7 @@ String homeAssistantWebHost;
 
 void main() {
   FlutterError.onError = (errorDetails) {
-    TheLogger.log("Error", "${errorDetails.exception}");
+    TheLogger.error( "${errorDetails.exception}");
     if (TheLogger.isInDebugMode) {
       FlutterError.dumpErrorToConsole(errorDetails);
     }
@@ -43,7 +43,8 @@ void main() {
   runZoned(() {
     runApp(new HAClientApp());
   }, onError: (error, stack) {
-    TheLogger.log("Global error", "$error");
+    TheLogger.error("$error");
+    TheLogger.error("$stack");
     if (TheLogger.isInDebugMode) {
       debugPrint("$stack");
     }
@@ -107,7 +108,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _homeAssistant = HomeAssistant();
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
-      TheLogger.log("Debug","Settings change event: reconnect=${event.reconnect}");
+      TheLogger.debug("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
         _homeAssistant.disconnect().then((_){
           _initialLoad();
@@ -131,7 +132,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    TheLogger.log("Debug","$state");
+    TheLogger.debug("$state");
     if (state == AppLifecycleState.resumed && _settingsLoaded) {
       _refreshData();
     }
@@ -207,7 +208,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         //_instanceConfig = _homeAssistant.instanceConfig;
         _entities = _homeAssistant.entities;
         //_uiViewsCount = _homeAssistant.viewsCount;
-        //TheLogger.log("Debug","_uiViewsCount=$_uiViewsCount");
+        //TheLogger.debug("_uiViewsCount=$_uiViewsCount");
         _isLoading = 0;
       });
     }).catchError((e) {

@@ -51,7 +51,6 @@ class _LogViewPageState extends State<LogViewPage> {
       ),
       body: TextField(
         maxLines: null,
-
         controller: TextEditingController(
             text: _logData
         ),

@@ -20,12 +20,25 @@ class TheLogger {
     return inDebugMode;
   }
 
-  static void log(String level, String message) {
+  static void error(String message) {
+    _writeToLog("Error", message);
+  }
+
+  static void warning(String message) {
+    _writeToLog("Warning", message);
+  }
+
+  static void debug(String message) {
+    _writeToLog("Debug", message);
+  }
+
+  static void _writeToLog(String level, String message) {
     if (isInDebugMode) {
       debugPrint('$message');
     }
-    _log.add("[$level] :  $message");
-    if (_log.length > 50) {
+    DateTime t = DateTime.now();
+    _log.add("${formatDate(t, ["mm","dd"," ","HH",":","nn",":","ss"])} [$level] :  $message");
+    if (_log.length > 100) {
       _log.removeAt(0);
     }
   }
@@ -37,7 +50,7 @@ class HAUtils {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      TheLogger.log("Error", "Could not launch $url");
+      TheLogger.error( "Could not launch $url");
     }
   }
 }

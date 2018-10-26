@@ -55,16 +55,16 @@ class HomeAssistant {
     _password = password;
     _authType = authType;
     _useLovelace = useLovelace;
-    TheLogger.log("Debug", "Use lovelace is $_useLovelace");
+    TheLogger.debug( "Use lovelace is $_useLovelace");
   }
 
   Future fetch() {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
-      TheLogger.log("Warning","Previous fetch is not complited");
+      TheLogger.warning("Previous fetch is not complited");
     } else {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
-        TheLogger.log("Error", "Data fetching timeout");
+        TheLogger.error( "Data fetching timeout");
         disconnect().then((_) {
           _completeFetching({
             "errorCode": 9,
@@ -84,7 +84,7 @@ class HomeAssistant {
   disconnect() async {
     if ((_hassioChannel != null) && (_hassioChannel.closeCode == null) && (_hassioChannel.sink != null)) {
       await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
-        onTimeout: () => TheLogger.log("Debug", "Socket sink closed")
+        onTimeout: () => TheLogger.debug( "Socket sink closed")
       );
       await _socketSubscription.cancel();
       _hassioChannel = null;
@@ -94,15 +94,15 @@ class HomeAssistant {
 
   Future _connection() {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
-      TheLogger.log("Debug","Previous connection is not complited");
+      TheLogger.debug("Previous connection is not complited");
     } else {
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
         _connectionCompleter = new Completer();
         autoReconnect = false;
         disconnect().then((_){
-          TheLogger.log("Debug", "Socket connecting...");
+          TheLogger.debug( "Socket connecting...");
           _connectionTimer = Timer(connectTimeout, () {
-            TheLogger.log("Error", "Socket connection timeout");
+            TheLogger.error( "Socket connection timeout");
             _handleSocketError(null);
           });
           if (_socketSubscription != null) {
@@ -125,15 +125,15 @@ class HomeAssistant {
   }
 
   void _handleSocketClose() {
-    TheLogger.log("Debug","Socket disconnected. Automatic reconnect is $autoReconnect");
+    TheLogger.debug("Socket disconnected. Automatic reconnect is $autoReconnect");
     if (autoReconnect) {
       _reconnect();
     }
   }
 
   void _handleSocketError(e) {
-    TheLogger.log("Error","Socket stream Error: $e");
-    TheLogger.log("Debug","Automatic reconnect is $autoReconnect");
+    TheLogger.error("Socket stream Error: $e");
+    TheLogger.debug("Automatic reconnect is $autoReconnect");
     if (autoReconnect) {
       _reconnect();
     } else {
@@ -180,7 +180,7 @@ class HomeAssistant {
         _fetchCompleter.completeError(error);
       } else {
         autoReconnect = true;
-        TheLogger.log("Debug", "Fetch complete successful");
+        TheLogger.debug( "Fetch complete successful");
         _fetchCompleter.complete();
       }
     }
@@ -220,19 +220,19 @@ class HomeAssistant {
       } else if (data["id"] == _userInfoMessageId) {
         _parseUserInfo(data);
       } else if (data["id"] == _currentMessageId) {
-        TheLogger.log("Debug","[Received] => Request id:$_currentMessageId was successful");
+        TheLogger.debug("[Received] => Request id:$_currentMessageId was successful");
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
-        TheLogger.log("Debug","[Received] => ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
+        TheLogger.debug("[Received] => ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
-        TheLogger.log("Warning","Unhandled event type: ${data["event"]["event_type"]}");
+        TheLogger.warning("Unhandled event type: ${data["event"]["event_type"]}");
       } else {
-        TheLogger.log("Error","Event is null: $message");
+        TheLogger.error("Event is null: $message");
       }
     } else {
-      TheLogger.log("Warning","Unknown message type: $message");
+      TheLogger.warning("Unknown message type: $message");
     }
   }
 
@@ -292,7 +292,7 @@ class HomeAssistant {
   }
 
   void _sendAuthMessageRaw(String message) {
-    TheLogger.log("Debug", "[Sending] ==> auth request");
+    TheLogger.debug( "[Sending] ==> auth request");
     _hassioChannel.sink.add(message);
   }
 
@@ -301,11 +301,11 @@ class HomeAssistant {
     if (queued) _messageQueue.add(message);
     _connection().then((r) {
       _messageQueue.getActualMessages().forEach((message){
-        TheLogger.log("Debug", "[Sending queued] ==> $message");
+        TheLogger.debug( "[Sending queued] ==> $message");
         _hassioChannel.sink.add(message);
       });
       if (!queued) {
-        TheLogger.log("Debug", "[Sending] ==> $message");
+        TheLogger.debug( "[Sending] ==> $message");
         _hassioChannel.sink.add(message);
       }
       sendCompleter.complete();
@@ -332,7 +332,7 @@ class HomeAssistant {
   }
 
   void _handleEntityStateChange(Map eventData) {
-    //TheLogger.log("Debug", "New state for ${eventData['entity_id']}");
+    //TheLogger.debug( "New state for ${eventData['entity_id']}");
     Map data = Map.from(eventData);
     entities.updateState(data);
     eventBus.fire(new StateChangedEvent(data["entity_id"], null, false));
@@ -371,12 +371,12 @@ class HomeAssistant {
 
   void _parseLovelace() {
       ui = HomeAssistantUI();
-      TheLogger.log("debug","Parsing lovelace config");
-      TheLogger.log("debug","--Title: ${_rawLovelaceData["title"]}");
+      TheLogger.debug("Parsing lovelace config");
+      TheLogger.debug("--Title: ${_rawLovelaceData["title"]}");
       int viewCounter = 0;
-      TheLogger.log("debug","--Views count: ${_rawLovelaceData['views'].length}");
+      TheLogger.debug("--Views count: ${_rawLovelaceData['views'].length}");
       _rawLovelaceData["views"].forEach((rawView){
-        TheLogger.log("debug","----view id: ${rawView['id']}");
+        TheLogger.debug("----view id: ${rawView['id']}");
         HAView view = HAView(
             count: viewCounter,
             id: rawView['id'],
@@ -395,10 +395,10 @@ class HomeAssistant {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
       if (rawCard["cards"] != null) {
-        TheLogger.log("debug","------card: ${rawCard['type']} has child cards");
+        TheLogger.debug("------card: ${rawCard['type']} has child cards");
         result.addAll(_createLovelaceCards(rawCard["cards"]));
       } else {
-        TheLogger.log("debug","------card: ${rawCard['type']}");
+        TheLogger.debug("------card: ${rawCard['type']}");
         HACard card = HACard(
             id: "card",
             name: rawCard["title"]
@@ -436,7 +436,7 @@ class HomeAssistant {
       ui = HomeAssistantUI();
       int viewCounter = 0;
       if (!entities.hasDefaultView) {
-        TheLogger.log("Debug", "--Default view");
+        TheLogger.debug( "--Default view");
         HAView view = HAView(
             count: viewCounter,
             id: "group.default_view",
@@ -449,7 +449,7 @@ class HomeAssistant {
         viewCounter += 1;
       }
       entities.viewEntities.forEach((viewEntity) {
-        TheLogger.log("Debug", "--View: ${viewEntity.entityId}");
+        TheLogger.debug( "--View: ${viewEntity.entityId}");
         HAView view = HAView(
             count: viewCounter,
             id: viewEntity.entityId,
@@ -473,9 +473,9 @@ class HomeAssistant {
     DateTime now = DateTime.now();
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    TheLogger.log("Debug", "$startTime");
+    TheLogger.debug( "$startTime");
     String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId&skip_initial_state";
-    TheLogger.log("Debug", "$url");
+    TheLogger.debug( "$url");
     http.Response historyResponse;
     if (_authType == "access_token") {
       historyResponse = await http.get(url, headers: {
@@ -492,7 +492,7 @@ class HomeAssistant {
     if (_history is Map) {
       return null;
     } else if (_history is List) {
-      TheLogger.log("Debug", "${_history[0].toString()}");
+      TheLogger.debug( "${_history[0].toString()}");
       return _history;
     }
   }
