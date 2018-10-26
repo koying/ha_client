@@ -4,6 +4,7 @@ class HomeAssistant {
   String _webSocketAPIEndpoint;
   String _password;
   String _authType;
+  bool _useLovelace;
 
   IOWebSocketChannel _hassioChannel;
   SendMessageQueue _messageQueue;
@@ -14,14 +15,18 @@ class HomeAssistant {
   int _subscriptionMessageId = 0;
   int _configMessageId = 0;
   int _userInfoMessageId = 0;
+  int _lovelaceMessageId = 0;
   EntityCollection entities;
-  GroupBasedUI ui;
+  HomeAssistantUI ui;
   Map _instanceConfig = {};
   String _userName;
+
+  Map _rawLovelaceData;
 
   Completer _fetchCompleter;
   Completer _statesCompleter;
   Completer _servicesCompleter;
+  Completer _lovelaceCompleter;
   Completer _configCompleter;
   Completer _connectionCompleter;
   Completer _userInfoCompleter;
@@ -45,10 +50,12 @@ class HomeAssistant {
     _messageQueue = SendMessageQueue(messageExpirationTime);
   }
 
-  void updateConnectionSettings(String url, String password, String authType) {
+  void updateSettings(String url, String password, String authType, bool useLovelace) {
     _webSocketAPIEndpoint = url;
     _password = password;
     _authType = authType;
+    _useLovelace = useLovelace;
+    TheLogger.log("Debug", "Use lovelace is $_useLovelace");
   }
 
   Future fetch() {
@@ -150,11 +157,15 @@ class HomeAssistant {
   _getData() async {
     List<Future> futures = [];
     futures.add(_getStates());
+    if (_useLovelace) {
+      futures.add(_getLovelace());
+    }
     futures.add(_getConfig());
     futures.add(_getServices());
     futures.add(_getUserInfo());
     try {
       await Future.wait(futures);
+      _createUI();
       _completeFetching(null);
     } catch (error) {
       _completeFetching(error);
@@ -202,6 +213,8 @@ class HomeAssistant {
         _parseConfig(data);
       } else if (data["id"] == _statesMessageId) {
         _parseEntities(data);
+      } else if (data["id"] == _lovelaceMessageId) {
+        _handleLovelace(data);
       } else if (data["id"] == _servicesMessageId) {
         _parseServices(data);
       } else if (data["id"] == _userInfoMessageId) {
@@ -245,6 +258,15 @@ class HomeAssistant {
     _sendMessageRaw('{"id": $_statesMessageId, "type": "get_states"}', false);
 
     return _statesCompleter.future;
+  }
+
+  Future _getLovelace() {
+    _lovelaceCompleter = new Completer();
+    _incrementMessageId();
+    _lovelaceMessageId = _currentMessageId;
+    _sendMessageRaw('{"id": $_lovelaceMessageId, "type": "lovelace/config"}', false);
+
+    return _lovelaceCompleter.future;
   }
 
   Future _getUserInfo() {
@@ -336,28 +358,66 @@ class HomeAssistant {
 
   void _parseServices(response) {
     _servicesCompleter.complete();
-    /*if (response["success"] == false) {
-      _servicesCompleter.completeError({"errorCode": 4, "errorMessage": response["error"]["message"]});
-      return;
+  }
+
+  void _handleLovelace(response) {
+    if (response["success"] == true) {
+      _rawLovelaceData = response["result"];
+    } else {
+      _rawLovelaceData = null;
     }
-    try {
-      Map data = response["result"];
-      Map result = {};
-      TheLogger.log("Debug","Parsing ${data.length} Home Assistant service domains");
-      data.forEach((domain, services) {
-        result[domain] = Map.from(services);
-        services.forEach((serviceName, serviceData) {
-          if (_entitiesData.isExist("$domain.$serviceName")) {
-            result[domain].remove(serviceName);
+    _lovelaceCompleter.complete();
+  }
+
+  void _parseLovelace() {
+      ui = HomeAssistantUI();
+      TheLogger.log("debug","Parsing lovelace config");
+      TheLogger.log("debug","--Title: ${_rawLovelaceData["title"]}");
+      int viewCounter = 0;
+      TheLogger.log("debug","--Views count: ${_rawLovelaceData['views'].length}");
+      _rawLovelaceData["views"].forEach((rawView){
+        TheLogger.log("debug","----view id: ${rawView['id']}");
+        HAView view = HAView(
+            count: viewCounter,
+            id: rawView['id'],
+            name: rawView['title'],
+            iconName: rawView['icon']
+        );
+        view.cards.addAll(_createLovelaceCards(rawView["cards"] ?? []));
+        ui.views.add(
+            view
+        );
+        viewCounter += 1;
+      });
+  }
+
+  List<HACard> _createLovelaceCards(List rawCards) {
+    List<HACard> result = [];
+    rawCards.forEach((rawCard){
+      if (rawCard["cards"] != null) {
+        TheLogger.log("debug","------card: ${rawCard['type']} has child cards");
+        result.addAll(_createLovelaceCards(rawCard["cards"]));
+      } else {
+        TheLogger.log("debug","------card: ${rawCard['type']}");
+        HACard card = HACard(
+            id: "card",
+            name: rawCard["title"]
+        );
+        rawCard["entities"]?.forEach((rawEntity) {
+          if (rawEntity is String) {
+            if (entities.isExist(rawEntity)) {
+              card.entities.add(entities.get(rawEntity));
+            }
+          } else {
+            if (entities.isExist(rawEntity["entity"])) {
+              card.entities.add(entities.get(rawEntity["entity"]));
+            }
           }
         });
-      });
-      _servicesData = result;
-      _servicesCompleter.complete();
-    } catch (e) {
-      TheLogger.log("Error","Error parsing services. But they are not used :-)");
-      _servicesCompleter.complete();
-    }*/
+        result.add(card);
+      }
+    });
+    return result;
   }
 
   void _parseEntities(response) async {
@@ -366,80 +426,46 @@ class HomeAssistant {
       return;
     }
     entities.parse(response["result"]);
-
-
-    ui = GroupBasedUI();
-    int viewCounter = 0;
-    //TODO add default_view
-    if (!entities.hasDefaultView) {
-      TheLogger.log("Debug","--Default view");
-      HACView view = HACView(
-          count: viewCounter,
-          id: "group.default_view",
-          name: "Home"
-      );
-      _createView(view, entities.filterEntitiesForDefaultView(), viewCounter);
-      ui.views.add(
-          view
-      );
-      viewCounter+=1;
-    }
-    entities.viewEntities.forEach((viewEntity) {
-      TheLogger.log("Debug","--View: ${viewEntity.entityId}");
-      HACView view = HACView(
-          count: viewCounter,
-          id: viewEntity.entityId,
-          name: viewEntity.displayName
-      );
-      view.linkedEntity = viewEntity;
-      _createView(view, viewEntity.childEntities, viewCounter);
-      ui.views.add(
-        view
-      );
-      viewCounter += 1;
-    });
-
-
     _statesCompleter.complete();
   }
 
-  void _createView(HACView view, List<Entity> childEntities, int viewCounter) {
-    List<HACCard> autoGeneratedCards = [];
-    childEntities.forEach((entity) {
-      if (entity.isBadge) {
-        view.badges.add(entity);
-        TheLogger.log("Debug","----Badge: ${entity.entityId}");
-      } else {
-        if (!entity.isGroup) {
-          String groupIdToAdd = "${entity.domain}.${entity.domain}$viewCounter";
-          if (autoGeneratedCards.every((HACCard card) => card.id != groupIdToAdd )) {
-            HACCard card = HACCard(
-                id: groupIdToAdd,
-                name: entity.domain
-            );
-            TheLogger.log("Debug","----Creating card: $groupIdToAdd");
-            card.entities.add(entity);
-            autoGeneratedCards.add(card);
-          } else {
-            autoGeneratedCards.firstWhere((card) => card.id == groupIdToAdd).entities.add(entity);
-          }
-        } else {
-          TheLogger.log("Debug","----Card: ${entity.entityId}");
-          HACCard card = HACCard(
-              name: entity.displayName,
-              id: entity.entityId,
-              linkedEntity: entity
-          );
-          card.entities.addAll(entity.childEntities);
-          view.cards.add(card);
-        }
+  void _createUI() {
+    if ((_useLovelace) && (_rawLovelaceData != null)) {
+      _parseLovelace();
+    } else {
+      ui = HomeAssistantUI();
+      int viewCounter = 0;
+      if (!entities.hasDefaultView) {
+        TheLogger.log("Debug", "--Default view");
+        HAView view = HAView(
+            count: viewCounter,
+            id: "group.default_view",
+            name: "Home",
+            childEntities: entities.filterEntitiesForDefaultView()
+        );
+        ui.views.add(
+            view
+        );
+        viewCounter += 1;
       }
-    });
-    view.cards.addAll(autoGeneratedCards);
+      entities.viewEntities.forEach((viewEntity) {
+        TheLogger.log("Debug", "--View: ${viewEntity.entityId}");
+        HAView view = HAView(
+            count: viewCounter,
+            id: viewEntity.entityId,
+            name: viewEntity.displayName,
+            childEntities: viewEntity.childEntities
+        );
+        view.linkedEntity = viewEntity;
+        ui.views.add(
+            view
+        );
+        viewCounter += 1;
+      });
+    }
   }
 
-  Widget buildViews(BuildContext context) {
-    //return _viewBuilder.buildWidget(context);
+  Widget buildViews(BuildContext context, bool lovelace) {
     return ui.build(context);
   }
 

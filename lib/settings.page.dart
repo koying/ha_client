@@ -20,6 +20,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newSocketProtocol = "wss";
   String _authType = "access_token";
   String _newAuthType = "access_token";
+  bool _useLovelace = false;
+  bool _newUseLovelace = false;
   bool _edited = false;
   FocusNode _domainFocusNode;
   FocusNode _portFocusNode;
@@ -46,6 +48,11 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       _hassioPassword = _newHassioPassword = prefs.getString("hassio-password") ?? "";
       _socketProtocol = _newSocketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
       _authType = _newAuthType = prefs.getString("hassio-auth-type") ?? 'access_token';
+      try {
+        _useLovelace = _newUseLovelace = prefs.getBool("use-lovelace") ?? false;
+      } catch (e) {
+        _useLovelace = _newUseLovelace = false;
+      }
     });
   }
 
@@ -55,7 +62,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
           (_newHassioPort != _hassioPort) ||
           (_newHassioDomain != _hassioDomain) ||
           (_newSocketProtocol != _socketProtocol) ||
-          (_newAuthType != _authType));
+          (_newAuthType != _authType) ||
+          (_newUseLovelace != _useLovelace));
     });
   }
 
@@ -70,6 +78,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-protocol", _newSocketProtocol);
     prefs.setString("hassio-res-protocol", _newSocketProtocol == "wss" ? "https" : "http");
     prefs.setString("hassio-auth-type", _newAuthType);
+    prefs.setBool("use-lovelace", _newUseLovelace);
   }
 
   @override
@@ -95,6 +104,13 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
+          Text(
+              "Connection settings",
+              style: TextStyle(
+                color: Colors.black45,
+                fontSize: 20.0
+              ),
+          ),
           new Row(
             children: [
               Text("Use ssl (HTTPS)"),
@@ -172,7 +188,29 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             },
             focusNode: _passwordFocusNode,
             onEditingComplete: _checkConfigChanged,
-          )
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 20.0),
+            child: Text(
+              "UI",
+              style: TextStyle(
+                  color: Colors.black45,
+                  fontSize: 20.0
+              ),
+            ),
+          ),
+          new Row(
+            children: [
+              Text("Use Lovelace UI"),
+              Switch(
+                value: _newUseLovelace,
+                onChanged: (value) {
+                  _newUseLovelace = value;
+                  _checkConfigChanged();
+                },
+              )
+            ],
+          ),
         ],
       ),
     );

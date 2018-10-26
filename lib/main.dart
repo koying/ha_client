@@ -24,7 +24,7 @@ part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
-part 'group_based_ui.dart';
+part 'ui.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
@@ -62,7 +62,7 @@ class HAClientApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => MainPage(title: 'HA Client'),
-        "/connection-settings": (context) => ConnectionSettingsPage(title: "Connection Settings"),
+        "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
         "/log-view": (context) => LogViewPage(title: "Log")
       },
     );
@@ -96,6 +96,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   int _isLoading = 1;
   bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
+  bool _useLovelaceUI;
 
   @override
   void initState() {
@@ -145,6 +146,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
     _password = prefs.getString('hassio-password');
     _authType = prefs.getString('hassio-auth-type');
+    _useLovelaceUI = prefs.getBool('use-lovelace') ?? false;
     if ((domain == null) || (port == null) || (_password == null) ||
         (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
       throw("Check connection settings");
@@ -195,7 +197,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _refreshData() async {
-    _homeAssistant.updateConnectionSettings(_webSocketApiEndpoint, _password, _authType);
+    _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _authType, _useLovelaceUI);
     setState(() {
       _hideErrorSnackBar();
       _isLoading = 1;
@@ -239,33 +241,36 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
-    if (_homeAssistant.ui.views.isNotEmpty) {
-      _homeAssistant.ui.views.forEach((HACView view) {
-        if (view.linkedEntity == null) {
-          result.add(
-              Tab(
-                  icon:
-                  Icon(
-                    MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
-                    size: 24.0,
-                  )
-              )
-          );
-        } else {
-          result.add(
-              Tab(
-                  icon: MaterialDesignIcons.createIconWidgetFromEntityData(
-                      view.linkedEntity, 24.0, null) ??
-                      Icon(
-                        MaterialDesignIcons.createIconDataFromIconName(
-                            "mdi:home-assistant"),
-                        size: 24.0,
-                      )
-              )
-          );
-        }
-      });
-    }
+
+      if (_homeAssistant.ui.views.isNotEmpty) {
+        _homeAssistant.ui.views.forEach((HAView view) {
+          if (view.linkedEntity == null) {
+            result.add(
+                Tab(
+                    icon:
+                    Icon(
+                      MaterialDesignIcons.createIconDataFromIconName(
+                          view.iconName ?? "mdi:home-assistant"),
+                      size: 24.0,
+                    )
+                )
+            );
+          } else {
+            result.add(
+                Tab(
+                    icon: MaterialDesignIcons.createIconWidgetFromEntityData(
+                        view.linkedEntity, 24.0, null) ??
+                        Icon(
+                          MaterialDesignIcons.createIconDataFromIconName(
+                              "mdi:home-assistant"),
+                          size: 24.0,
+                        )
+                )
+            );
+          }
+        });
+      }
+
     return result;
   }
 
@@ -319,7 +324,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       menuItems.addAll([
         ListTile(
           leading: Icon(Icons.settings),
-          title: Text("Connection settings"),
+          title: Text("Settings"),
           onTap: () {
             Navigator.of(context).pop();
             Navigator.of(context).pushNamed('/connection-settings');
@@ -452,6 +457,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             });
           },
         ),
+        primary: true,
         bottom: empty ? null : TabBar(
             tabs: buildUIViewTabs(),
             isScrollable: true,
@@ -472,7 +478,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           ),
         )
         :
-        _homeAssistant.buildViews(context)
+        _homeAssistant.buildViews(context, _useLovelaceUI)
     );
   }
 
