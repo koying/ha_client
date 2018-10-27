@@ -1,29 +1,4 @@
-part of 'main.dart';
-
-class HomeAssistantUI {
-  List<HAView> views;
-
-  HomeAssistantUI() {
-    views = [];
-  }
-
-  Widget build(BuildContext context) {
-    return TabBarView(
-        children: _buildViews(context)
-    );
-  }
-
-  List<Widget> _buildViews(BuildContext context) {
-    List<Widget> result = [];
-    views.forEach((view) {
-      result.add(
-        view.build(context)
-      );
-    });
-    return result;
-  }
-
-}
+part of '../main.dart';
 
 class HAView {
   List<HACard> cards = [];
@@ -80,28 +55,28 @@ class HAView {
   }
 
   Widget build(BuildContext context) {
-    return NewViewWidget(
+    return HAViewWidget(
       view: this,
     );
   }
 }
 
-class NewViewWidget extends StatefulWidget {
+class HAViewWidget extends StatefulWidget {
   final HAView view;
 
-  const NewViewWidget({
+  const HAViewWidget({
     Key key,
     this.view
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return NewViewWidgetState();
+    return HAViewWidgetState();
   }
 
 }
 
-class NewViewWidgetState extends State<NewViewWidget> {
+class HAViewWidgetState extends State<HAViewWidget> {
 
   StreamSubscription _refreshDataSubscription;
   Completer _refreshCompleter;
@@ -145,7 +120,7 @@ class NewViewWidgetState extends State<NewViewWidget> {
     widget.view.cards.forEach((HACard card){
       result.add(
           card.build(context)
-        );
+      );
     });
 
     return result;
@@ -177,78 +152,5 @@ class NewViewWidgetState extends State<NewViewWidget> {
     super.dispose();
   }
 
-
-}
-
-class HACard {
-  List<Entity> entities = [];
-  Entity linkedEntity;
-  String name;
-  String id;
-
-  HACard({
-    this.name,
-    this.id,
-    this.linkedEntity
-  });
-
-  Widget build(BuildContext context) {
-    return NewCardWidget(
-      card: this,
-    );
-  }
-
-}
-
-class NewCardWidget extends StatelessWidget {
-
-  final HACard card;
-
-  const NewCardWidget({
-    Key key,
-    this.card
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if ((card.linkedEntity!= null) && (card.linkedEntity.isHidden)) {
-        return Container(width: 0.0, height: 0.0,);
-    }
-    List<Widget> body = [];
-    body.add(_buildCardHeader());
-    body.addAll(_buildCardBody(context));
-    return Card(
-        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
-    );
-  }
-
-  Widget _buildCardHeader() {
-    var result;
-    if ((card.name != null) && (card.name.trim().length > 0)) {
-      result = new ListTile(
-        title: Text("${card.name}",
-            textAlign: TextAlign.left,
-            overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
-      );
-    } else {
-      result = new Container(width: 0.0, height: 0.0);
-    }
-    return result;
-  }
-
-  List<Widget> _buildCardBody(BuildContext context) {
-    List<Widget> result = [];
-    card.entities.forEach((Entity entity) {
-      if (!entity.isHidden) {
-        result.add(
-            Padding(
-              padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-              child: entity.buildDefaultWidget(context),
-            ));
-      }
-    });
-    return result;
-  }
 
 }
