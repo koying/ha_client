@@ -401,7 +401,8 @@ class HomeAssistant {
         TheLogger.debug("------card: ${rawCard['type']}");
         HACard card = HACard(
             id: "card",
-            name: rawCard["title"]
+            name: rawCard["title"],
+            type: rawCard['type']
         );
         rawCard["entities"]?.forEach((rawEntity) {
           if (rawEntity is String) {
@@ -414,6 +415,9 @@ class HomeAssistant {
             }
           }
         });
+        if (rawCard["entity"] != null) {
+          card.linkedEntity = entities.get(rawCard["entity"]);
+        }
         result.add(card);
       }
     });

@@ -53,9 +53,13 @@ part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
-part 'ui/ui.dart';
-part 'ui/view.class.dart';
-part 'ui/card.class.dart';
+part 'ui_class/ui.dart';
+part 'ui_class/view.class.dart';
+part 'ui_class/card.class.dart';
+part 'ui_widgets/view.dart';
+part 'ui_widgets/entities_card.dart';
+part 'ui_widgets/unsupported_card.dart';
+part 'ui_widgets/media_control_card.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";

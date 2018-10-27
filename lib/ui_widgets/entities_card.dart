@@ -1,30 +1,10 @@
 part of '../main.dart';
 
-class HACard {
-  List<Entity> entities = [];
-  Entity linkedEntity;
-  String name;
-  String id;
-
-  HACard({
-    this.name,
-    this.id,
-    this.linkedEntity
-  });
-
-  Widget build(BuildContext context) {
-    return HACardWidget(
-      card: this,
-    );
-  }
-
-}
-
-class HACardWidget extends StatelessWidget {
+class EntitiesCardWidget extends StatelessWidget {
 
   final HACard card;
 
-  const HACardWidget({
+  const EntitiesCardWidget({
     Key key,
     this.card
   }) : super(key: key);
