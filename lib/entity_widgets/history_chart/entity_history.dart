@@ -2,15 +2,24 @@ part of '../../main.dart';
 
 class EntityHistoryWidgetType {
   static const int simple = 0;
-  static const int valueToTime = 1;
-  static const int randomColors = 2;
+  static const int numericState = 1;
+  static const int numericAttributes = 2;
+}
+
+class EntityHistoryConfig {
+  final int chartType;
+  final List<String> numericAttributesToShow;
+  final bool numericState;
+
+  EntityHistoryConfig({this.chartType, this.numericAttributesToShow, this.numericState: true});
+
 }
 
 class EntityHistoryWidget extends StatefulWidget {
 
-  final int type;
+  final EntityHistoryConfig config;
 
-  const EntityHistoryWidget({Key key, @required this.type}) : super(key: key);
+  const EntityHistoryWidget({Key key, @required this.config}) : super(key: key);
 
   @override
   _EntityHistoryWidgetState createState() {
@@ -74,7 +83,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     }
     children.add(Divider());
     return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, Entity.rowPadding),
       child: Column(
         children: children,
       ),
@@ -82,20 +91,34 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   }
 
   Widget _selectChartWidget() {
-    switch (widget.type) {
+    TheLogger.debug("  selecting history widget (${widget.config.chartType})");
+    switch (widget.config.chartType) {
+
       case EntityHistoryWidgetType.simple: {
+          TheLogger.debug("  Simple selected");
           return SimpleStateHistoryChartWidget(
             rawHistory: _history,
           );
       }
 
-      case EntityHistoryWidgetType.valueToTime: {
+      case EntityHistoryWidgetType.numericState: {
+        TheLogger.debug("  EntityHistory selected");
         return NumericStateHistoryChartWidget(
           rawHistory: _history,
+          config: widget.config,
+        );
+      }
+
+      case EntityHistoryWidgetType.numericAttributes: {
+        TheLogger.debug("  NumericAttributes selected");
+        return CombinedHistoryChartWidget(
+          rawHistory: _history,
+          config: widget.config,
         );
       }
 
       default: {
+        TheLogger.debug("  Simple selected as default");
         return SimpleStateHistoryChartWidget(
           rawHistory: _history,
         );

@@ -7,7 +7,10 @@ class SunEntity extends Entity {
 class SensorEntity extends Entity {
 
   @override
-  int historyWidgetType = EntityHistoryWidgetType.valueToTime;
+  EntityHistoryConfig historyConfig = EntityHistoryConfig(
+      chartType: EntityHistoryWidgetType.numericState,
+      numericState: true
+  );
 
   SensorEntity(Map rawData) : super(rawData);
 

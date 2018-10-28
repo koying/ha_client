@@ -39,7 +39,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
           selectedState: selectedState,
           onPrevTap: () => _selectPrev(),
           onNextTap: () => _selectNext(),
-          colorIndex: _selectedId,
+          colorIndex: _parsedHistory.first.data[_selectedId].colorId,
         ),
         SizedBox(
           height: 70.0,
@@ -68,6 +68,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
   List<charts.Series<SimpleEntityStateHistoryMoment, DateTime>> _parseHistory() {
     List<SimpleEntityStateHistoryMoment> data = [];
     DateTime now = DateTime.now();
+    Map<String, int> cachedStates = {};
     for (var i = 0; i < widget.rawHistory.length; i++) {
       var stateData = widget.rawHistory[i];
       DateTime startTime = DateTime.tryParse(stateData["last_updated"])?.toLocal();
@@ -77,9 +78,12 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
       } else {
         endTime = now;
       }
-      data.add(SimpleEntityStateHistoryMoment(stateData["state"], startTime, endTime, i));
+      if (cachedStates[stateData["state"]] == null) {
+        cachedStates.addAll({"${stateData["state"]}": cachedStates.length});
+      }
+      data.add(SimpleEntityStateHistoryMoment(stateData["state"], startTime, endTime, i, cachedStates[stateData["state"]]));
     }
-    data.add(SimpleEntityStateHistoryMoment(data.last.state, now, null, widget.rawHistory.length));
+    data.add(SimpleEntityStateHistoryMoment(data.last.state, now, null, widget.rawHistory.length, data.last.colorId));
     if (_selectedId == -1) {
       _selectedId = 0;
     }
@@ -87,7 +91,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
       new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
         id: 'State',
         strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 70.0 : 40.0,
-        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.id),
+        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
         domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
         measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 0,
         data: data,
@@ -205,6 +209,7 @@ class SimpleEntityStateHistoryMoment {
   final DateTime endTime;
   final String state;
   final int id;
+  final int colorId;
 
-  SimpleEntityStateHistoryMoment(this.state, this.startTime, this.endTime,  this.id);
+  SimpleEntityStateHistoryMoment(this.state, this.startTime, this.endTime,  this.id, this.colorId);
 }

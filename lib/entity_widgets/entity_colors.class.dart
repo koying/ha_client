@@ -48,7 +48,7 @@ class EntityColors {
         charts.Color c1 = charts.MaterialPalette.getOrderedPalettes(id + 1)[id].shadeDefault;
         return Color.fromARGB(c1.a, c1.r, c1.g, c1.b);
       } else {
-        return _stateColors["default"];
+        return _stateColors["on"];
       }
     }
   }

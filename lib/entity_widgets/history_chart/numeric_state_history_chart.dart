@@ -2,8 +2,9 @@ part of '../../main.dart';
 
 class NumericStateHistoryChartWidget extends StatefulWidget {
   final rawHistory;
+  final EntityHistoryConfig config;
 
-  const NumericStateHistoryChartWidget({Key key, this.rawHistory}) : super(key: key);
+  const NumericStateHistoryChartWidget({Key key, @required this.rawHistory, @required this.config}) : super(key: key);
 
 
   @override
@@ -86,15 +87,15 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
     return [
       new charts.Series<NumericEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("unavailable", historyMoment.id),
+        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("on", -1),
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
         measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
         data: data,
       ),
       new charts.Series<NumericEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 2.0,
-        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("off", historyMoment.id),
+        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
+        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("on", -1),
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
         measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
         data: data,
@@ -111,7 +112,7 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
   }
 
   void _selectNext() {
-    if (_selectedId < (_parsedHistory.first.data.length - 2)) {
+    if (_selectedId < (_parsedHistory.first.data.length - 1)) {
       setState(() {
         _selectedId += 1;
       });

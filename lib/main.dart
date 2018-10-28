@@ -41,6 +41,7 @@ part 'entity_widgets/entity_page_container.dart';
 part 'entity_widgets/history_chart/entity_history.dart';
 part 'entity_widgets/history_chart/simple_state_history_chart.dart';
 part 'entity_widgets/history_chart/numeric_state_history_chart.dart';
+part 'entity_widgets/history_chart/combined_history_chart.dart';
 part 'entity_widgets/state/switch_state.dart';
 part 'entity_widgets/state/slider_state.dart';
 part 'entity_widgets/state/text_input_state.dart';

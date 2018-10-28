@@ -4,6 +4,13 @@ class ClimateEntity extends Entity {
   @override
   double widgetHeight = 38.0;
 
+  @override
+  EntityHistoryConfig historyConfig = EntityHistoryConfig(
+    chartType: EntityHistoryWidgetType.numericAttributes,
+    numericState: false,
+    numericAttributesToShow: ["temperature", "current_temperature"]
+  );
+
   static const SUPPORT_TARGET_TEMPERATURE = 1;
   static const SUPPORT_TARGET_TEMPERATURE_HIGH = 2;
   static const SUPPORT_TARGET_TEMPERATURE_LOW = 4;

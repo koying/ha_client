@@ -38,7 +38,9 @@ class Entity {
 
   List<Entity> childEntities = [];
   List<String> attributesToShow = ["all"];
-  int historyWidgetType = EntityHistoryWidgetType.simple;
+  EntityHistoryConfig historyConfig = EntityHistoryConfig(
+    chartType: EntityHistoryWidgetType.simple
+  );
 
   String get displayName =>
       attributes["friendly_name"] ?? (attributes["name"] ?? "_");
@@ -136,7 +138,7 @@ class Entity {
 
   Widget buildHistoryWidget() {
     return EntityHistoryWidget(
-      type: historyWidgetType,
+      config: historyConfig,
     );
   }
 
