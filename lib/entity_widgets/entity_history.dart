@@ -169,10 +169,10 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     DateTime now = DateTime.now();
     for (var i = 0; i < _history.length; i++) {
       var stateData = _history[i];
-      DateTime startTime = DateTime.tryParse(stateData["last_updated"]);
+      DateTime startTime = DateTime.tryParse(stateData["last_updated"])?.toLocal();
       DateTime endTime;
       if (i < (_history.length - 1)) {
-        endTime = DateTime.tryParse(_history[i+1]["last_updated"]);
+        endTime = DateTime.tryParse(_history[i+1]["last_updated"])?.toLocal();
       } else {
         endTime = now;
       }
