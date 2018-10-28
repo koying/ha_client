@@ -36,6 +36,7 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
           selectedState: "$selectedState",
           onPrevTap: () => _selectPrev(),
           onNextTap: () => _selectNext(),
+          colorIndex: -1,
         ),
         SizedBox(
           height: 150.0,
@@ -79,18 +80,21 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
       data.add(NumericEntityStateHistoryMoment(double.tryParse(stateData["state"]), time, i));
     }
     data.add(NumericEntityStateHistoryMoment(data.last.value, now, widget.rawHistory.length));
+    if (_selectedId == -1) {
+      _selectedId = 0;
+    }
     return [
       new charts.Series<NumericEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.historyStateColor("unavailable"),
+        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("unavailable", historyMoment.id),
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
         measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
         data: data,
       ),
       new charts.Series<NumericEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 4.0 : 2.0,
-        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? EntityColors.historyStateColor("on") : EntityColors.historyStateColor("off"),
+        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 2.0,
+        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("off", historyMoment.id),
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
         measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
         data: data,

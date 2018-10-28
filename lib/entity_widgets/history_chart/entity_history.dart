@@ -22,7 +22,6 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
 
   List _history;
   bool _needToUpdateHistory;
-  int _selectedId = -1;
 
   @override
   void initState() {
@@ -66,7 +65,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
       );
     } else if (_history.isEmpty) {
       children.add(
-          Text("No history for last 24h")
+          Text("No history")
       );
     } else {
       children.add(

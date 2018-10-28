@@ -39,6 +39,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
           selectedState: selectedState,
           onPrevTap: () => _selectPrev(),
           onNextTap: () => _selectNext(),
+          colorIndex: _selectedId,
         ),
         SizedBox(
           height: 70.0,
@@ -79,11 +80,14 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
       data.add(SimpleEntityStateHistoryMoment(stateData["state"], startTime, endTime, i));
     }
     data.add(SimpleEntityStateHistoryMoment(data.last.state, now, null, widget.rawHistory.length));
+    if (_selectedId == -1) {
+      _selectedId = 0;
+    }
     return [
       new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
         id: 'State',
         strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 70.0 : 40.0,
-        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.historyStateColor(historyMoment.state),
+        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.id),
         domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
         measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 0,
         data: data,
@@ -131,8 +135,9 @@ class HistoryControlWidget extends StatelessWidget {
   final DateTime selectedTimeStart;
   final DateTime selectedTimeEnd;
   final String selectedState;
+  final int colorIndex;
 
-  const HistoryControlWidget({Key key, this.onPrevTap, this.onNextTap, this.selectedTimeStart, this.selectedTimeEnd, this.selectedState}) : super(key: key);
+  const HistoryControlWidget({Key key, this.onPrevTap, this.onNextTap, this.selectedTimeStart, this.selectedTimeEnd, this.selectedState, @ required this.colorIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +161,7 @@ class HistoryControlWidget extends StatelessWidget {
                     textAlign: TextAlign.right,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: EntityColors.stateColor(selectedState),
+                        color: EntityColors.historyStateColor(selectedState, colorIndex),
                         fontSize: 22.0
                     ),
                   ),
@@ -173,7 +178,7 @@ class HistoryControlWidget extends StatelessWidget {
           );
 
     } else {
-      return Container(height: 32.0);
+      return Container(height: 48.0);
     }
   }
 
@@ -187,11 +192,9 @@ class HistoryControlWidget extends StatelessWidget {
           Text("${formatDate(selectedTimeEnd, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,)
       );
     }
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 
