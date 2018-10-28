@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 part 'entity_class/entity.class.dart';
 part 'entity_class/switch_entity.class.dart';
@@ -25,7 +26,7 @@ part 'entity_class/light_entity.class.dart';
 part 'entity_class/select_entity.class.dart';
 part 'entity_class/sun_entity.class.dart';
 part 'entity_widgets/badge.dart';
-part 'entity_widgets/entity_model.dart';
+part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
 part 'entity_widgets/entity_attributes_list.dart';
 part 'entity_widgets/entity_icon.dart';
@@ -34,6 +35,7 @@ part 'entity_widgets/last_updated.dart';
 part 'entity_widgets/mode_swicth.dart';
 part 'entity_widgets/mode_selector.dart';
 part 'entity_widgets/entity_page_container.dart';
+part 'entity_widgets/entity_history.dart';
 part 'entity_widgets/state/switch_state.dart';
 part 'entity_widgets/state/slider_state.dart';
 part 'entity_widgets/state/text_input_state.dart';
@@ -63,7 +65,7 @@ part 'ui_widgets/media_control_card.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.3.45";
+const appVersion = "0.3.3.47";
 
 String homeAssistantWebHost;
 

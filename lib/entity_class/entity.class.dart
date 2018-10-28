@@ -132,11 +132,17 @@ class Entity {
         DefaultEntityContainer(state: _buildStatePartForPage(context), height: widgetHeight),
         LastUpdatedWidget(),
         Divider(),
+        buildHistoryWidget(),
         _buildAdditionalControlsForPage(context),
-        Divider(),
         EntityAttributesList()
       ]),
       handleTap: false,
+    );
+  }
+
+  Widget buildHistoryWidget() {
+    return EntityHistoryWidget(
+      type: EntityHistoryWidgetType.simplest,
     );
   }
 

@@ -478,7 +478,7 @@ class HomeAssistant {
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     TheLogger.debug( "$startTime");
-    String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId&skip_initial_state";
+    String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
     TheLogger.debug( "$url");
     http.Response historyResponse;
     if (_authType == "access_token") {
@@ -492,12 +492,12 @@ class HomeAssistant {
         "Content-Type": "application/json"
       });
     }
-    var _history = json.decode(historyResponse.body);
-    if (_history is Map) {
-      return null;
-    } else if (_history is List) {
-      TheLogger.debug( "${_history[0].toString()}");
-      return _history;
+    var history = json.decode(historyResponse.body);
+    if (history is List) {
+      TheLogger.debug( "${history.toString()}");
+      return history;
+    } else {
+      return [];
     }
   }
 }

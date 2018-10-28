@@ -52,7 +52,10 @@ class _EntityViewPageState extends State<EntityViewPage> {
       ),
       body: Padding(
           padding: EdgeInsets.all(10.0),
-          child: widget.entity.buildEntityPageWidget(context)
+          child: HomeAssistantModel(
+              homeAssistant: widget.homeAssistant,
+              child: widget.entity.buildEntityPageWidget(context)
+          )
       ),
     );
   }

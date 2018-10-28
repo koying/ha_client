@@ -20,3 +20,23 @@ class EntityModel extends InheritedWidget {
     return true;
   }
 }
+
+class HomeAssistantModel extends InheritedWidget {
+
+  const HomeAssistantModel({
+    Key key,
+    @required this.homeAssistant,
+    @required Widget child,
+  }) : super(key: key, child: child);
+
+  final HomeAssistant homeAssistant;
+
+  static HomeAssistantModel of(BuildContext context) {
+    return context.inheritFromWidgetOfExactType(HomeAssistantModel);
+  }
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) {
+    return true;
+  }
+}
