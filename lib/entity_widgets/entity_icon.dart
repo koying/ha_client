@@ -11,8 +11,8 @@ class EntityIcon extends StatelessWidget {
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
             entityModel.entity,
             Entity.iconSize,
-            Entity.STATE_ICONS_COLORS[entityModel.entity.state] ??
-                Entity.STATE_ICONS_COLORS["default"]),
+            EntityColors.stateColor(entityModel.entity.state)
+        ),
       ),
       onTap: () => entityModel.handleTap
           ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))

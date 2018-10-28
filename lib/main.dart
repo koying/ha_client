@@ -35,7 +35,8 @@ part 'entity_widgets/last_updated.dart';
 part 'entity_widgets/mode_swicth.dart';
 part 'entity_widgets/mode_selector.dart';
 part 'entity_widgets/entity_page_container.dart';
-part 'entity_widgets/entity_history.dart';
+part 'entity_widgets/history_chart/entity_history.dart';
+part 'entity_widgets/history_chart/simple_state_history_chart.dart';
 part 'entity_widgets/state/switch_state.dart';
 part 'entity_widgets/state/slider_state.dart';
 part 'entity_widgets/state/text_input_state.dart';
@@ -65,7 +66,7 @@ part 'ui_widgets/media_control_card.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.3.47";
+const appVersion = "0.3.3.48";
 
 String homeAssistantWebHost;
 

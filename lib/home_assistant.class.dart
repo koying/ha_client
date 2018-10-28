@@ -477,7 +477,6 @@ class HomeAssistant {
     DateTime now = DateTime.now();
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    TheLogger.debug( "$startTime");
     String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
     TheLogger.debug( "$url");
     http.Response historyResponse;
@@ -494,7 +493,7 @@ class HomeAssistant {
     }
     var history = json.decode(historyResponse.body);
     if (history is List) {
-      TheLogger.debug( "${history.toString()}");
+      TheLogger.debug( "Got ${history.first.length} history recors");
       return history;
     } else {
       return [];

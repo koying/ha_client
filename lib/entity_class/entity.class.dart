@@ -1,14 +1,39 @@
 part of '../main.dart';
 
-class Entity {
-  static const STATE_ICONS_COLORS = {
+class EntityColors {
+  static const _stateColors = {
     "on": Colors.amber,
+    "auto": Colors.amber,
+    "idle": Colors.amber,
     "off": Color.fromRGBO(68, 115, 158, 1.0),
     "default": Color.fromRGBO(68, 115, 158, 1.0),
-    "unavailable": Colors.black12,
-    "unknown": Colors.black12,
-    "playing": Colors.amber
+    "heat": Colors.redAccent,
+    "cool": Colors.lightBlue,
+    "unavailable": Colors.black26,
+    "unknown": Colors.black26,
+    "playing": Colors.amber,
+    "above_horizon": Colors.amber,
+    "home":  Colors.amber,
   };
+
+  static Color stateColor(String state) {
+    return _stateColors[state] ?? _stateColors["default"];
+  }
+
+  static charts.Color historyStateColor(String state) {
+    Color c = stateColor(state);
+    return charts.Color(
+      r: c.red,
+      g: c.green,
+      b: c.blue,
+      a: c.alpha
+    );
+  }
+
+}
+
+class Entity {
+
   static const badgeColors = {
     "default": Color.fromRGBO(223, 76, 30, 1.0),
     "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
