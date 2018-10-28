@@ -71,7 +71,7 @@ part 'ui_widgets/media_control_card.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.3.48";
+const appVersion = "0.3.3.49";
 
 String homeAssistantWebHost;
 
