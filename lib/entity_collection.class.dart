@@ -38,6 +38,9 @@ class EntityCollection {
       case 'sun': {
         return SunEntity(rawEntityData);
       }
+      case 'sensor': {
+        return SensorEntity(rawEntityData);
+      }
       case "automation":
       case "input_boolean":
       case "switch": {

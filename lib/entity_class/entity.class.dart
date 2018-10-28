@@ -5,15 +5,19 @@ class EntityColors {
     "on": Colors.amber,
     "auto": Colors.amber,
     "idle": Colors.amber,
-    "off": Color.fromRGBO(68, 115, 158, 1.0),
-    "default": Color.fromRGBO(68, 115, 158, 1.0),
-    "heat": Colors.redAccent,
-    "cool": Colors.lightBlue,
-    "unavailable": Colors.black26,
-    "unknown": Colors.black26,
     "playing": Colors.amber,
     "above_horizon": Colors.amber,
     "home":  Colors.amber,
+    "open":  Colors.amber,
+    "off": Color.fromRGBO(68, 115, 158, 1.0),
+    "closed": Color.fromRGBO(68, 115, 158, 1.0),
+    "default": Color.fromRGBO(68, 115, 158, 1.0),
+    "heat": Colors.redAccent,
+    "cool": Colors.lightBlue,
+    "closing": Colors.cyan,
+    "opening": Colors.purple,
+    "unavailable": Colors.black26,
+    "unknown": Colors.black26,
   };
 
   static Color stateColor(String state) {
@@ -69,8 +73,8 @@ class Entity {
   DateTime _lastUpdated;
 
   List<Entity> childEntities = [];
-
   List<String> attributesToShow = ["all"];
+  int historyWidgetType = EntityHistoryWidgetType.simple;
 
   String get displayName =>
       attributes["friendly_name"] ?? (attributes["name"] ?? "_");
@@ -88,6 +92,7 @@ class Entity {
   List get childEntityIds => attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
   bool get isHidden => attributes["hidden"] ?? false;
+  double get doubleState => double.tryParse(state) ?? 0.0;
 
   Entity(Map rawData) {
     update(rawData);
@@ -167,7 +172,7 @@ class Entity {
 
   Widget buildHistoryWidget() {
     return EntityHistoryWidget(
-      type: EntityHistoryWidgetType.simplest,
+      type: historyWidgetType,
     );
   }
 

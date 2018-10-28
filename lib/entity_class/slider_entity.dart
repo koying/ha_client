@@ -1,16 +1,11 @@
 part of '../main.dart';
 
-class SunEntity extends Entity {
-  SunEntity(Map rawData) : super(rawData);
-}
-
 class SliderEntity extends Entity {
   SliderEntity(Map rawData) : super(rawData);
 
-  double get minValue => attributes["min"] ?? 0.0;
-  double get maxValue => attributes["max"] ?? 100.0;
-  double get valueStep => attributes["step"] ?? 1.0;
-  double get doubleState => double.tryParse(state) ?? 0.0;
+  double get minValue => _getDoubleAttributeValue("min") ?? 0.0;
+  double get maxValue =>_getDoubleAttributeValue("max") ?? 100.0;
+  double get valueStep => _getDoubleAttributeValue("step") ?? 1.0;
 
   @override
   Widget _buildStatePart(BuildContext context) {

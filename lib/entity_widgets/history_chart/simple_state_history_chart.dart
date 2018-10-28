@@ -162,15 +162,7 @@ class HistoryControlWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text("${formatDate(selectedTimeStart, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,),
-                    Text("${formatDate(selectedTimeEnd ?? selectedTimeStart, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,),
-                  ],
-                ),
-              ),
+              _buildTime(),
               IconButton(
                 icon: Icon(Icons.chevron_right),
                 padding: EdgeInsets.all(0.0),
@@ -183,6 +175,24 @@ class HistoryControlWidget extends StatelessWidget {
     } else {
       return Container(height: 32.0);
     }
+  }
+
+  Widget _buildTime() {
+    List<Widget> children = [];
+    children.add(
+        Text("${formatDate(selectedTimeStart, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,)
+    );
+    if (selectedTimeEnd != null) {
+      children.add(
+          Text("${formatDate(selectedTimeEnd, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,)
+      );
+    }
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
   }
 
 }

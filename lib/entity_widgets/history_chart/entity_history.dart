@@ -1,8 +1,9 @@
 part of '../../main.dart';
 
 class EntityHistoryWidgetType {
-  static const int simplest = 0;
+  static const int simple = 0;
   static const int valueToTime = 1;
+  static const int randomColors = 2;
 }
 
 class EntityHistoryWidget extends StatefulWidget {
@@ -69,9 +70,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
       );
     } else {
       children.add(
-          SimpleStateHistoryChartWidget(
-            rawHistory: _history
-          )
+          _selectChartWidget()
       );
     }
     children.add(Divider());
@@ -81,6 +80,29 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
         children: children,
       ),
     );
+  }
+
+  Widget _selectChartWidget() {
+    switch (widget.type) {
+      case EntityHistoryWidgetType.simple: {
+          return SimpleStateHistoryChartWidget(
+            rawHistory: _history,
+          );
+      }
+
+      case EntityHistoryWidgetType.valueToTime: {
+        return NumericStateHistoryChartWidget(
+          rawHistory: _history,
+        );
+      }
+
+      default: {
+        return SimpleStateHistoryChartWidget(
+          rawHistory: _history,
+        );
+      }
+    }
+
   }
 
 }
