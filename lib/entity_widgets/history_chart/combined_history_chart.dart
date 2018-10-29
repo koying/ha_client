@@ -117,6 +117,8 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
           domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
           measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
           data: dataItem,
+          /*domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.subtract(Duration(hours: 1)),
+          domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.add(Duration(hours: 1)),*/
         )
       ]);
     });
