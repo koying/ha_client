@@ -48,12 +48,9 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
                 tickProviderSpec:
                 new charts.BasicNumericTickProviderSpec(zeroBound: false)),
             dateTimeFactory: const charts.LocalDateTimeFactory(),
-            defaultRenderer: charts.LineRendererConfig(),
-            customSeriesRenderers: [
-              new charts.PointRendererConfig(
-                // ID used to link series to this renderer.
-                  customRendererId: 'valuePoints')
-            ],
+            defaultRenderer: charts.LineRendererConfig(
+              includePoints: true
+            ),
             /*primaryMeasureAxis: charts.NumericAxisSpec(
                 renderSpec: charts.NoneRenderSpec()
             ),*/
@@ -91,15 +88,8 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
         measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
         data: data,
-      ),
-      new charts.Series<NumericEntityStateHistoryMoment, DateTime>(
-        id: 'State',
         radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
-        colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("on", -1),
-        domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
-        measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
-        data: data,
-      )..setAttribute(charts.rendererIdKey, 'valuePoints')
+      )
     ];
   }
 

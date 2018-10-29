@@ -52,15 +52,10 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
                 tickProviderSpec:
                 new charts.BasicNumericTickProviderSpec(zeroBound: false)),
             dateTimeFactory: const charts.LocalDateTimeFactory(),
-            defaultRenderer: charts.LineRendererConfig(includeArea: false),
-            customSeriesRenderers: [
-              new charts.PointRendererConfig(
-                // ID used to link series to this renderer.
-                  customRendererId: 'valuePoints')
-            ],
-            /*primaryMeasureAxis: charts.NumericAxisSpec(
-                renderSpec: charts.NoneRenderSpec()
-            ),*/
+            defaultRenderer: charts.LineRendererConfig(
+              includeArea: false,
+              includePoints: true
+            ),
             selectionModels: [
               new charts.SelectionModelConfig(
                 type: charts.SelectionModelType.info,
@@ -118,18 +113,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
           id: "value",
           colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
-          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
-          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
-          data: dataItem,
-        ),
-        new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
-          id: "points",
           radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
-          colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
           domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
           measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
           data: dataItem,
-        )..setAttribute(charts.rendererIdKey, 'valuePoints')
+        )
       ]);
     });
     return result;

@@ -98,7 +98,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
     return [
       new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 6.0 : 4.0,
+        strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 6.0 : 3.0,
         colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
         domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
         measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 10,

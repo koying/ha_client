@@ -15,8 +15,6 @@ class EntityColors {
     "default": Color.fromRGBO(68, 115, 158, 1.0),
     "heat": Colors.redAccent,
     "cool": Colors.lightBlue,
-    "closing": Colors.cyan,
-    "opening": Colors.purple,
     "unavailable": Colors.black26,
     "unknown": Colors.black26,
   };
