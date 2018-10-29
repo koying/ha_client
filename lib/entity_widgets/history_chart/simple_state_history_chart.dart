@@ -56,6 +56,14 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
                 listener: (model) => _onSelectionChanged(model),
               )
             ],
+            customSeriesRenderers: [
+              new charts.PointRendererConfig(
+                // ID used to link series to this renderer.
+                  customRendererId: 'startValuePoints'),
+              new charts.PointRendererConfig(
+                // ID used to link series to this renderer.
+                  customRendererId: 'endValuePoints')
+            ],
             behaviors: [
               charts.PanAndZoomBehavior(),
             ],
@@ -90,12 +98,28 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
     return [
       new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
         id: 'State',
-        strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 70.0 : 40.0,
+        strokeWidthPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 6.0 : 4.0,
         colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
         domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-        measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 0,
+        measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 10,
         data: data,
-      )
+      ),
+      new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
+        id: 'State',
+        radiusPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 3.0,
+        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
+        domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
+        measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 10,
+        data: data,
+      )..setAttribute(charts.rendererIdKey, 'startValuePoints'),
+      new charts.Series<SimpleEntityStateHistoryMoment, DateTime>(
+        id: 'State',
+        radiusPxFn: (SimpleEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 3.0,
+        colorFn: (SimpleEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
+        domainFn: (SimpleEntityStateHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
+        measureFn: (SimpleEntityStateHistoryMoment historyMoment, _) => 10,
+        data: data,
+      )..setAttribute(charts.rendererIdKey, 'endValuePoints')
     ];
   }
 
