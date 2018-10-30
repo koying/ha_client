@@ -15,26 +15,11 @@ class EntitiesCardWidget extends StatelessWidget {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
-    body.add(_buildCardHeader());
+    body.add(CardHeaderWidget(name: card.name));
     body.addAll(_buildCardBody(context));
     return Card(
         child: new Column(mainAxisSize: MainAxisSize.min, children: body)
     );
-  }
-
-  Widget _buildCardHeader() {
-    var result;
-    if ((card.name != null) && (card.name.trim().length > 0)) {
-      result = new ListTile(
-        title: Text("${card.name}",
-            textAlign: TextAlign.left,
-            overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
-      );
-    } else {
-      result = new Container(width: 0.0, height: 0.0);
-    }
-    return result;
   }
 
   List<Widget> _buildCardBody(BuildContext context) {

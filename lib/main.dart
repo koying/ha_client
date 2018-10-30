@@ -68,6 +68,8 @@ part 'ui_widgets/view.dart';
 part 'ui_widgets/entities_card.dart';
 part 'ui_widgets/unsupported_card.dart';
 part 'ui_widgets/media_control_card.dart';
+part 'ui_widgets/card_header_widget.dart';
+
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";

@@ -15,7 +15,7 @@ class UnsupportedCardWidget extends StatelessWidget {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
-    body.add(_buildCardHeader());
+    body.add(CardHeaderWidget(name: card.name ?? ""));
     body.addAll(_buildCardBody(context));
     return Card(
         child: new Column(
@@ -26,31 +26,27 @@ class UnsupportedCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCardHeader() {
-    return ListTile(
-      title: Text("${card.name ?? card.type}",
-          textAlign: TextAlign.left,
-          overflow: TextOverflow.ellipsis,
-          style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0)),
-    );
-  }
-
   List<Widget> _buildCardBody(BuildContext context) {
     List<Widget> result = [];
-    result.addAll(<Widget>[
-      Padding(
-        padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, 0.0, Entity.rightWidgetPadding, 0.0),
-        child: Text("Card type '${card.type}' is not supported yet"),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
-        child: Text("Linked entity: ${card.linkedEntity?.entityId}"),
-      ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, Entity.rowPadding),
-        child: Text("Child entities: ${card.entities}"),
-      ),
-    ]);
+    if (card.linkedEntity != null) {
+      result.addAll(<Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
+            child: Text("'${card.type}' card is not supported yet"),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+            child: card.linkedEntity.buildDefaultWidget(context),
+          )
+      ]);
+    } else {
+      result.addAll(<Widget>[
+        Padding(
+          padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, Entity.rowPadding),
+          child: Text("'${card.type}' card is not supported yet"),
+        ),
+      ]);
+    }
     return result;
   }
 

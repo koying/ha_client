@@ -64,9 +64,6 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
                 // ID used to link series to this renderer.
                   customRendererId: 'endValuePoints')
             ],
-            behaviors: [
-              charts.PanAndZoomBehavior(),
-            ],
           ),
         )
       ],

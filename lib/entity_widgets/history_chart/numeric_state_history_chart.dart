@@ -60,9 +60,6 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
                 listener: (model) => _onSelectionChanged(model),
               )
             ],
-            behaviors: [
-              charts.PanAndZoomBehavior(),
-            ],
           ),
         )
       ],

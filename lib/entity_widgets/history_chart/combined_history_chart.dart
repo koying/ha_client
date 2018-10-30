@@ -62,9 +62,6 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
                 listener: (model) => _onSelectionChanged(model),
               )
             ],
-            behaviors: [
-              charts.PanAndZoomBehavior(),
-            ],
           ),
         )
       ],
