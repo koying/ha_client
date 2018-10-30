@@ -8,7 +8,8 @@ class ClimateEntity extends Entity {
   EntityHistoryConfig historyConfig = EntityHistoryConfig(
     chartType: EntityHistoryWidgetType.numericAttributes,
     numericState: false,
-    numericAttributesToShow: ["temperature", "current_temperature"]
+    numericAttributesToShow: ["temperature", "current_temperature"],
+    statesToShow: ["heat", "cool", "auto"]
   );
 
   static const SUPPORT_TARGET_TEMPERATURE = 1;

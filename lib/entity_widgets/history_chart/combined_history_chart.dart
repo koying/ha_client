@@ -28,8 +28,13 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     if ((_selectedId > -1) && (_parsedHistory != null) && (_parsedHistory.first.data.length >= (_selectedId + 1))) {
       selectedTime = _parsedHistory.first.data[_selectedId].startTime;
       _parsedHistory.where((item) { return item.id == "state"; }).forEach((item) {
-        selectedStates.add("${item.data[_selectedId].state}");
-        colorIndexes.add(item.data[_selectedId].colorId);
+        if (_selectedId < item.data.length) {
+          selectedStates.add(item.data[_selectedId].state);
+          colorIndexes.add(item.data[_selectedId].colorId);
+        } else {
+          selectedStates.add(null);
+          colorIndexes.add(-1);
+        }
       });
       _parsedHistory.where((item) { return item.id == "value"; }).forEach((item) {
         selectedStates.add("${item.data[_selectedId].value}");
@@ -104,10 +109,19 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         } else {
           endTime = now;
         }
+        String state;
+        if (widget.config.statesToShow != null) {
+          if (widget.config.statesToShow.isNotEmpty) {
+            state = widget.config.statesToShow.contains(stateData["state"]) ? stateData["state"] : null;
+          } else {
+            state = stateData["state"];
+          }
+        }
+
         if (stateData["attributes"] != null) {
-          data.add(CombinedEntityStateHistoryMoment(_parseToDouble(stateData["attributes"]["$attrName"]), stateData["state"], startTime, endTime, i, colorIdCounter));
+          data.add(CombinedEntityStateHistoryMoment(_parseToDouble(stateData["attributes"]["$attrName"]), state, startTime, endTime, i, colorIdCounter));
         } else {
-          data.add(CombinedEntityStateHistoryMoment(null, stateData["state"], startTime, endTime, i, colorIdCounter));
+          data.add(CombinedEntityStateHistoryMoment(null, state, startTime, endTime, i, colorIdCounter));
         }
       }
       data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
@@ -144,7 +158,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
           // No measure values are needed for symbol annotations.
           measureFn: (_, __) => null,
-          data: numericDataLists[numericDataLists.keys.first],
+          data: numericDataLists[numericDataLists.keys.first].where((hm) => hm.state != null).toList(),
         )
         // Configure our custom symbol annotation renderer for this series.
           ..setAttribute(charts.rendererIdKey, 'stateBars')
@@ -237,17 +251,26 @@ class CombinedHistoryControlWidget extends StatelessWidget {
   Widget _buildStates() {
     List<Widget> children = [];
     for (int i = 0; i < selectedStates.length; i++) {
-      children.add(
-          Text(
-            "${selectedStates[i]}",
-            textAlign: TextAlign.right,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: EntityColors.historyStateColor(selectedStates[i], colorIndexes[i]),
-                fontSize: 22.0
-            ),
-          )
-      );
+      if (selectedStates[i] != null) {
+        children.add(
+            Text(
+              "${selectedStates[i]}",
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: EntityColors.historyStateColor(
+                      selectedStates[i], colorIndexes[i]),
+                  fontSize: 20.0
+              ),
+            )
+        );
+      } else {
+        children.add(
+            Container(
+              height: 23.0,
+            )
+        );
+      }
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
