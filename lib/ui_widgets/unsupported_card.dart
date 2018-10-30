@@ -31,10 +31,6 @@ class UnsupportedCardWidget extends StatelessWidget {
     if (card.linkedEntity != null) {
       result.addAll(<Widget>[
           Padding(
-            padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
-            child: Text("'${card.type}' card is not supported yet"),
-          ),
-          Padding(
             padding: EdgeInsets.fromLTRB(0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
             child: card.linkedEntity.buildDefaultWidget(context),
           )
