@@ -26,7 +26,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     List<String> selectedStates = [];
     List<int> colorIndexes = [];
     if ((_selectedId > -1) && (_parsedHistory != null) && (_parsedHistory.first.data.length >= (_selectedId + 1))) {
-      selectedTime = _parsedHistory.first.data[_selectedId].time;
+      selectedTime = _parsedHistory.first.data[_selectedId].startTime;
+      _parsedHistory.where((item) { return item.id == "state"; }).forEach((item) {
+        selectedStates.add("${item.data[_selectedId].state}");
+        colorIndexes.add(item.data[_selectedId].colorId);
+      });
       _parsedHistory.where((item) { return item.id == "value"; }).forEach((item) {
         selectedStates.add("${item.data[_selectedId].value}");
         colorIndexes.add(item.data[_selectedId].colorId);
@@ -62,6 +66,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
                 listener: (model) => _onSelectionChanged(model),
               )
             ],
+            customSeriesRenderers: [
+              new charts.SymbolAnnotationRendererConfig(
+                customRendererId: "stateBars"
+              )
+            ],
           ),
         )
       ],
@@ -80,7 +89,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
 
   List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> _parseHistory() {
     TheLogger.debug("  parsing history...");
-    Map<String, List<CombinedEntityStateHistoryMoment>> dataList = {};
+    Map<String, List<CombinedEntityStateHistoryMoment>> numericDataLists = {};
     int colorIdCounter = 0;
     widget.config.numericAttributesToShow.forEach((String attrName) {
       TheLogger.debug("    parsing attribute $attrName");
@@ -88,37 +97,61 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       DateTime now = DateTime.now();
       for (var i = 0; i < widget.rawHistory.length; i++) {
         var stateData = widget.rawHistory[i];
-        DateTime time = DateTime.tryParse(stateData["last_updated"])?.toLocal();
-        if (stateData["attributes"] != null) {
-          data.add(CombinedEntityStateHistoryMoment(_parseToDouble(stateData["attributes"]["$attrName"]), stateData["state"], time, i, colorIdCounter));
+        DateTime startTime = DateTime.tryParse(stateData["last_updated"])?.toLocal();
+        DateTime endTime;
+        if (i < (widget.rawHistory.length - 1)) {
+          endTime = DateTime.tryParse(widget.rawHistory[i+1]["last_updated"])?.toLocal();
         } else {
-          data.add(CombinedEntityStateHistoryMoment(null, stateData["state"], time, i, colorIdCounter));
+          endTime = now;
+        }
+        if (stateData["attributes"] != null) {
+          data.add(CombinedEntityStateHistoryMoment(_parseToDouble(stateData["attributes"]["$attrName"]), stateData["state"], startTime, endTime, i, colorIdCounter));
+        } else {
+          data.add(CombinedEntityStateHistoryMoment(null, stateData["state"], startTime, endTime, i, colorIdCounter));
         }
       }
-      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.state, now, widget.rawHistory.length, colorIdCounter));
-      dataList.addAll({attrName: data});
+      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
+      numericDataLists.addAll({attrName: data});
       colorIdCounter += 1;
     });
 
-    if ((_selectedId == -1) && (dataList.isNotEmpty)) {
+    if ((_selectedId == -1) && (numericDataLists.isNotEmpty)) {
       _selectedId = 0;
     }
     List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> result = [];
-    dataList.forEach((attrName, dataItem) {
-      TheLogger.debug("  adding ${dataItem.length} data values");
-      result.addAll([
+    numericDataLists.forEach((attrName, dataList) {
+      TheLogger.debug("  adding ${dataList.length} data values");
+      result.add(
         new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
           id: "value",
           colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
           radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
-          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
+          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
           measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
-          data: dataItem,
+          data: dataList,
           /*domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.subtract(Duration(hours: 1)),
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.add(Duration(hours: 1)),*/
         )
-      ]);
+      );
     });
+    result.add(
+        new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
+          id: 'state',
+          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 6.0 : 4.0,
+          colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
+          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
+          domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
+          domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
+          // No measure values are needed for symbol annotations.
+          measureFn: (_, __) => null,
+          data: numericDataLists[numericDataLists.keys.first],
+        )
+        // Configure our custom symbol annotation renderer for this series.
+          ..setAttribute(charts.rendererIdKey, 'stateBars')
+        // Optional radius for the annotation shape. If not specified, this will
+        // default to the same radius as the points.
+          //..setAttribute(charts.boundsLineRadiusPxKey, 3.5)
+    );
     return result;
   }
 
@@ -241,11 +274,12 @@ class CombinedHistoryControlWidget extends StatelessWidget {
 }
 
 class CombinedEntityStateHistoryMoment {
-  final DateTime time;
+  final DateTime startTime;
+  final DateTime endTime;
   final double value;
   final int id;
   final int colorId;
   final String state;
 
-  CombinedEntityStateHistoryMoment(this.value, this.state, this.time,  this.id, this.colorId);
+  CombinedEntityStateHistoryMoment(this.value, this.state, this.startTime, this.endTime,  this.id, this.colorId);
 }
