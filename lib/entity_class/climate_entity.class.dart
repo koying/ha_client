@@ -8,7 +8,7 @@ class ClimateEntity extends Entity {
   EntityHistoryConfig historyConfig = EntityHistoryConfig(
     chartType: EntityHistoryWidgetType.numericAttributes,
     numericState: false,
-    numericAttributesToShow: ["temperature", "current_temperature"]
+    numericAttributesToShow: ["current_temperature"]
   );
 
   static const SUPPORT_TARGET_TEMPERATURE = 1;
@@ -90,6 +90,20 @@ class ClimateEntity extends Entity {
   bool get auxHeat => attributes['aux_heat'] == "on";
 
   ClimateEntity(Map rawData) : super(rawData);
+
+  @override
+  void update(Map rawData) {
+    super.update(rawData);
+    if (supportTargetTemperature) {
+      historyConfig.numericAttributesToShow.add("temperature");
+    }
+    if (supportTargetTemperatureHigh) {
+      historyConfig.numericAttributesToShow.add("target_temp_high");
+    }
+    if (supportTargetTemperatureLow) {
+      historyConfig.numericAttributesToShow.add("target_temp_low");
+    }
+  }
 
   @override
   Widget _buildStatePart(BuildContext context) {

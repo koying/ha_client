@@ -14,7 +14,6 @@ import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'dart:math' as math;
 
 part 'entity_class/entity.class.dart';
 part 'entity_class/switch_entity.class.dart';
