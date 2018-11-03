@@ -20,6 +20,12 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
   List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> _parsedHistory;
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     _parsedHistory = _parseHistory();
     DateTime selectedTime;
@@ -28,11 +34,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     if ((_selectedId > -1) && (_parsedHistory != null) && (_parsedHistory.first.data.length >= (_selectedId + 1))) {
       selectedTime = _parsedHistory.first.data[_selectedId].startTime;
       _parsedHistory.where((item) { return item.id == "state"; }).forEach((item) {
-        selectedStates.add("${item.data[_selectedId].state}");
+        selectedStates.add(item.data[_selectedId].state);
         colorIndexes.add(item.data[_selectedId].colorId);
       });
       _parsedHistory.where((item) { return item.id == "value"; }).forEach((item) {
-        selectedStates.add("${item.data[_selectedId].value}");
+        selectedStates.add("${item.data[_selectedId].value ?? '-'}");
         colorIndexes.add(item.data[_selectedId].colorId);
       });
     }
@@ -101,10 +107,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         DateTime endTime;
         bool hiddenLine;
         double value;
+        double previousValue = 0.0;
         value = _parseToDouble(stateData["attributes"]["$attrName"]);
         bool hiddenDot = (value == null);
         if (hiddenDot && i > 0) {
-          value = data[i-1].value;
+          previousValue = data[i-1].value ?? data[i-1].previousValue;
         }
         if (i < (widget.rawHistory.length - 1)) {
           endTime = DateTime.tryParse(widget.rawHistory[i+1]["last_updated"])?.toLocal();
@@ -114,9 +121,9 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
           hiddenLine = hiddenDot;
           endTime = now;
         }
-        data.add(CombinedEntityStateHistoryMoment(value, hiddenDot, hiddenLine, stateData["state"], startTime, endTime, i, colorIdCounter));
+        data.add(CombinedEntityStateHistoryMoment(value, previousValue, hiddenDot, hiddenLine, stateData["state"], startTime, endTime, i, colorIdCounter));
       }
-      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.hiddenDot, data.last.hiddenLine, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
+      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.previousValue, data.last.hiddenDot, data.last.hiddenLine, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
       numericDataLists.addAll({attrName: data});
       colorIdCounter += 1;
     });
@@ -142,7 +149,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
             },
           strokeWidthPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => historyMoment.hiddenLine ? 0.0 : 2.0,
           domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value ?? 0,
+          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value ?? historyMoment.previousValue,
           data: dataList,
           /*domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.subtract(Duration(hours: 1)),
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.add(Duration(hours: 1)),*/
@@ -254,7 +261,7 @@ class CombinedHistoryControlWidget extends StatelessWidget {
     for (int i = 0; i < selectedStates.length; i++) {
       children.add(
           Text(
-            "${selectedStates[i]}",
+            "${selectedStates[i] ?? '-'}",
             textAlign: TextAlign.right,
             style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -292,11 +299,12 @@ class CombinedEntityStateHistoryMoment {
   final DateTime startTime;
   final DateTime endTime;
   final double value;
+  final double previousValue;
   final int id;
   final int colorId;
   final String state;
   final bool hiddenDot;
   final bool hiddenLine;
 
-  CombinedEntityStateHistoryMoment(this.value, this.hiddenDot, this.hiddenLine, this.state, this.startTime, this.endTime,  this.id, this.colorId);
+  CombinedEntityStateHistoryMoment(this.value, this.previousValue, this.hiddenDot, this.hiddenLine, this.state, this.startTime, this.endTime,  this.id, this.colorId);
 }

@@ -34,7 +34,7 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
       children: <Widget>[
         HistoryControlWidget(
           selectedTimeStart: selectedTime,
-          selectedState: "$selectedState",
+          selectedState: "${selectedState ?? '-'}",
           onPrevTap: () => _selectPrev(),
           onNextTap: () => _selectNext(),
           colorIndex: -1,
@@ -72,9 +72,22 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
     for (var i = 0; i < widget.rawHistory.length; i++) {
       var stateData = widget.rawHistory[i];
       DateTime time = DateTime.tryParse(stateData["last_updated"])?.toLocal();
-      data.add(NumericEntityStateHistoryMoment(double.tryParse(stateData["state"]), time, i));
+      double value = double.tryParse(stateData["state"]);
+      double previousValue = 0.0;
+      bool hiddenDot = (value == null);
+      bool hiddenLine;
+      if (hiddenDot && i > 0) {
+        previousValue = data[i-1].value ?? data[i-1].previousValue;
+      }
+      if (i < (widget.rawHistory.length - 1)) {
+        double nextValue = double.tryParse(widget.rawHistory[i+1]["state"]);
+        hiddenLine = (nextValue == null || hiddenDot);
+      } else {
+        hiddenLine = hiddenDot;
+      }
+      data.add(NumericEntityStateHistoryMoment(value, previousValue, hiddenDot, hiddenLine, time, i));
     }
-    data.add(NumericEntityStateHistoryMoment(data.last.value, now, widget.rawHistory.length));
+    data.add(NumericEntityStateHistoryMoment(data.last.value, data.last.previousValue,  data.last.hiddenDot, data.last.hiddenLine, now, widget.rawHistory.length));
     if (_selectedId == -1) {
       _selectedId = 0;
     }
@@ -83,9 +96,18 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
         id: 'State',
         colorFn: (NumericEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("on", -1),
         domainFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.time,
-        measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
+        measureFn: (NumericEntityStateHistoryMoment historyMoment, _) => historyMoment.value ?? historyMoment.previousValue,
         data: data,
-        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
+        strokeWidthPxFn: (NumericEntityStateHistoryMoment historyMoment, __) => historyMoment.hiddenLine ? 0.0 : 2.0,
+        radiusPxFn: (NumericEntityStateHistoryMoment historyMoment, __) {
+          if (historyMoment.hiddenDot) {
+            return 0.0;
+          } else if (historyMoment.id == _selectedId) {
+            return 5.0;
+          } else {
+            return 1.0;
+          }
+        },
       )
     ];
   }
@@ -126,7 +148,10 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
 class NumericEntityStateHistoryMoment {
   final DateTime time;
   final double value;
+  final double previousValue;
   final int id;
+  final bool hiddenDot;
+  final bool hiddenLine;
 
-  NumericEntityStateHistoryMoment(this.value, this.time,  this.id);
+  NumericEntityStateHistoryMoment(this.value, this.previousValue, this.hiddenDot, this.hiddenLine, this.time,  this.id);
 }

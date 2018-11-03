@@ -182,7 +182,7 @@ class HistoryControlWidget extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(right: 10.0),
                   child: Text(
-                    "$selectedState",
+                    "${selectedState ?? '-'}",
                     textAlign: TextAlign.right,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
