@@ -28,13 +28,8 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     if ((_selectedId > -1) && (_parsedHistory != null) && (_parsedHistory.first.data.length >= (_selectedId + 1))) {
       selectedTime = _parsedHistory.first.data[_selectedId].startTime;
       _parsedHistory.where((item) { return item.id == "state"; }).forEach((item) {
-        if (_selectedId < item.data.length) {
-          selectedStates.add(item.data[_selectedId].state);
-          colorIndexes.add(item.data[_selectedId].colorId);
-        } else {
-          selectedStates.add(null);
-          colorIndexes.add(-1);
-        }
+        selectedStates.add("${item.data[_selectedId].state}");
+        colorIndexes.add(item.data[_selectedId].colorId);
       });
       _parsedHistory.where((item) { return item.id == "value"; }).forEach((item) {
         selectedStates.add("${item.data[_selectedId].value}");
@@ -104,27 +99,24 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         var stateData = widget.rawHistory[i];
         DateTime startTime = DateTime.tryParse(stateData["last_updated"])?.toLocal();
         DateTime endTime;
+        bool hiddenLine;
+        double value;
+        value = _parseToDouble(stateData["attributes"]["$attrName"]);
+        bool hiddenDot = (value == null);
+        if (hiddenDot && i > 0) {
+          value = data[i-1].value;
+        }
         if (i < (widget.rawHistory.length - 1)) {
           endTime = DateTime.tryParse(widget.rawHistory[i+1]["last_updated"])?.toLocal();
+          double nextValue = _parseToDouble(widget.rawHistory[i+1]["attributes"]["$attrName"]);
+          hiddenLine = (nextValue == null || hiddenDot);
         } else {
+          hiddenLine = hiddenDot;
           endTime = now;
         }
-        String state;
-        if (widget.config.statesToShow != null) {
-          if (widget.config.statesToShow.isNotEmpty) {
-            state = widget.config.statesToShow.contains(stateData["state"]) ? stateData["state"] : null;
-          } else {
-            state = stateData["state"];
-          }
-        }
-
-        if (stateData["attributes"] != null) {
-          data.add(CombinedEntityStateHistoryMoment(_parseToDouble(stateData["attributes"]["$attrName"]), state, startTime, endTime, i, colorIdCounter));
-        } else {
-          data.add(CombinedEntityStateHistoryMoment(null, state, startTime, endTime, i, colorIdCounter));
-        }
+        data.add(CombinedEntityStateHistoryMoment(value, hiddenDot, hiddenLine, stateData["state"], startTime, endTime, i, colorIdCounter));
       }
-      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
+      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.hiddenDot, data.last.hiddenLine, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
       numericDataLists.addAll({attrName: data});
       colorIdCounter += 1;
     });
@@ -139,9 +131,18 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
           id: "value",
           colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
-          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 1.0,
+          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) {
+              if (historyMoment.hiddenDot) {
+                return 0.0;
+              } else if (historyMoment.id == _selectedId) {
+                return 5.0;
+              } else {
+                return 1.0;
+              }
+            },
+          strokeWidthPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => historyMoment.hiddenLine ? 0.0 : 2.0,
           domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value,
+          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value ?? 0,
           data: dataList,
           /*domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.subtract(Duration(hours: 1)),
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.add(Duration(hours: 1)),*/
@@ -151,14 +152,14 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     result.add(
         new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
           id: 'state',
-          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 6.0 : 4.0,
+          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 4.0,
           colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
           domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
           domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
           // No measure values are needed for symbol annotations.
           measureFn: (_, __) => null,
-          data: numericDataLists[numericDataLists.keys.first].where((hm) => hm.state != null).toList(),
+          data: numericDataLists[numericDataLists.keys.first],
         )
         // Configure our custom symbol annotation renderer for this series.
           ..setAttribute(charts.rendererIdKey, 'stateBars')
@@ -251,26 +252,17 @@ class CombinedHistoryControlWidget extends StatelessWidget {
   Widget _buildStates() {
     List<Widget> children = [];
     for (int i = 0; i < selectedStates.length; i++) {
-      if (selectedStates[i] != null) {
-        children.add(
-            Text(
-              "${selectedStates[i]}",
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: EntityColors.historyStateColor(
-                      selectedStates[i], colorIndexes[i]),
-                  fontSize: 20.0
-              ),
-            )
-        );
-      } else {
-        children.add(
-            Container(
-              height: 23.0,
-            )
-        );
-      }
+      children.add(
+          Text(
+            "${selectedStates[i]}",
+            textAlign: TextAlign.right,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: EntityColors.historyStateColor(selectedStates[i], colorIndexes[i]),
+                fontSize: 22.0
+            ),
+          )
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -303,6 +295,8 @@ class CombinedEntityStateHistoryMoment {
   final int id;
   final int colorId;
   final String state;
+  final bool hiddenDot;
+  final bool hiddenLine;
 
-  CombinedEntityStateHistoryMoment(this.value, this.state, this.startTime, this.endTime,  this.id, this.colorId);
+  CombinedEntityStateHistoryMoment(this.value, this.hiddenDot, this.hiddenLine, this.state, this.startTime, this.endTime,  this.id, this.colorId);
 }

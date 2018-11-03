@@ -9,10 +9,9 @@ class EntityHistoryWidgetType {
 class EntityHistoryConfig {
   final int chartType;
   final List<String> numericAttributesToShow;
-  final List<String> statesToShow;
   final bool numericState;
 
-  EntityHistoryConfig({this.chartType, this.numericAttributesToShow: const [], this.statesToShow: const [], this.numericState: true});
+  EntityHistoryConfig({this.chartType, this.numericAttributesToShow, this.numericState: true});
 
 }
 
