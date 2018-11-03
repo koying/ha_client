@@ -17,7 +17,7 @@ class CombinedHistoryChartWidget extends StatefulWidget {
 class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget> {
 
   int _selectedId = -1;
-  List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> _parsedHistory;
+  List<charts.Series<EntityHistoryMoment, DateTime>> _parsedHistory;
 
   @override
   void initState() {
@@ -46,7 +46,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        CombinedHistoryControlWidget(
+        HistoryControlWidget(
           selectedTimeStart: selectedTime,
           selectedStates: selectedStates,
           onPrevTap: () => _selectPrev(),
@@ -93,13 +93,13 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     }
   }
 
-  List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> _parseHistory() {
+  List<charts.Series<EntityHistoryMoment, DateTime>> _parseHistory() {
     TheLogger.debug("  parsing history...");
-    Map<String, List<CombinedEntityStateHistoryMoment>> numericDataLists = {};
+    Map<String, List<EntityHistoryMoment>> numericDataLists = {};
     int colorIdCounter = 0;
     widget.config.numericAttributesToShow.forEach((String attrName) {
       TheLogger.debug("    parsing attribute $attrName");
-      List<CombinedEntityStateHistoryMoment> data = [];
+      List<EntityHistoryMoment> data = [];
       DateTime now = DateTime.now();
       for (var i = 0; i < widget.rawHistory.length; i++) {
         var stateData = widget.rawHistory[i];
@@ -121,9 +121,28 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
           hiddenLine = hiddenDot;
           endTime = now;
         }
-        data.add(CombinedEntityStateHistoryMoment(value, previousValue, hiddenDot, hiddenLine, stateData["state"], startTime, endTime, i, colorIdCounter));
+        data.add(EntityHistoryMoment(
+          value: value,
+          previousValue: previousValue,
+          hiddenDot: hiddenDot,
+          hiddenLine: hiddenLine,
+          state: stateData["state"],
+          startTime: startTime,
+          endTime: endTime,
+          id: i,
+          colorId: colorIdCounter
+        ));
       }
-      data.add(CombinedEntityStateHistoryMoment(data.last.value, data.last.previousValue, data.last.hiddenDot, data.last.hiddenLine, data.last.state, now, null, widget.rawHistory.length, colorIdCounter));
+      data.add(EntityHistoryMoment(
+          value: data.last.value,
+          previousValue: data.last.previousValue,
+          hiddenDot: data.last.hiddenDot,
+          hiddenLine: data.last.hiddenLine,
+          state: data.last.state,
+          startTime: now,
+          id: widget.rawHistory.length,
+          colorId: colorIdCounter
+      ));
       numericDataLists.addAll({attrName: data});
       colorIdCounter += 1;
     });
@@ -131,14 +150,14 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     if ((_selectedId == -1) && (numericDataLists.isNotEmpty)) {
       _selectedId = 0;
     }
-    List<charts.Series<CombinedEntityStateHistoryMoment, DateTime>> result = [];
+    List<charts.Series<EntityHistoryMoment, DateTime>> result = [];
     numericDataLists.forEach((attrName, dataList) {
       TheLogger.debug("  adding ${dataList.length} data values");
       result.add(
-        new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
+        new charts.Series<EntityHistoryMoment, DateTime>(
           id: "value",
-          colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
-          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) {
+          colorFn: (EntityHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor("_", historyMoment.colorId),
+          radiusPxFn: (EntityHistoryMoment historyMoment, __) {
               if (historyMoment.hiddenDot) {
                 return 0.0;
               } else if (historyMoment.id == _selectedId) {
@@ -147,9 +166,9 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
                 return 1.0;
               }
             },
-          strokeWidthPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => historyMoment.hiddenLine ? 0.0 : 2.0,
-          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-          measureFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.value ?? historyMoment.previousValue,
+          strokeWidthPxFn: (EntityHistoryMoment historyMoment, __) => historyMoment.hiddenLine ? 0.0 : 2.0,
+          domainFn: (EntityHistoryMoment historyMoment, _) => historyMoment.startTime,
+          measureFn: (EntityHistoryMoment historyMoment, _) => historyMoment.value ?? historyMoment.previousValue,
           data: dataList,
           /*domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.subtract(Duration(hours: 1)),
           domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.time.add(Duration(hours: 1)),*/
@@ -157,13 +176,13 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       );
     });
     result.add(
-        new charts.Series<CombinedEntityStateHistoryMoment, DateTime>(
+        new charts.Series<EntityHistoryMoment, DateTime>(
           id: 'state',
-          radiusPxFn: (CombinedEntityStateHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 4.0,
-          colorFn: (CombinedEntityStateHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
-          domainFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-          domainLowerBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.startTime,
-          domainUpperBoundFn: (CombinedEntityStateHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
+          radiusPxFn: (EntityHistoryMoment historyMoment, __) => (historyMoment.id == _selectedId) ? 5.0 : 4.0,
+          colorFn: (EntityHistoryMoment historyMoment, __) => EntityColors.chartHistoryStateColor(historyMoment.state, historyMoment.colorId),
+          domainFn: (EntityHistoryMoment historyMoment, _) => historyMoment.startTime,
+          domainLowerBoundFn: (EntityHistoryMoment historyMoment, _) => historyMoment.startTime,
+          domainUpperBoundFn: (EntityHistoryMoment historyMoment, _) => historyMoment.endTime ?? DateTime.now(),
           // No measure values are needed for symbol annotations.
           measureFn: (_, __) => null,
           data: numericDataLists[numericDataLists.keys.first],
@@ -208,103 +227,4 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       });
     }
   }
-}
-
-class CombinedHistoryControlWidget extends StatelessWidget {
-
-  final Function onPrevTap;
-  final Function onNextTap;
-  final DateTime selectedTimeStart;
-  final DateTime selectedTimeEnd;
-  final List<String> selectedStates;
-  final List<int> colorIndexes;
-
-  const CombinedHistoryControlWidget({Key key, this.onPrevTap, this.onNextTap, this.selectedTimeStart, this.selectedTimeEnd, this.selectedStates, @ required this.colorIndexes}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if (selectedTimeStart != null) {
-      return
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.chevron_left),
-              padding: EdgeInsets.all(0.0),
-              iconSize: 40.0,
-              onPressed: onPrevTap,
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: 10.0),
-                child: _buildStates(),
-              ),
-            ),
-            _buildTime(),
-            IconButton(
-              icon: Icon(Icons.chevron_right),
-              padding: EdgeInsets.all(0.0),
-              iconSize: 40.0,
-              onPressed: onNextTap,
-            ),
-          ],
-        );
-
-    } else {
-      return Container(height: 48.0);
-    }
-  }
-
-  Widget _buildStates() {
-    List<Widget> children = [];
-    for (int i = 0; i < selectedStates.length; i++) {
-      children.add(
-          Text(
-            "${selectedStates[i] ?? '-'}",
-            textAlign: TextAlign.right,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: EntityColors.historyStateColor(selectedStates[i], colorIndexes[i]),
-                fontSize: 22.0
-            ),
-          )
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: children,
-    );
-  }
-
-  Widget _buildTime() {
-    List<Widget> children = [];
-    children.add(
-        Text("${formatDate(selectedTimeStart, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,)
-    );
-    if (selectedTimeEnd != null) {
-      children.add(
-          Text("${formatDate(selectedTimeEnd, [M, ' ', d, ', ', HH, ':', nn, ':', ss])}", textAlign: TextAlign.left,)
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: children,
-    );
-  }
-
-}
-
-class CombinedEntityStateHistoryMoment {
-  final DateTime startTime;
-  final DateTime endTime;
-  final double value;
-  final double previousValue;
-  final int id;
-  final int colorId;
-  final String state;
-  final bool hiddenDot;
-  final bool hiddenLine;
-
-  CombinedEntityStateHistoryMoment(this.value, this.previousValue, this.hiddenDot, this.hiddenLine, this.state, this.startTime, this.endTime,  this.id, this.colorId);
 }
