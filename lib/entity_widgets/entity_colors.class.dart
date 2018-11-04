@@ -33,7 +33,8 @@ class EntityColors {
           a: c.alpha
       );
     } else {
-      return charts.MaterialPalette.getOrderedPalettes(id+1)[id].shadeDefault;
+      double r = id.toDouble() % 10;
+      return charts.MaterialPalette.getOrderedPalettes(10)[r.round()].shadeDefault;
     }
   }
 
@@ -43,7 +44,8 @@ class EntityColors {
       return c;
     } else {
       if (id > -1) {
-        charts.Color c1 = charts.MaterialPalette.getOrderedPalettes(id + 1)[id].shadeDefault;
+        double r = id.toDouble() % 10;
+        charts.Color c1 = charts.MaterialPalette.getOrderedPalettes(10)[r.round()].shadeDefault;
         return Color.fromARGB(c1.a, c1.r, c1.g, c1.b);
       } else {
         return _stateColors["on"];
