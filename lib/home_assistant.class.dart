@@ -195,7 +195,12 @@ class HomeAssistant {
         _connectionCompleter.complete();
       }
     } else if (error != null) {
-      eventBus.fire(ShowErrorEvent(error["errorMessage"], error["errorCode"]));
+      if (error is Error) {
+        eventBus.fire(ShowErrorEvent(error.toString(), 12));
+      } else {
+        eventBus.fire(ShowErrorEvent(error["errorMessage"], error["errorCode"]));
+      }
+
     }
   }
 

@@ -26,6 +26,7 @@ part 'entity_class/light_entity.class.dart';
 part 'entity_class/select_entity.class.dart';
 part 'entity_class/other_entity.class.dart';
 part 'entity_class/slider_entity.dart';
+part 'entity_class/media_player_entity.class.dart';
 part 'entity_widgets/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
@@ -267,10 +268,19 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     setState(() {
       _isLoading = 2;
     });
-    _showErrorSnackBar(
-        message: e != null ? e["errorMessage"] ?? "$e" : "Unknown error",
-        errorCode: e["errorCode"] != null ? e["errorCode"] : 99
-    );
+    if (e is Error) {
+      TheLogger.error(e.toString());
+      TheLogger.error("${e.stackTrace}");
+      _showErrorSnackBar(
+          message: "There was some error",
+          errorCode: 13
+      );
+    } else {
+      _showErrorSnackBar(
+          message: e != null ? e["errorMessage"] ?? "$e" : "Unknown error",
+          errorCode: e["errorCode"] != null ? e["errorCode"] : 99
+      );
+    }
   }
 
   void _callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
@@ -470,6 +480,17 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         case 8: {
           action = SnackBarAction(
             label: "Reconnect",
+            onPressed: () {
+              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              _refreshData();
+            },
+          );
+          break;
+        }
+
+        default: {
+          action = SnackBarAction(
+            label: "Reload",
             onPressed: () {
               _scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();
