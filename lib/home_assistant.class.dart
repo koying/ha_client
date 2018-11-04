@@ -384,7 +384,7 @@ class HomeAssistant {
         TheLogger.debug("----view id: ${rawView['id']}");
         HAView view = HAView(
             count: viewCounter,
-            id: rawView['id'],
+            id: "${rawView['id']}",
             name: rawView['title'],
             iconName: rawView['icon']
         );
