@@ -98,7 +98,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildBrightnessControl(LightEntity entity) {
-    if ((entity.supportBrightness) && (_tmpBrightness != null)) {
+    if ((entity.supportBrightness) && (_tmpBrightness != null) && (entity.state != "unavailable")) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
