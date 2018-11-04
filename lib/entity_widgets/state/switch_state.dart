@@ -29,15 +29,16 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     final entity = entityModel.entity;
+    Widget result;
     if ((entity.attributes["assumed_state"] == null) || (entity.attributes["assumed_state"] == false)) {
-      return Switch(
+      result = Switch(
         value: entity.assumedState == 'on',
         onChanged: ((switchState) {
           _setNewState(switchState, entity);
         }),
       );
     } else {
-      return Row(
+      result = Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           IconButton(
@@ -55,6 +56,9 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
         ],
       );
     }
-
+    return SizedBox(
+      height: 32.0,
+      child: result,
+    );
   }
 }

@@ -9,16 +9,19 @@ class ButtonStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    return FlatButton(
-      onPressed: (() {
-        _setNewState(entityModel.entity);
-      }),
-      child: Text(
-        "EXECUTE",
-        textAlign: TextAlign.right,
-        style:
-        new TextStyle(fontSize: Entity.stateFontSize, color: Colors.blue),
-      ),
+    return SizedBox(
+      height: 34.0,
+      child: FlatButton(
+        onPressed: (() {
+          _setNewState(entityModel.entity);
+        }),
+        child: Text(
+          "EXECUTE",
+          textAlign: TextAlign.right,
+          style:
+          new TextStyle(fontSize: Entity.stateFontSize, color: Colors.blue),
+        ),
+      )
     );
   }
 }

@@ -13,7 +13,7 @@ class DefaultEntityContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
+      //height: height,
       child: Row(
         children: <Widget>[
           EntityIcon(),
