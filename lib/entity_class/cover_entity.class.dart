@@ -1,8 +1,6 @@
 part of '../main.dart';
 
 class CoverEntity extends Entity {
-  @override
-  double widgetHeight = 38.0;
 
   static const SUPPORT_OPEN = 1;
   static const SUPPORT_CLOSE = 2;

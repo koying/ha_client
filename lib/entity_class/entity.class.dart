@@ -27,8 +27,6 @@ class Entity {
   static const inputWidth = 160.0;
   static const rowPadding = 10.0;
 
-  double widgetHeight = 34.0;
-
   Map attributes;
   String domain;
   String entityId;
@@ -99,8 +97,7 @@ class Entity {
     return EntityModel(
       entity: this,
       child: DefaultEntityContainer(
-          state: _buildStatePart(context),
-          height: widgetHeight,
+          state: _buildStatePart(context)
       ),
       handleTap: true,
     );
@@ -125,7 +122,7 @@ class Entity {
     return EntityModel(
       entity: this,
       child: EntityPageContainer(children: <Widget>[
-        DefaultEntityContainer(state: _buildStatePartForPage(context), height: widgetHeight),
+        DefaultEntityContainer(state: _buildStatePartForPage(context)),
         LastUpdatedWidget(),
         Divider(),
         buildHistoryWidget(),

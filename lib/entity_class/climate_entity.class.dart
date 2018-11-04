@@ -1,8 +1,6 @@
 part of '../main.dart';
 
 class ClimateEntity extends Entity {
-  @override
-  double widgetHeight = 38.0;
 
   @override
   EntityHistoryConfig historyConfig = EntityHistoryConfig(
