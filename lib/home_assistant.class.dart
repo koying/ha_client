@@ -214,6 +214,7 @@ class HomeAssistant {
     } else if (data["type"] == "auth_invalid") {
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
+      TheLogger.debug("[Received] => id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
       if (data["id"] == _configMessageId) {
         _parseConfig(data);
       } else if (data["id"] == _statesMessageId) {
@@ -224,8 +225,6 @@ class HomeAssistant {
         _parseServices(data);
       } else if (data["id"] == _userInfoMessageId) {
         _parseUserInfo(data);
-      } else if (data["id"] == _currentMessageId) {
-        TheLogger.debug("[Received] => Request id:$_currentMessageId was successful");
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
@@ -357,6 +356,7 @@ class HomeAssistant {
       _userName = data["result"]["name"];
     } else {
       _userName = null;
+      TheLogger.warning("There was an error getting current user: $data");
     }
     _userInfoCompleter.complete();
   }
@@ -369,6 +369,7 @@ class HomeAssistant {
     if (response["success"] == true) {
       _rawLovelaceData = response["result"];
     } else {
+      TheLogger.error("There was an error getting Lovelace config: $response");
       _rawLovelaceData = null;
     }
     _lovelaceCompleter.complete();
@@ -376,7 +377,6 @@ class HomeAssistant {
 
   void _parseLovelace() {
       ui = HomeAssistantUI();
-      TheLogger.debug("Parsing lovelace config");
       TheLogger.debug("--Title: ${_rawLovelaceData["title"]}");
       int viewCounter = 0;
       TheLogger.debug("--Views count: ${_rawLovelaceData['views'].length}");
@@ -400,10 +400,8 @@ class HomeAssistant {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
       if (rawCard["cards"] != null) {
-        TheLogger.debug("------card: ${rawCard['type']} has child cards");
         result.addAll(_createLovelaceCards(rawCard["cards"]));
       } else {
-        TheLogger.debug("------card: ${rawCard['type']}");
         HACard card = HACard(
             id: "card",
             name: rawCard["title"],
@@ -440,12 +438,13 @@ class HomeAssistant {
 
   void _createUI() {
     if ((_useLovelace) && (_rawLovelaceData != null)) {
+      TheLogger.debug("Creating Lovelace UI");
       _parseLovelace();
     } else {
+      TheLogger.debug("Creating group-based UI");
       ui = HomeAssistantUI();
       int viewCounter = 0;
       if (!entities.hasDefaultView) {
-        TheLogger.debug( "--Default view");
         HAView view = HAView(
             count: viewCounter,
             id: "group.default_view",
@@ -458,7 +457,6 @@ class HomeAssistant {
         viewCounter += 1;
       }
       entities.viewEntities.forEach((viewEntity) {
-        TheLogger.debug( "--View: ${viewEntity.entityId}");
         HAView view = HAView(
             count: viewCounter,
             id: viewEntity.entityId,
