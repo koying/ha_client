@@ -43,7 +43,7 @@ class Entity {
   );
 
   String get displayName =>
-      attributes["friendly_name"] ?? (attributes["name"] ?? "_");
+      attributes["friendly_name"] ?? (attributes["name"] ?? entityId.split(".")[1].replaceAll("_", " "));
 
   String get deviceClass => attributes["device_class"] ?? null;
   bool get isView =>
