@@ -44,8 +44,8 @@ class CoverEntity extends Entity {
   double get currentTiltPosition => _getDoubleAttributeValue('current_tilt_position');
   bool get canBeOpened => ((state != "opening") && (state != "open"));
   bool get canBeClosed => ((state != "closing") && (state != "closed"));
-  bool get canTiltBeOpened => currentPosition < 100;
-  bool get canTiltBeClosed => currentPosition > 0;
+  bool get canTiltBeOpened => currentTiltPosition < 100;
+  bool get canTiltBeClosed => currentTiltPosition > 0;
 
   CoverEntity(Map rawData) : super(rawData);
 
