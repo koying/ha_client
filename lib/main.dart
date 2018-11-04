@@ -532,7 +532,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called.
-    if (_homeAssistant.entities.isEmpty) {
+    if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
       return _buildScaffold(true);
     } else {
       return DefaultTabController(
