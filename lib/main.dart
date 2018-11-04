@@ -301,30 +301,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
       if (_homeAssistant.ui.views.isNotEmpty) {
         _homeAssistant.ui.views.forEach((HAView view) {
-          if (view.linkedEntity == null) {
-            result.add(
-                Tab(
-                    icon:
-                    Icon(
-                      MaterialDesignIcons.createIconDataFromIconName(
-                          view.iconName ?? "mdi:home-assistant"),
-                      size: 24.0,
-                    )
-                )
-            );
-          } else {
-            result.add(
-                Tab(
-                    icon: MaterialDesignIcons.createIconWidgetFromEntityData(
-                        view.linkedEntity, 24.0, null) ??
-                        Icon(
-                          MaterialDesignIcons.createIconDataFromIconName(
-                              "mdi:home-assistant"),
-                          size: 24.0,
-                        )
-                )
-            );
-          }
+          result.add(view.buildTab());
         });
       }
 
