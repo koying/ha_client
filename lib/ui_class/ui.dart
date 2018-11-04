@@ -2,6 +2,7 @@ part of '../main.dart';
 
 class HomeAssistantUI {
   List<HAView> views;
+  String title;
 
   HomeAssistantUI() {
     views = [];

@@ -40,7 +40,13 @@ class HomeAssistant {
   Duration fetchTimeout = Duration(seconds: 30);
   Duration connectTimeout = Duration(seconds: 15);
 
-  String get locationName => _instanceConfig["location_name"] ?? "";
+  String get locationName {
+    if (_useLovelace) {
+      return ui?.title ?? "";
+    } else {
+      return _instanceConfig["location_name"] ?? "";
+    }
+  }
   String get userName => _userName ?? locationName;
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
   //int get viewsCount => entities.views.length ?? 0;
@@ -376,8 +382,8 @@ class HomeAssistant {
   }
 
   void _parseLovelace() {
-      ui = HomeAssistantUI();
       TheLogger.debug("--Title: ${_rawLovelaceData["title"]}");
+      ui.title = _rawLovelaceData["title"];
       int viewCounter = 0;
       TheLogger.debug("--Views count: ${_rawLovelaceData['views'].length}");
       _rawLovelaceData["views"].forEach((rawView){
@@ -437,12 +443,12 @@ class HomeAssistant {
   }
 
   void _createUI() {
+    ui = HomeAssistantUI();
     if ((_useLovelace) && (_rawLovelaceData != null)) {
       TheLogger.debug("Creating Lovelace UI");
       _parseLovelace();
     } else {
       TheLogger.debug("Creating group-based UI");
-      ui = HomeAssistantUI();
       int viewCounter = 0;
       if (!entities.hasDefaultView) {
         HAView view = HAView(
