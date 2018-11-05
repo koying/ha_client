@@ -38,15 +38,7 @@ class _LogViewPageState extends State<LogViewPage> {
             onPressed: () {
               Clipboard.setData(new ClipboardData(text: _logData));
             },
-          ),
-          IconButton(
-            icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
-            onPressed: () {
-              String body = "```\n$_logData```";
-              String encodedBody = "${Uri.encodeFull(body)}";
-              HAUtils.launchURL("https://github.com/estevez-dev/ha_client_pub/issues/new?body=$encodedBody");
-            },
-          ),
+          )
         ],
       ),
       body: TextField(
