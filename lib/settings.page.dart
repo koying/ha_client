@@ -57,14 +57,13 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   }
 
   void _checkConfigChanged() {
-    setState(() {
-      _edited = ((_newHassioPassword != _hassioPassword) ||
-          (_newHassioPort != _hassioPort) ||
-          (_newHassioDomain != _hassioDomain) ||
-          (_newSocketProtocol != _socketProtocol) ||
-          (_newAuthType != _authType) ||
-          (_newUseLovelace != _useLovelace));
-    });
+    _edited = ((_newHassioPassword != _hassioPassword) ||
+      (_newHassioPort != _hassioPort) ||
+      (_newHassioDomain != _hassioDomain) ||
+      (_newSocketProtocol != _socketProtocol) ||
+      (_newAuthType != _authType) ||
+      (_newUseLovelace != _useLovelace));
+
   }
 
   _saveSettings() async {
@@ -92,12 +91,18 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.check),
-            onPressed: _edited ? (){
-                _saveSettings().then((r){
+            onPressed: (){
+              if (_edited) {
+                TheLogger.debug("Settings changed. Saving...");
+                _saveSettings().then((r) {
                   Navigator.pop(context);
                   eventBus.fire(SettingsChangedEvent(true));
                 });
-            } : null
+              } else {
+                TheLogger.debug("Settings was not changed");
+                Navigator.pop(context);
+              }
+            }
           )
         ],
       ),
@@ -117,8 +122,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: (_newSocketProtocol == "wss"),
                 onChanged: (value) {
-                  _newSocketProtocol = value ? "wss" : "ws";
                   _checkConfigChanged();
+                  setState(() {
+                    _newSocketProtocol = value ? "wss" : "ws";
+                  });
                 },
               )
             ],
@@ -136,9 +143,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioDomain = value;
+              _checkConfigChanged();
             },
             focusNode: _domainFocusNode,
-            onEditingComplete: _checkConfigChanged,
           ),
           new TextField(
             decoration: InputDecoration(
@@ -153,10 +160,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioPort = value;
+              _checkConfigChanged();
               //_saveSettings();
             },
-            focusNode: _portFocusNode,
-            onEditingComplete: _checkConfigChanged,
+            focusNode: _portFocusNode
           ),
           new Row(
             children: [
@@ -164,8 +171,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: (_newAuthType == "access_token"),
                 onChanged: (value) {
-                  _newAuthType = value ? "access_token" : "api_password";
                   _checkConfigChanged();
+                  setState(() {
+                    _newAuthType = value ? "access_token" : "api_password";
+                  });
                   //_saveSettings();
                 },
               )
@@ -173,7 +182,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
           ),
           new TextField(
             decoration: InputDecoration(
-                labelText: _authType == "access_token" ? "Access token" : "API password"
+                labelText: _newAuthType == "access_token" ? "Access token" : "API password"
             ),
             controller: new TextEditingController.fromValue(
                 new TextEditingValue(
@@ -184,10 +193,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioPassword = value;
+              _checkConfigChanged();
               //_saveSettings();
             },
-            focusNode: _passwordFocusNode,
-            onEditingComplete: _checkConfigChanged,
+            focusNode: _passwordFocusNode
           ),
           Padding(
             padding: EdgeInsets.only(top: 20.0),
@@ -205,8 +214,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: _newUseLovelace,
                 onChanged: (value) {
-                  _newUseLovelace = value;
                   _checkConfigChanged();
+                  setState(() {
+                    _newUseLovelace = value;
+                  });
                 },
               )
             ],
