@@ -16,7 +16,9 @@ class SliderEntity extends Entity {
           SliderStateWidget(
             expanded: true,
           ),
-          SimpleEntityState(),
+          SimpleEntityState(
+            expanded: false,
+          ),
         ],
       ),
     );
@@ -24,7 +26,9 @@ class SliderEntity extends Entity {
 
   @override
   Widget _buildStatePartForPage(BuildContext context) {
-    return SimpleEntityState();
+    return SimpleEntityState(
+      expanded: false,
+    );
   }
 
   @override
