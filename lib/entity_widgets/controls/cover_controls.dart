@@ -39,7 +39,6 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     final CoverEntity entity = entityModel.entity;
-    TheLogger.debug("${entity.state}");
     if (_changedHere) {
       _changedHere = false;
     } else {

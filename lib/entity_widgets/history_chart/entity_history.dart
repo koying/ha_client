@@ -91,18 +91,15 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   }
 
   Widget _selectChartWidget() {
-    TheLogger.debug("  selecting history widget (${widget.config.chartType})");
     switch (widget.config.chartType) {
 
       case EntityHistoryWidgetType.simple: {
-          TheLogger.debug("  Simple selected");
           return SimpleStateHistoryChartWidget(
             rawHistory: _history,
           );
       }
 
       case EntityHistoryWidgetType.numericState: {
-        TheLogger.debug("  EntityHistory selected");
         return NumericStateHistoryChartWidget(
           rawHistory: _history,
           config: widget.config,
@@ -110,7 +107,6 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
       }
 
       case EntityHistoryWidgetType.numericAttributes: {
-        TheLogger.debug("  NumericAttributes selected");
         return CombinedHistoryChartWidget(
           rawHistory: _history,
           config: widget.config,

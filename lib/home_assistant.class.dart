@@ -220,7 +220,7 @@ class HomeAssistant {
     } else if (data["type"] == "auth_invalid") {
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
-      TheLogger.debug("[Received] => id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
+      TheLogger.debug("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
       if (data["id"] == _configMessageId) {
         _parseConfig(data);
       } else if (data["id"] == _statesMessageId) {
@@ -234,7 +234,7 @@ class HomeAssistant {
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
-        //TheLogger.debug("[Received] => ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
+        //TheLogger.debug("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
         TheLogger.warning("Unhandled event type: ${data["event"]["event_type"]}");
@@ -487,7 +487,7 @@ class HomeAssistant {
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
-    TheLogger.debug( "$url");
+    TheLogger.debug("[Sending] ==> $url");
     http.Response historyResponse;
     if (_authType == "access_token") {
       historyResponse = await http.get(url, headers: {
@@ -502,7 +502,7 @@ class HomeAssistant {
     }
     var history = json.decode(historyResponse.body);
     if (history is List) {
-      TheLogger.debug( "Got ${history.first.length} history recors");
+      TheLogger.debug( "[Received] <== ${history.first.length} history recors");
       return history;
     } else {
       return [];
