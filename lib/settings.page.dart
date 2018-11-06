@@ -22,20 +22,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newAuthType = "access_token";
   bool _useLovelace = false;
   bool _newUseLovelace = false;
-  bool _edited = false;
-  FocusNode _domainFocusNode;
-  FocusNode _portFocusNode;
-  FocusNode _passwordFocusNode;
 
   @override
   void initState() {
     super.initState();
-    _domainFocusNode = FocusNode();
-    _portFocusNode = FocusNode();
-    _passwordFocusNode = FocusNode();
-    _domainFocusNode.addListener(_checkConfigChanged);
-    _portFocusNode.addListener(_checkConfigChanged);
-    _passwordFocusNode.addListener(_checkConfigChanged);
     _loadSettings();
   }
 
@@ -56,8 +46,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     });
   }
 
-  void _checkConfigChanged() {
-    _edited = ((_newHassioPassword != _hassioPassword) ||
+  bool _checkConfigChanged() {
+    return ((_newHassioPassword != _hassioPassword) ||
       (_newHassioPort != _hassioPort) ||
       (_newHassioDomain != _hassioDomain) ||
       (_newSocketProtocol != _socketProtocol) ||
@@ -92,7 +82,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
           IconButton(
             icon: Icon(Icons.check),
             onPressed: (){
-              if (_edited) {
+              if (_checkConfigChanged()) {
                 TheLogger.debug("Settings changed. Saving...");
                 _saveSettings().then((r) {
                   Navigator.pop(context);
@@ -122,7 +112,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: (_newSocketProtocol == "wss"),
                 onChanged: (value) {
-                  _checkConfigChanged();
                   setState(() {
                     _newSocketProtocol = value ? "wss" : "ws";
                   });
@@ -143,9 +132,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioDomain = value;
-              _checkConfigChanged();
-            },
-            focusNode: _domainFocusNode,
+            }
           ),
           new TextField(
             decoration: InputDecoration(
@@ -160,10 +147,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioPort = value;
-              _checkConfigChanged();
-              //_saveSettings();
-            },
-            focusNode: _portFocusNode
+            }
           ),
           new Row(
             children: [
@@ -171,11 +155,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: (_newAuthType == "access_token"),
                 onChanged: (value) {
-                  _checkConfigChanged();
                   setState(() {
                     _newAuthType = value ? "access_token" : "api_password";
                   });
-                  //_saveSettings();
                 },
               )
             ],
@@ -193,10 +175,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             ),
             onChanged: (value) {
               _newHassioPassword = value;
-              _checkConfigChanged();
-              //_saveSettings();
-            },
-            focusNode: _passwordFocusNode
+            }
           ),
           Padding(
             padding: EdgeInsets.only(top: 20.0),
@@ -214,7 +193,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               Switch(
                 value: _newUseLovelace,
                 onChanged: (value) {
-                  _checkConfigChanged();
                   setState(() {
                     _newUseLovelace = value;
                   });
@@ -229,12 +207,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
 
   @override
   void dispose() {
-    _domainFocusNode.removeListener(_checkConfigChanged);
-    _portFocusNode.removeListener(_checkConfigChanged);
-    _passwordFocusNode.removeListener(_checkConfigChanged);
-    _domainFocusNode.dispose();
-    _portFocusNode.dispose();
-    _passwordFocusNode.dispose();
     super.dispose();
   }
 }
