@@ -25,14 +25,9 @@ class MediaControlCardWidget extends StatelessWidget {
             left: 0.0,
             right: 0.0,
             child: Container(
-              height: 80.0,
               color: Colors.black45,
+              child: _buildState(),
             ),
-          ),
-          Positioned(
-            bottom: 0.0,
-            left: 0.0,
-            child: _buildState(),
           ),
         ],
       ));
@@ -59,7 +54,7 @@ class MediaControlCardWidget extends StatelessWidget {
       states.add(Text("${card.linkedEntity.state}", style: style.apply(fontSizeDelta: 4.0),));
     } else {
       states.add(Text("${card.linkedEntity.attributes['media_title'] ?? '-'}", style: style.apply(fontSizeDelta: 6.0, fontWeightDelta: 50),));
-      states.add(Text("${card.linkedEntity.attributes['media_artist'] ?? '-'}", style: style.apply(fontSizeDelta: 4.0),));
+      states.add(Text("${card.linkedEntity.attributes['media_artist'] ?? card.linkedEntity.attributes['app_name']}", style: style.apply(fontSizeDelta: 4.0),));
     }
     return Padding(
       padding: EdgeInsets.only(left: Entity.leftWidgetPadding, right: Entity.rightWidgetPadding),
