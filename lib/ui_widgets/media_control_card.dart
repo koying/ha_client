@@ -86,9 +86,14 @@ class MediaControlCardWidget extends StatelessWidget {
     String state = card.linkedEntity.state;
     if (state == null || state == "off" || state == "unavailable" || state == "idle") {
       states.add(Text("${card.linkedEntity.state}", style: style.apply(fontSizeDelta: 4.0),));
-    } else {
-      states.add(Text("${card.linkedEntity.attributes['media_title'] ?? '-'}", style: style.apply(fontSizeDelta: 6.0, fontWeightDelta: 50),));
+    }
+    if (card.linkedEntity.attributes['media_title'] != null) {
+      states.add(Text("${card.linkedEntity.attributes['media_title']}", style: style.apply(fontSizeDelta: 6.0, fontWeightDelta: 50),));
+    }
+    if (card.linkedEntity.attributes['media_content_type'] == "music") {
       states.add(Text("${card.linkedEntity.attributes['media_artist'] ?? card.linkedEntity.attributes['app_name']}", style: style.apply(fontSizeDelta: 4.0),));
+    } else if (card.linkedEntity.attributes['app_name'] != null) {
+      states.add(Text("${card.linkedEntity.attributes['app_name']}", style: style.apply(fontSizeDelta: 4.0),));
     }
     return Padding(
       padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, Entity.rowPadding),
@@ -107,7 +112,9 @@ class MediaControlCardWidget extends StatelessWidget {
         children: <Widget>[
           Image(
             image: CachedNetworkImageProvider("$homeAssistantWebHost${card.linkedEntity.entityPicture}"),
-            height: 300.0,
+            height: 240.0,
+            width: 320.0,
+            fit: BoxFit.fitHeight,
           )
         ],
       );
