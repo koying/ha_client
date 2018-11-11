@@ -26,7 +26,7 @@ class MediaControlCardWidget extends StatelessWidget {
             right: 0.0,
             child: Container(
               height: 80.0,
-              color: Colors.black26,
+              color: Colors.black45,
             ),
           ),
           Positioned(
@@ -54,7 +54,8 @@ class MediaControlCardWidget extends StatelessWidget {
     );
     List<Widget> states = [];
     states.add(Text("${card.linkedEntity.displayName}", style: style));
-    if (card.linkedEntity.state == null || card.linkedEntity.state == "off" || card.linkedEntity.state == "unavailable") {
+    String state = card.linkedEntity.state;
+    if (state == null || state == "off" || state == "unavailable" || state == "idle") {
       states.add(Text("${card.linkedEntity.state}", style: style.apply(fontSizeDelta: 4.0),));
     } else {
       states.add(Text("${card.linkedEntity.attributes['media_title'] ?? '-'}", style: style.apply(fontSizeDelta: 6.0, fontWeightDelta: 50),));
@@ -70,7 +71,8 @@ class MediaControlCardWidget extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (homeAssistantWebHost != null && card.linkedEntity.entityPicture != null) {
+    String state = card.linkedEntity.state;
+    if (homeAssistantWebHost != null && card.linkedEntity.entityPicture != null && state != "off" && state != "unavailable" && state != "idle") {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[

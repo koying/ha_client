@@ -125,8 +125,9 @@ class Entity {
         DefaultEntityContainer(state: _buildStatePartForPage(context)),
         LastUpdatedWidget(),
         Divider(),
-        buildHistoryWidget(),
         _buildAdditionalControlsForPage(context),
+        Divider(),
+        buildHistoryWidget(),
         EntityAttributesList()
       ]),
       handleTap: false,
