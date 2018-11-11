@@ -234,7 +234,7 @@ class HomeAssistant {
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
-        //TheLogger.debug("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
+        TheLogger.debug("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
         TheLogger.warning("Unhandled event type: ${data["event"]["event_type"]}");

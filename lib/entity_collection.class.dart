@@ -38,6 +38,9 @@ class EntityCollection {
       case 'sun': {
         return SunEntity(rawEntityData);
       }
+      case "media_player": {
+        return MediaPlayerEntity(rawEntityData);
+      }
       case 'sensor': {
         return SensorEntity(rawEntityData);
       }

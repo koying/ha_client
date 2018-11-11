@@ -11,17 +11,81 @@ class MediaControlCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity!= null) && (card.linkedEntity.isHidden)) {
+    if ((card.linkedEntity == null) || (card.linkedEntity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
+    if (homeAssistantWebHost != null) {
+      body.add(Stack(
+        alignment: AlignmentDirectional.topEnd,
+        children: <Widget>[
+          _buildImage(),
+          Positioned(
+            bottom: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child: Container(
+              height: 80.0,
+              color: Colors.black26,
+            ),
+          ),
+          Positioned(
+            bottom: 0.0,
+            left: 0.0,
+            child: _buildState(),
+          ),
+        ],
+      ));
+    }
     return Card(
-        child: new Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: body
+        child: Column(
+            //crossAxisAlignment: CrossAxisAlignment.center,
+            children: body
         )
     );
+  }
+
+  Widget _buildState() {
+    TextStyle style = TextStyle(
+      fontSize: 14.0,
+      color: Colors.white,
+      fontWeight: FontWeight.normal,
+      height: 1.2
+    );
+    List<Widget> states = [];
+    states.add(Text("${card.linkedEntity.displayName}", style: style));
+    if (card.linkedEntity.state == null || card.linkedEntity.state == "off" || card.linkedEntity.state == "unavailable") {
+      states.add(Text("${card.linkedEntity.state}", style: style.apply(fontSizeDelta: 4.0),));
+    } else {
+      states.add(Text("${card.linkedEntity.attributes['media_title'] ?? '-'}", style: style.apply(fontSizeDelta: 6.0, fontWeightDelta: 50),));
+      states.add(Text("${card.linkedEntity.attributes['media_artist'] ?? '-'}", style: style.apply(fontSizeDelta: 4.0),));
+    }
+    return Padding(
+      padding: EdgeInsets.only(left: Entity.leftWidgetPadding, right: Entity.rightWidgetPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: states,
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (homeAssistantWebHost != null && card.linkedEntity.entityPicture != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Image(
+            image: CachedNetworkImageProvider("$homeAssistantWebHost${card.linkedEntity.entityPicture}"),
+            height: 300.0,
+          )
+        ],
+      );
+    } else {
+      return Container(
+        color: Colors.blue,
+        height: 80.0,
+      );
+    }
   }
 
 }

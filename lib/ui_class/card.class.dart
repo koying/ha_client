@@ -23,6 +23,12 @@ class HACard {
           );
         }
 
+        case "media-control": {
+          return MediaControlCardWidget(
+            card: this,
+          );
+        }
+
         case "weather-forecast":
         case "thermostat":
         case "sensor":
@@ -35,8 +41,7 @@ class HACard {
         case "gauge":
         case "entity-button":
         case "conditional":
-        case "alarm-panel":
-        case "media-control": {
+        case "alarm-panel": {
           return UnsupportedCardWidget(
             card: this,
           );
