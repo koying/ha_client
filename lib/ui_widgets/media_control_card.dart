@@ -15,28 +15,62 @@ class MediaControlCardWidget extends StatelessWidget {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
-    if (homeAssistantWebHost != null) {
-      body.add(Stack(
-        alignment: AlignmentDirectional.topEnd,
-        children: <Widget>[
-          _buildImage(),
-          Positioned(
-            bottom: 0.0,
-            left: 0.0,
-            right: 0.0,
-            child: Container(
-              color: Colors.black45,
-              child: _buildState(),
-            ),
+    body.add(Stack(
+      alignment: AlignmentDirectional.topEnd,
+      children: <Widget>[
+        _buildImage(),
+        Positioned(
+          bottom: 0.0,
+          left: 0.0,
+          right: 0.0,
+          child: Container(
+            color: Colors.black45,
+            child: _buildState(),
           ),
-        ],
-      ));
-    }
+        ),
+        Positioned(
+          bottom: 0.0,
+          left: 0.0,
+          right: 0.0,
+          child: _buildProgress(),
+        )
+      ],
+    ));
     return Card(
         child: Column(
             //crossAxisAlignment: CrossAxisAlignment.center,
             children: body
         )
+    );
+  }
+
+  Widget _buildProgress() {
+    double progress;
+    try {
+      DateTime lastUpdated = DateTime.parse(
+          card.linkedEntity.attributes["media_position_updated_at"]).toLocal();
+      Duration duration = Duration(seconds: card.linkedEntity._getIntAttributeValue("media_duration") ?? 1);
+      Duration position = Duration(seconds: card.linkedEntity._getIntAttributeValue("media_position") ?? 0);
+      int currentPosition = position.inSeconds;
+      if (card.linkedEntity.state == "playing") {
+        int differenceInSeconds = DateTime
+            .now()
+            .difference(lastUpdated)
+            .inSeconds;
+        currentPosition = currentPosition + differenceInSeconds;
+      }
+      progress = currentPosition / duration.inSeconds;
+      return LinearProgressIndicator(
+        value: progress,
+        backgroundColor: Colors.black45,
+        valueColor: AlwaysStoppedAnimation<Color>(EntityColors.stateColor("on")),
+      );
+    } catch (e) {
+      progress = 0.0;
+    }
+    return LinearProgressIndicator(
+      value: progress,
+      backgroundColor: Colors.black45,
     );
   }
 
@@ -57,7 +91,7 @@ class MediaControlCardWidget extends StatelessWidget {
       states.add(Text("${card.linkedEntity.attributes['media_artist'] ?? card.linkedEntity.attributes['app_name']}", style: style.apply(fontSizeDelta: 4.0),));
     }
     return Padding(
-      padding: EdgeInsets.only(left: Entity.leftWidgetPadding, right: Entity.rightWidgetPadding),
+      padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, Entity.rowPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: states,
@@ -78,10 +112,20 @@ class MediaControlCardWidget extends StatelessWidget {
         ],
       );
     } else {
-      return Container(
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(
+            MaterialDesignIcons.createIconDataFromIconName("mdi:movie"),
+            size: 150.0,
+            color: EntityColors.stateColor("$state"),
+          )
+        ],
+      );
+      /*return Container(
         color: Colors.blue,
         height: 80.0,
-      );
+      );*/
     }
   }
 
