@@ -1,4 +1,6 @@
-# Android client for Home Assistant
+# HA Client
+## Native Android client for Home Assistant
+### With Lovelace UI support
 
 Home Assistant Android client on Dart with Flutter.
 
