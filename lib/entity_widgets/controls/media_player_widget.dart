@@ -1,35 +1,57 @@
 part of '../../main.dart';
 
 class MediaPlayerWidget extends StatelessWidget {
+
+  void _setPower(MediaPlayerEntity entity) {
+    TheLogger.debug('WAT?');
+  }
   
   @override
   Widget build(BuildContext context) {
     final EntityModel entityModel = EntityModel.of(context);
     final MediaPlayerEntity entity = entityModel.entity;
-    List<Widget> body = [];
-    body.add(Stack(
-      alignment: AlignmentDirectional.topEnd,
-      children: <Widget>[
-        _buildImage(entity),
-        Positioned(
-          bottom: 0.0,
-          left: 0.0,
-          right: 0.0,
-          child: Container(
-            color: Colors.black45,
-            child: _buildState(entity),
-          ),
-        ),
-        Positioned(
-          bottom: 0.0,
-          left: 0.0,
-          right: 0.0,
-          child: MediaPlayerProgressWidget()
-        )
-      ],
-    ));
     return Column(
-      children: body
+      children: <Widget>[
+        Stack(
+          alignment: AlignmentDirectional.topEnd,
+          children: <Widget>[
+            _buildImage(entity),
+            Positioned(
+              bottom: 0.0,
+              left: 0.0,
+              right: 0.0,
+              child: Container(
+                color: Colors.black45,
+                child: _buildState(entity),
+              ),
+            ),
+            Positioned(
+                bottom: 0.0,
+                left: 0.0,
+                right: 0.0,
+                child: MediaPlayerProgressWidget()
+            )
+          ],
+        ),
+        _buildControls(entity)
+      ]
+    );
+  }
+
+  Widget _buildControls(MediaPlayerEntity entity) {
+    List<Widget> result = [];
+    if (entity.supportTurnOn) {
+      result.add(
+        IconButton(
+          icon: Icon(Icons.power_settings_new),
+          onPressed: () => _setPower(entity),
+          iconSize: Sizes.iconSize,
+        )
+      );
+    }
+    return Row(
+      children: result,
+      mainAxisAlignment: MainAxisAlignment.center,
     );
   }
 
@@ -66,16 +88,19 @@ class MediaPlayerWidget extends StatelessWidget {
   Widget _buildImage(MediaPlayerEntity entity) {
     String state = entity.state;
     if (homeAssistantWebHost != null && entity.entityPicture != null && state != "off" && state != "unavailable" && state != "idle") {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Image(
-            image: CachedNetworkImageProvider("$homeAssistantWebHost${entity.entityPicture}"),
-            height: 240.0,
-            width: 320.0,
-            fit: BoxFit.fitHeight,
-          )
-        ],
+      return Container(
+        color: Colors.black,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image(
+              image: CachedNetworkImageProvider("$homeAssistantWebHost${entity.entityPicture}"),
+              height: 240.0,
+              width: 320.0,
+              fit: BoxFit.contain,
+            )
+          ],
+        ),
       );
     } else {
       return Row(
