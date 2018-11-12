@@ -102,12 +102,12 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(height: Entity.rowPadding,),
+          Container(height: Sizes.rowPadding,),
           Text(
             "Brightness",
-            style: TextStyle(fontSize: Entity.stateFontSize),
+            style: TextStyle(fontSize: Sizes.stateFontSize),
           ),
-          Container(height: Entity.rowPadding,),
+          Container(height: Sizes.rowPadding,),
           Row(
             children: <Widget>[
               Icon(Icons.brightness_5),
@@ -127,7 +127,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
               )
             ],
           ),
-          Container(height: Entity.rowPadding,)
+          Container(height: Sizes.rowPadding,)
         ],
       );
     } else {
@@ -140,12 +140,12 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(height: Entity.rowPadding,),
+          Container(height: Sizes.rowPadding,),
           Text(
             "Color temperature",
-            style: TextStyle(fontSize: Entity.stateFontSize),
+            style: TextStyle(fontSize: Sizes.stateFontSize),
           ),
-          Container(height: Entity.rowPadding,),
+          Container(height: Sizes.rowPadding,),
           Row(
             children: <Widget>[
               Text("Cold", style: TextStyle(color: Colors.lightBlue),),
@@ -166,7 +166,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
               Text("Warm", style: TextStyle(color: Colors.amberAccent),),
             ],
           ),
-          Container(height: Entity.rowPadding,)
+          Container(height: Sizes.rowPadding,)
         ],
       );
     } else {
@@ -179,7 +179,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Container(height: Entity.rowPadding,),
+          Container(height: Sizes.rowPadding,),
           RaisedButton(
             onPressed: () => _showColorPicker(entity),
             color: _tmpColor ?? Colors.black45,
@@ -193,7 +193,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
               ),
             ),
           ),
-          Container(height: 2*Entity.rowPadding,),
+          Container(height: 2*Sizes.rowPadding,),
         ],
       );
     } else {

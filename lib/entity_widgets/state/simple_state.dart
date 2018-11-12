@@ -10,13 +10,13 @@ class SimpleEntityState extends StatelessWidget {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     Widget result = Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.rightWidgetPadding, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text(
               "${entityModel.entity.state}${entityModel.entity.unitOfMeasurement}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: Entity.stateFontSize,
+                fontSize: Sizes.stateFontSize,
               )),
           onTap: () => entityModel.handleTap
               ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))

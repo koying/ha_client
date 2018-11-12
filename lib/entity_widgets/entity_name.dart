@@ -11,7 +11,7 @@ class EntityName extends StatelessWidget {
           "${entityModel.entity.displayName}",
           overflow: TextOverflow.ellipsis,
           softWrap: false,
-          style: TextStyle(fontSize: Entity.nameFontSize),
+          style: TextStyle(fontSize: Sizes.nameFontSize),
         ),
       ),
       onTap: () =>

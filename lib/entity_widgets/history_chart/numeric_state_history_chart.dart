@@ -57,7 +57,7 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
             selectionModels: [
               new charts.SelectionModelConfig(
                 type: charts.SelectionModelType.info,
-                listener: (model) => _onSelectionChanged(model),
+                changedListener: (model) => _onSelectionChanged(model),
               )
             ],
           ),

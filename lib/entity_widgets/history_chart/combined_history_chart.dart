@@ -69,7 +69,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
             selectionModels: [
               new charts.SelectionModelConfig(
                 type: charts.SelectionModelType.info,
-                listener: (model) => _onSelectionChanged(model),
+                changedListener: (model) => _onSelectionChanged(model),
               )
             ],
             customSeriesRenderers: [

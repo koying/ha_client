@@ -19,7 +19,7 @@ class ButtonStateWidget extends StatelessWidget {
           "EXECUTE",
           textAlign: TextAlign.right,
           style:
-          new TextStyle(fontSize: Entity.stateFontSize, color: Colors.blue),
+          new TextStyle(fontSize: Sizes.stateFontSize, color: Colors.blue),
         ),
       )
     );

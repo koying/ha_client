@@ -45,7 +45,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
       _resetVars(entity);
     }
     return Padding(
-      padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
+      padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -63,9 +63,9 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+                0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
             child: Text("Position", style: TextStyle(
-                fontSize: Entity.stateFontSize
+                fontSize: Sizes.stateFontSize
             )),
           ),
           Slider(
@@ -81,7 +81,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
             },
             onChangeEnd: (double value) => _setNewPosition(entity, value),
           ),
-          Container(height: Entity.rowPadding,)
+          Container(height: Sizes.rowPadding,)
         ],
       );
     } else {
@@ -111,15 +111,15 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
           },
           onChangeEnd: (double value) => _setNewTiltPosition(entity, value),
         ),
-        Container(height: Entity.rowPadding,)
+        Container(height: Sizes.rowPadding,)
       ]);
     }
     if (controls.isNotEmpty) {
       controls.insert(0, Padding(
         padding: EdgeInsets.fromLTRB(
-            0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+            0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
         child: Text("Tilt position", style: TextStyle(
-            fontSize: Entity.stateFontSize
+            fontSize: Sizes.stateFontSize
         )),
       ));
       return Column(
@@ -159,24 +159,24 @@ class CoverTiltControlsWidget extends StatelessWidget {
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName(
                 "mdi:arrow-top-right"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: entity.canTiltBeOpened ? () => _open(entity) : null));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
     if (entity.supportStopTilt) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: () => _stop(entity)));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
     if (entity.supportCloseTilt) {
@@ -184,12 +184,12 @@ class CoverTiltControlsWidget extends StatelessWidget {
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName(
                 "mdi:arrow-bottom-left"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: entity.canTiltBeClosed ? () => _close(entity) : null));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
 

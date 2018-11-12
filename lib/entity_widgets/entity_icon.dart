@@ -7,10 +7,10 @@ class EntityIcon extends StatelessWidget {
     return GestureDetector(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-            Entity.leftWidgetPadding, 0.0, 12.0, 0.0),
+            Sizes.leftWidgetPadding, 0.0, 12.0, 0.0),
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
             entityModel.entity,
-            Entity.iconSize,
+            Sizes.iconSize,
             EntityColors.stateColor(entityModel.entity.state)
         ),
       ),

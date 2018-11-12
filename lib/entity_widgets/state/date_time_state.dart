@@ -6,12 +6,12 @@ class DateTimeStateWidget extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     final DateTimeEntity entity = entityModel.entity;
     return Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, Entity.rightWidgetPadding, 0.0),
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Text("${entity.formattedState}",
               textAlign: TextAlign.right,
               style: new TextStyle(
-                fontSize: Entity.stateFontSize,
+                fontSize: Sizes.stateFontSize,
               )),
           onTap: () => _handleStateTap(context, entity),
         ));

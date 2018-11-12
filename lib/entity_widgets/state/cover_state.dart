@@ -25,36 +25,36 @@ class CoverStateWidget extends StatelessWidget {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-up"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: entity.canBeOpened ? () => _open(entity) : null));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
     if (entity.supportStop) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: () => _stop(entity)));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
     if (entity.supportClose) {
       buttons.add(IconButton(
           icon: Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-down"),
-            size: Entity.iconSize,
+            size: Sizes.iconSize,
           ),
           onPressed: entity.canBeClosed ? () => _close(entity) : null));
     } else {
       buttons.add(Container(
-        width: Entity.iconSize + 20.0,
+        width: Sizes.iconSize + 20.0,
       ));
     }
 

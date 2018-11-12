@@ -34,7 +34,7 @@ class EntityAttributesList extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                Entity.leftWidgetPadding, Entity.rowPadding, 0.0, 0.0),
+                Sizes.leftWidgetPadding, Sizes.rowPadding, 0.0, 0.0),
             child: Text(
               "$name",
               textAlign: TextAlign.left,
@@ -44,7 +44,7 @@ class EntityAttributesList extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
+                0.0, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0),
             child: Text(
               "$value",
               textAlign: TextAlign.right,

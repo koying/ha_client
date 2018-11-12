@@ -83,7 +83,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     }
     children.add(Divider());
     return Padding(
-      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, Entity.rowPadding),
+      padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, Sizes.rowPadding),
       child: Column(
         children: children,
       ),

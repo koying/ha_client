@@ -18,7 +18,7 @@ class ClimateStateWidget extends StatelessWidget {
     }
     return Padding(
         padding: EdgeInsets.fromLTRB(
-            0.0, 0.0, Entity.rightWidgetPadding, 0.0),
+            0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
         child: GestureDetector(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -30,12 +30,12 @@ class ClimateStateWidget extends StatelessWidget {
                       textAlign: TextAlign.right,
                       style: new TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: Entity.stateFontSize,
+                        fontSize: Sizes.stateFontSize,
                       )),
                   Text(" $targetTemp",
                       textAlign: TextAlign.right,
                       style: new TextStyle(
-                        fontSize: Entity.stateFontSize,
+                        fontSize: Sizes.stateFontSize,
                       ))
                 ],
               ),
@@ -43,7 +43,7 @@ class ClimateStateWidget extends StatelessWidget {
               Text("Currently: ${entity.attributes["current_temperature"]}",
                   textAlign: TextAlign.right,
                   style: new TextStyle(
-                      fontSize: Entity.stateFontSize,
+                      fontSize: Sizes.stateFontSize,
                       color: Colors.black45)
               ) :
               Container(height: 0.0,)

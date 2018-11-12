@@ -23,7 +23,7 @@ class ModeSwitchWidget extends StatelessWidget {
           child: Text(
             "$caption",
             style: TextStyle(
-                fontSize: captionFontSize ?? Entity.stateFontSize
+                fontSize: captionFontSize ?? Sizes.stateFontSize
             ),
           ),
         ),

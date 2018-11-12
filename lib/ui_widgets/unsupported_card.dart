@@ -31,14 +31,14 @@ class UnsupportedCardWidget extends StatelessWidget {
     if (card.linkedEntity != null) {
       result.addAll(<Widget>[
           Padding(
-            padding: EdgeInsets.fromLTRB(0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+            padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
             child: card.linkedEntity.buildDefaultWidget(context),
           )
       ]);
     } else {
       result.addAll(<Widget>[
         Padding(
-          padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, Entity.rowPadding),
+          padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, Sizes.rowPadding),
           child: Text("'${card.type}' card is not supported yet"),
         ),
       ]);

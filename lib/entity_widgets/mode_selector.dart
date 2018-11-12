@@ -27,7 +27,7 @@ class ModeSelectorWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text("$caption", style: TextStyle(
-            fontSize: captionFontSize ?? Entity.stateFontSize
+            fontSize: captionFontSize ?? Sizes.stateFontSize
         )),
         Row(
           children: <Widget>[
@@ -39,7 +39,7 @@ class ModeSelectorWidget extends StatelessWidget {
                   iconSize: 30.0,
                   isExpanded: true,
                   style: TextStyle(
-                    fontSize: valueFontSize ?? Entity.largeFontSize,
+                    fontSize: valueFontSize ?? Sizes.largeFontSize,
                     color: Colors.black,
                   ),
                   hint: Text("Select ${caption.toLowerCase()}"),
@@ -55,7 +55,7 @@ class ModeSelectorWidget extends StatelessWidget {
             )
           ],
         ),
-        Container(height: bottomPadding ?? Entity.rowPadding,)
+        Container(height: bottomPadding ?? Sizes.rowPadding,)
       ],
     );
   }

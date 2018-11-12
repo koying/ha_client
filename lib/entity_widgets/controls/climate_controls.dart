@@ -174,7 +174,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       _resetVars(entity);
     }
     return Padding(
-      padding: EdgeInsets.fromLTRB(Entity.leftWidgetPadding, Entity.rowPadding, Entity.rightWidgetPadding, 0.0),
+      padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -273,7 +273,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text("Target temperature", style: TextStyle(
-              fontSize: Entity.stateFontSize
+              fontSize: Sizes.stateFontSize
           )),
           TemperatureControlWidget(
             value: _tmpTemperature,
@@ -324,7 +324,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text("Target temperature range", style: TextStyle(
-              fontSize: Entity.stateFontSize
+              fontSize: Sizes.stateFontSize
           )),
           Row(
             children: controls,
@@ -342,7 +342,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       result.addAll(<Widget>[
         Text(
           "$_tmpTargetHumidity%",
-          style: TextStyle(fontSize: Entity.largeFontSize),
+          style: TextStyle(fontSize: Sizes.largeFontSize),
         ),
         Expanded(
           child: Slider(
@@ -366,9 +366,9 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(
-                0.0, Entity.rowPadding, 0.0, Entity.rowPadding),
+                0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
             child: Text("Target humidity", style: TextStyle(
-                fontSize: Entity.stateFontSize
+                fontSize: Sizes.stateFontSize
             )),
           ),
           Row(
@@ -376,7 +376,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
             children: result,
           ),
           Container(
-            height: Entity.rowPadding,
+            height: Sizes.rowPadding,
           )
         ],
       );
