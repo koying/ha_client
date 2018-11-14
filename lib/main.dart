@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
+part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
 part 'entity_class/switch_entity.class.dart';
 part 'entity_class/button_entity.class.dart';

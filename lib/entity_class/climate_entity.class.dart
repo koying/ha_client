@@ -84,7 +84,7 @@ class ClimateEntity extends Entity {
   String get fanMode => attributes['fan_mode'];
   String get swingMode => attributes['swing_mode'];
   bool get awayMode => attributes['away_mode'] == "on";
-  bool get isOff => state == "off";
+  bool get isOff => state == EntityState.off;
   bool get auxHeat => attributes['aux_heat'] == "on";
 
   ClimateEntity(Map rawData) : super(rawData);

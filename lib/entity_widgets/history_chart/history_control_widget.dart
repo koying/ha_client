@@ -55,7 +55,7 @@ class HistoryControlWidget extends StatelessWidget {
             textAlign: TextAlign.right,
             style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: EntityColors.historyStateColor(selectedStates[i], colorIndexes[i]),
+                color: EntityColor.historyStateColor(selectedStates[i], colorIndexes[i]),
                 fontSize: 22.0
             ),
           )

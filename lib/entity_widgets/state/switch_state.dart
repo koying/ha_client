@@ -14,7 +14,7 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
 
   void _setNewState(newValue, Entity entity) {
     setState(() {
-      entity.assumedState = newValue ? 'on' : 'off';
+      entity.assumedState = newValue ? EntityState.on : EntityState.off;
     });
     Timer(Duration(seconds: 2), (){
       setState(() {
@@ -30,13 +30,13 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
     final entityModel = EntityModel.of(context);
     final entity = entityModel.entity;
     Widget result;
-    if (entity.state == "unavailable") {
+    if (entity.state == EntityState.unavailable || entity.state == EntityState.unknown) {
       return SimpleEntityState();
     } else if ((entity.attributes["assumed_state"] == null) || (entity.attributes["assumed_state"] == false)) {
       return SizedBox(
         height: 32.0,
         child: Switch(
-          value: entity.assumedState == 'on',
+          value: entity.assumedState == EntityState.on,
           onChanged: ((switchState) {
             _setNewState(switchState, entity);
           }),
@@ -51,13 +51,13 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
             IconButton(
               onPressed: () => _setNewState(false, entity),
               icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:flash-off")),
-              color: entity.assumedState == 'on' ? Colors.black : Colors.blue,
+              color: entity.assumedState == EntityState.on ? Colors.black : Colors.blue,
               iconSize: Sizes.iconSize,
             ),
             IconButton(
                 onPressed: () => _setNewState(true, entity),
                 icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:flash")),
-                color: entity.assumedState == 'on' ? Colors.blue : Colors.black,
+                color: entity.assumedState == EntityState.on ? Colors.blue : Colors.black,
                 iconSize: Sizes.iconSize
             )
           ],

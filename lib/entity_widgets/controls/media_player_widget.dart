@@ -3,7 +3,17 @@ part of '../../main.dart';
 class MediaPlayerWidget extends StatelessWidget {
 
   void _setPower(MediaPlayerEntity entity) {
-    TheLogger.debug('WAT?');
+    if (entity.state != EntityState.unavailable && entity.state != EntityState.unknown) {
+      if (entity.state == EntityState.off) {
+        TheLogger.debug("${entity.entityId} turn_on");
+      } else {
+        TheLogger.debug("${entity.entityId} turn_off");
+      }
+    }
+  }
+
+  void _callAction(MediaPlayerEntity entity, String action) {
+    TheLogger.debug("${entity.entityId} $action");
   }
   
   @override
@@ -40,13 +50,43 @@ class MediaPlayerWidget extends StatelessWidget {
 
   Widget _buildControls(MediaPlayerEntity entity) {
     List<Widget> result = [];
-    if (entity.supportTurnOn) {
+    if (entity.supportTurnOn || entity.supportTurnOff) {
       result.add(
         IconButton(
           icon: Icon(Icons.power_settings_new),
           onPressed: () => _setPower(entity),
           iconSize: Sizes.iconSize,
         )
+      );
+    }
+    if (entity.supportPreviousTrack) {
+      result.add(
+          IconButton(
+            icon: Icon(Icons.skip_previous),
+            onPressed: () => _callAction(entity, "media_previous_track"),
+            iconSize: Sizes.iconSize,
+          )
+      );
+    }
+    if (entity.supportPlay || entity.supportPause) {
+      if (entity.state == EntityState.playing) {
+        result.add(
+            IconButton(
+              icon: Icon(Icons.pause_circle_outline),
+              onPressed: () => _callAction(entity, "media_pause"),
+              iconSize: Sizes.iconSize*1.5,
+            )
+        );
+      } //else if (entity.state == '')
+
+    }
+    if (entity.supportNextTrack) {
+      result.add(
+          IconButton(
+            icon: Icon(Icons.skip_next),
+            onPressed: () => _callAction(entity, "media_next_track"),
+            iconSize: Sizes.iconSize,
+          )
       );
     }
     return Row(
@@ -65,7 +105,7 @@ class MediaPlayerWidget extends StatelessWidget {
     List<Widget> states = [];
     states.add(Text("${entity.displayName}", style: style));
     String state = entity.state;
-    if (state == null || state == "off" || state == "unavailable" || state == "idle") {
+    if (state == null || state == EntityState.off || state == EntityState.unavailable || state == EntityState.idle) {
       states.add(Text("${entity.state}", style: style.apply(fontSizeDelta: 4.0),));
     }
     if (entity.attributes['media_title'] != null) {
@@ -87,7 +127,7 @@ class MediaPlayerWidget extends StatelessWidget {
 
   Widget _buildImage(MediaPlayerEntity entity) {
     String state = entity.state;
-    if (homeAssistantWebHost != null && entity.entityPicture != null && state != "off" && state != "unavailable" && state != "idle") {
+    if (homeAssistantWebHost != null && entity.entityPicture != null && state != EntityState.off && state != EntityState.unavailable && state != EntityState.idle) {
       return Container(
         color: Colors.black,
         child: Row(
@@ -109,7 +149,7 @@ class MediaPlayerWidget extends StatelessWidget {
           Icon(
             MaterialDesignIcons.createIconDataFromIconName("mdi:movie"),
             size: 150.0,
-            color: EntityColors.stateColor("$state"),
+            color: EntityColor.stateColor("$state"),
           )
         ],
       );
@@ -141,7 +181,7 @@ class _MediaPlayerProgressWidgetState extends State<MediaPlayerProgressWidget> {
       Duration duration = Duration(seconds: entity._getIntAttributeValue("media_duration") ?? 1);
       Duration position = Duration(seconds: entity._getIntAttributeValue("media_position") ?? 0);
       int currentPosition = position.inSeconds;
-      if (entity.state == "playing") {
+      if (entity.state == EntityState.playing) {
         _timer?.cancel();
         _timer = Timer(Duration(seconds: 1), () {
           setState(() {
@@ -159,7 +199,7 @@ class _MediaPlayerProgressWidgetState extends State<MediaPlayerProgressWidget> {
       return LinearProgressIndicator(
         value: progress,
         backgroundColor: Colors.black45,
-        valueColor: AlwaysStoppedAnimation<Color>(EntityColors.stateColor("on")),
+        valueColor: AlwaysStoppedAnimation<Color>(EntityColor.stateColor(EntityState.on)),
       );
     } catch (e) {
       _timer?.cancel();

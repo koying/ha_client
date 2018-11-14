@@ -2,10 +2,6 @@ part of '../main.dart';
 
 class Entity {
 
-  static const badgeColors = {
-    "default": Color.fromRGBO(223, 76, 30, 1.0),
-    "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
-  };
   static List badgeDomains = [
     "alarm_control_panel",
     "binary_sensor",
@@ -39,7 +35,7 @@ class Entity {
   bool get isGroup => domain == "group";
   bool get isBadge => Entity.badgeDomains.contains(domain);
   String get icon => attributes["icon"] ?? "";
-  bool get isOn => state == "on";
+  bool get isOn => state == EntityState.on;
   String get entityPicture => attributes["entity_picture"];
   String get unitOfMeasurement => attributes["unit_of_measurement"] ?? "";
   List get childEntityIds => attributes["entity_id"] ?? [];

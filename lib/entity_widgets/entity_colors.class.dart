@@ -1,22 +1,28 @@
 part of '../main.dart';
 
-class EntityColors {
+class EntityColor {
+
+  static const badgeColors = {
+    "default": Color.fromRGBO(223, 76, 30, 1.0),
+    "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
+  };
+
   static const _stateColors = {
-    "on": Colors.amber,
+    EntityState.on: Colors.amber,
     "auto": Colors.amber,
-    "idle": Colors.amber,
-    "playing": Colors.amber,
+    EntityState.idle: Colors.amber,
+    EntityState.playing: Colors.amber,
     "above_horizon": Colors.amber,
-    "home":  Colors.amber,
-    "open":  Colors.amber,
-    "off": Color.fromRGBO(68, 115, 158, 1.0),
-    "closed": Color.fromRGBO(68, 115, 158, 1.0),
+    EntityState.home:  Colors.amber,
+    EntityState.open:  Colors.amber,
+    EntityState.off: Color.fromRGBO(68, 115, 158, 1.0),
+    EntityState.closed: Color.fromRGBO(68, 115, 158, 1.0),
     "below_horizon": Color.fromRGBO(68, 115, 158, 1.0),
     "default": Color.fromRGBO(68, 115, 158, 1.0),
     "heat": Colors.redAccent,
     "cool": Colors.lightBlue,
-    "unavailable": Colors.black26,
-    "unknown": Colors.black26,
+    EntityState.unavailable: Colors.black26,
+    EntityState.unknown: Colors.black26,
   };
 
   static Color stateColor(String state) {
@@ -48,7 +54,7 @@ class EntityColors {
         charts.Color c1 = charts.MaterialPalette.getOrderedPalettes(10)[r.round()].shadeDefault;
         return Color.fromARGB(c1.a, c1.r, c1.g, c1.b);
       } else {
-        return _stateColors["on"];
+        return _stateColors[EntityState.on];
       }
     }
   }
