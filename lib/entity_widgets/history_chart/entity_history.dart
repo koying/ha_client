@@ -31,6 +31,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
 
   List _history;
   bool _needToUpdateHistory;
+  DateTime _historyLastUpdated;
 
   @override
   void initState() {
@@ -39,18 +40,25 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   }
 
   void _loadHistory(HomeAssistant ha, String entityId) {
-    ha.getHistory(entityId).then((history){
-      setState(() {
-        _history = history.isNotEmpty ? history[0] : [];
-        _needToUpdateHistory = false;
+    DateTime now = DateTime.now();
+    if (_historyLastUpdated != null) {
+      TheLogger.debug("History was updated ${now.difference(_historyLastUpdated).inSeconds} seconds ago");
+    }
+    if (_historyLastUpdated == null || now.difference(_historyLastUpdated).inSeconds > 30) {
+      _historyLastUpdated = now;
+      ha.getHistory(entityId).then((history){
+        setState(() {
+          _history = history.isNotEmpty ? history[0] : [];
+          _needToUpdateHistory = false;
+        });
+      }).catchError((e) {
+        TheLogger.error("Error loading $entityId history: $e");
+        setState(() {
+          _history = [];
+          _needToUpdateHistory = false;
+        });
       });
-    }).catchError((e) {
-      TheLogger.error("Error loading $entityId history: $e");
-      setState(() {
-        _history = [];
-        _needToUpdateHistory = false;
-      });
-    });
+    }
   }
 
   @override
