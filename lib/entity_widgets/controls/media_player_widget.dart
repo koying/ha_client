@@ -6,14 +6,23 @@ class MediaPlayerWidget extends StatelessWidget {
     if (entity.state != EntityState.unavailable && entity.state != EntityState.unknown) {
       if (entity.state == EntityState.off) {
         TheLogger.debug("${entity.entityId} turn_on");
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            null));
       } else {
         TheLogger.debug("${entity.entityId} turn_off");
+        eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_off", entity.entityId,
+            null));
       }
     }
   }
 
   void _callAction(MediaPlayerEntity entity, String action) {
     TheLogger.debug("${entity.entityId} $action");
+    eventBus.fire(new ServiceCallEvent(
+        entity.domain, "$action", entity.entityId,
+        null));
   }
   
   @override
@@ -52,15 +61,22 @@ class MediaPlayerWidget extends StatelessWidget {
     List<Widget> result = [];
     if (entity.supportTurnOn || entity.supportTurnOff) {
       result.add(
-        IconButton(
-          icon: Icon(Icons.power_settings_new),
-          onPressed: () => _setPower(entity),
-          iconSize: Sizes.iconSize,
-        )
+          IconButton(
+            icon: Icon(Icons.power_settings_new),
+            onPressed: () => _setPower(entity),
+            iconSize: Sizes.iconSize,
+          )
+      );
+    } else {
+      result.add(
+          Container(
+            width: Sizes.iconSize,
+          )
       );
     }
+    List <Widget> centeredControlsChildren = [];
     if (entity.supportPreviousTrack) {
-      result.add(
+      centeredControlsChildren.add(
           IconButton(
             icon: Icon(Icons.skip_previous),
             onPressed: () => _callAction(entity, "media_previous_track"),
@@ -70,18 +86,34 @@ class MediaPlayerWidget extends StatelessWidget {
     }
     if (entity.supportPlay || entity.supportPause) {
       if (entity.state == EntityState.playing) {
-        result.add(
+        centeredControlsChildren.add(
             IconButton(
-              icon: Icon(Icons.pause_circle_outline),
+              icon: Icon(Icons.pause_circle_filled),
+              color: Colors.blue,
               onPressed: () => _callAction(entity, "media_pause"),
-              iconSize: Sizes.iconSize*1.5,
+              iconSize: Sizes.iconSize*1.8,
             )
         );
-      } //else if (entity.state == '')
-
+      } else if (entity.state == EntityState.paused) {
+        centeredControlsChildren.add(
+            IconButton(
+              icon: Icon(Icons.play_circle_filled),
+              color: Colors.blue,
+              onPressed: () => _callAction(entity, "media_play"),
+              iconSize: Sizes.iconSize*1.8,
+            )
+        );
+      } else {
+        centeredControlsChildren.add(
+            Container(
+              width: Sizes.iconSize*1.8,
+              height: Sizes.iconSize*2.0,
+            )
+        );
+      }
     }
     if (entity.supportNextTrack) {
-      result.add(
+      centeredControlsChildren.add(
           IconButton(
             icon: Icon(Icons.skip_next),
             onPressed: () => _callAction(entity, "media_next_track"),
@@ -89,6 +121,30 @@ class MediaPlayerWidget extends StatelessWidget {
           )
       );
     }
+    if (centeredControlsChildren.isNotEmpty) {
+      result.add(
+          Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: centeredControlsChildren,
+              )
+          )
+      );
+    } else {
+      result.add(
+        Expanded(
+          child: Container(
+            height: 10.0,
+          ),
+        )
+      );
+    }
+    result.add(
+      IconButton(
+          icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:dots-vertical")),
+          onPressed: () => eventBus.fire(new ShowEntityPageEvent(entity))
+      )
+    );
     return Row(
       children: result,
       mainAxisAlignment: MainAxisAlignment.center,
