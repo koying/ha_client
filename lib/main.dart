@@ -491,42 +491,52 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-  Scaffold _buildScaffold(bool empty) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: _buildAppTitle(),
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          onPressed: () {
-            _scaffoldKey.currentState.openDrawer();
-            setState(() {
-              _accountMenuExpanded = false;
-            });
-          },
-        ),
-        primary: true,
-        bottom: empty ? null : TabBar(
-            tabs: buildUIViewTabs(),
-            isScrollable: true,
-        ),
-      ),
-      drawer: _buildAppDrawer(),
-      body: empty ?
-        Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
-                  size: 100.0,
-                  color: _isLoading == 2 ? Colors.redAccent : Colors.blue,
-                ),
-              ]
+  Widget _buildScaffoldBody(bool empty) {
+    return NestedScrollView(
+      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        return <Widget>[
+          SliverAppBar(
+            //expandedHeight: 100.0,
+            floating: true,
+            pinned: true,
+            primary: true,
+            title: _buildAppTitle(),
+            leading: IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                _scaffoldKey.currentState.openDrawer();
+                setState(() {
+                  _accountMenuExpanded = false;
+                });
+              },
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              //title: _buildAppTitle(),
+            ),
+            bottom: empty ? null : TabBar(
+              tabs: buildUIViewTabs(),
+              isScrollable: true,
+            ),
           ),
-        )
-        :
-        _homeAssistant.buildViews(context, _useLovelaceUI)
+
+        ];
+      },
+      body: empty ?
+      Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
+                size: 100.0,
+                color: _isLoading == 2 ? Colors.redAccent : Colors.blue,
+              ),
+            ]
+        ),
+      )
+          :
+      _homeAssistant.buildViews(context, _useLovelaceUI),
     );
   }
 
@@ -534,11 +544,19 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called.
     if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
-      return _buildScaffold(true);
+      return Scaffold(
+        key: _scaffoldKey,
+        drawer: _buildAppDrawer(),
+        body: _buildScaffoldBody(true)
+      );
     } else {
-      return DefaultTabController(
-          length: _homeAssistant.ui.views.length,
-          child: _buildScaffold(false)
+      return Scaffold(
+        key: _scaffoldKey,
+        drawer: _buildAppDrawer(),
+        body: DefaultTabController(
+          length: _homeAssistant.ui?.views?.length ?? 0,
+          child: _buildScaffoldBody(false),
+        ),
       );
     }
   }
