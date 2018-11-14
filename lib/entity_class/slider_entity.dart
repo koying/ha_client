@@ -8,6 +8,12 @@ class SliderEntity extends Entity {
   double get valueStep => _getDoubleAttributeValue("step") ?? 1.0;
 
   @override
+  EntityHistoryConfig historyConfig = EntityHistoryConfig(
+      chartType: EntityHistoryWidgetType.numericState,
+      numericState: true
+  );
+
+  /*@override
   Widget _buildStatePart(BuildContext context) {
     return Expanded(
       //width: 200.0,
@@ -29,7 +35,7 @@ class SliderEntity extends Entity {
     return SimpleEntityState(
       expanded: false,
     );
-  }
+  }*/
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
