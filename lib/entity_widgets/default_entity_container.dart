@@ -10,16 +10,15 @@ class DefaultEntityContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      child: Row(
-        children: <Widget>[
-          EntityIcon(),
-          Expanded(
-            child: EntityName(),
-          ),
-          state
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: <Widget>[
+        EntityIcon(),
+        Expanded(
+          child: EntityName(),
+        ),
+        state
+      ],
     );
   }
 }

@@ -56,6 +56,10 @@ class Entity {
     domain = rawData["entity_id"].split(".")[0];
     entityId = rawData["entity_id"];
     state = rawData["state"];
+    if (domain == "sun") {
+      state = "iuwfhiwushf iwuwfhiuwefh dsjhfkjsdfnksdj nfksdjfn ksdjfn kdsjfndskj sdk fhksbsk jvfk jvsfkj  sfkjvsfkvdsjk bvsfk svfjk";
+      attributes["friendly_name"] = "Black hole sun, wan't you come, wan't you come";
+    }
     assumedState = state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
