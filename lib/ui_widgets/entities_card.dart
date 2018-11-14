@@ -28,7 +28,7 @@ class EntitiesCardWidget extends StatelessWidget {
       if (!entity.isHidden) {
         result.add(
             Padding(
-              padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+              padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
               child: entity.buildDefaultWidget(context),
             ));
       }

@@ -411,7 +411,8 @@ class HomeAssistant {
         HACard card = HACard(
             id: "card",
             name: rawCard["title"],
-            type: rawCard['type']
+            type: rawCard['type'],
+            columnsCount: rawCard['columns'] ?? 4,
         );
         rawCard["entities"]?.forEach((rawEntity) {
           if (rawEntity is String) {

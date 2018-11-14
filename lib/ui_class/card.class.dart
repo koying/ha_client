@@ -6,11 +6,13 @@ class HACard {
   String name;
   String id;
   String type;
+  int columnsCount;
 
   HACard({
     this.name,
     this.id,
     this.linkedEntity,
+    this.columnsCount: 4,
     @required this.type
   });
 
@@ -19,6 +21,12 @@ class HACard {
 
         case "entities": {
           return EntitiesCardWidget(
+            card: this,
+          );
+        }
+
+        case "glance": {
+          return GlanceCardWidget(
             card: this,
           );
         }

@@ -88,6 +88,14 @@ class Entity {
     );
   }
 
+  Widget buildGlanceWidget(BuildContext context) {
+    return EntityModel(
+      entity: this,
+      child: GlanceEntityContainer(),
+      handleTap: true,
+    );
+  }
+
   Widget _buildStatePart(BuildContext context) {
     return SimpleEntityState();
   }

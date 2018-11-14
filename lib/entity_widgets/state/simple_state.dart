@@ -3,18 +3,20 @@ part of '../../main.dart';
 class SimpleEntityState extends StatelessWidget {
 
   final bool expanded;
+  final TextAlign textAlign;
+  final EdgeInsetsGeometry padding;
 
-  const SimpleEntityState({Key key, this.expanded: true}) : super(key: key);
+  const SimpleEntityState({Key key, this.expanded: true, this.textAlign: TextAlign.right, this.padding: const EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0)}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     Widget result = Padding(
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
+        padding: padding,
         child: GestureDetector(
           child: Text(
               "${entityModel.entity.state}${entityModel.entity.unitOfMeasurement}",
-              textAlign: TextAlign.right,
+              textAlign: textAlign,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
