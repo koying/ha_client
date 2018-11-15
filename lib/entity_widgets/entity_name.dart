@@ -3,8 +3,12 @@ part of '../main.dart';
 class EntityName extends StatelessWidget {
 
   final EdgeInsetsGeometry padding;
+  final TextOverflow textOverflow;
+  final bool wordsWrap;
+  final double fontSize;
+  final TextAlign textAlign;
 
-  const EntityName({Key key, this.padding: const EdgeInsets.only(right: 10.0)}) : super(key: key);
+  const EntityName({Key key, this.padding: const EdgeInsets.only(right: 10.0), this.textOverflow: TextOverflow.ellipsis, this.wordsWrap: true, this.fontSize: Sizes.nameFontSize, this.textAlign: TextAlign.left}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +18,10 @@ class EntityName extends StatelessWidget {
         padding: padding,
         child: Text(
           "${entityModel.entity.displayName}",
-          overflow: TextOverflow.ellipsis,
-          softWrap: true,
-          style: TextStyle(fontSize: Sizes.nameFontSize),
+          overflow: textOverflow,
+          softWrap: wordsWrap,
+          style: TextStyle(fontSize: fontSize),
+          textAlign: textAlign,
         ),
       ),
       onTap: () =>

@@ -13,7 +13,11 @@ class GlanceEntityContainer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         EntityName(
-          padding: EdgeInsets.all(0.0),
+          padding: EdgeInsets.only(bottom: Sizes.rowPadding),
+          textOverflow: TextOverflow.ellipsis,
+          wordsWrap: false,
+          textAlign: TextAlign.center,
+          fontSize: Sizes.smallFontSize,
         ),
         EntityIcon(
           padding: EdgeInsets.all(0.0),
@@ -22,7 +26,7 @@ class GlanceEntityContainer extends StatelessWidget {
         SimpleEntityState(
           textAlign: TextAlign.center,
           expanded: false,
-          padding: EdgeInsets.all(0.0),
+          padding: EdgeInsets.only(top: Sizes.rowPadding),
         )
       ],
     );
