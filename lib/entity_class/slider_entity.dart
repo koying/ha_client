@@ -39,8 +39,6 @@ class SliderEntity extends Entity {
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    return SliderStateWidget(
-      expanded: false,
-    );
+    return SliderControlsWidget();
   }
 }

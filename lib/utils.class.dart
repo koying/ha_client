@@ -58,9 +58,8 @@ class HAUtils {
 class StateChangedEvent {
   String entityId;
   String newState;
-  bool localChange;
 
-  StateChangedEvent(this.entityId, this.newState, this.localChange);
+  StateChangedEvent(this.entityId, this.newState);
 }
 
 class SettingsChangedEvent {
