@@ -16,7 +16,6 @@ class Entity {
   String domain;
   String entityId;
   String state;
-  String assumedState;
   DateTime _lastUpdated;
 
   List<Entity> childEntities = [];
@@ -52,7 +51,6 @@ class Entity {
     domain = rawData["entity_id"].split(".")[0];
     entityId = rawData["entity_id"];
     state = rawData["state"];
-    assumedState = state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 
