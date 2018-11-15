@@ -7,12 +7,12 @@ class BadgeWidget extends StatelessWidget {
     double iconSize = 26.0;
     Widget badgeIcon;
     String onBadgeTextValue;
-    Color iconColor = EntityColor.badgeColors[entityModel.entity.domain] ??
+    Color iconColor = EntityColor.badgeColors[entityModel.entity.entity.domain] ??
         EntityColor.badgeColors["default"];
-    switch (entityModel.entity.domain) {
+    switch (entityModel.entity.entity.domain) {
       case "sun":
         {
-          badgeIcon = entityModel.entity.state == "below_horizon"
+          badgeIcon = entityModel.entity.entity.state == "below_horizon"
               ? Icon(
             MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
             size: iconSize,
@@ -25,10 +25,10 @@ class BadgeWidget extends StatelessWidget {
         }
       case "sensor":
         {
-          onBadgeTextValue = entityModel.entity.unitOfMeasurement;
+          onBadgeTextValue = entityModel.entity.entity.unitOfMeasurement;
           badgeIcon = Center(
             child: Text(
-              "${entityModel.entity.state}",
+              "${entityModel.entity.entity.state}",
               overflow: TextOverflow.fade,
               softWrap: false,
               textAlign: TextAlign.center,
@@ -41,7 +41,7 @@ class BadgeWidget extends StatelessWidget {
         {
           badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
               entityModel.entity, iconSize, Colors.black);
-          onBadgeTextValue = entityModel.entity.state;
+          onBadgeTextValue = entityModel.entity.entity.state;
           break;
         }
       default:
@@ -120,6 +120,6 @@ class BadgeWidget extends StatelessWidget {
           ],
         ),
         onTap: () =>
-            eventBus.fire(new ShowEntityPageEvent(entityModel.entity)));
+            eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity)));
   }
 }

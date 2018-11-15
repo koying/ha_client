@@ -77,20 +77,15 @@ class Entity {
   }
 
   Widget buildDefaultWidget(BuildContext context) {
-    return EntityModel(
-      entity: this,
-      child: DefaultEntityContainer(
-          state: _buildStatePart(context)
-      ),
-      handleTap: true,
+    return DefaultEntityContainer(
+        state: _buildStatePart(context)
     );
   }
 
-  Widget buildGlanceWidget(BuildContext context) {
-    return EntityModel(
-      entity: this,
-      child: GlanceEntityContainer(),
-      handleTap: true,
+  Widget buildGlanceWidget(BuildContext context, bool showName, bool showState) {
+    return GlanceEntityContainer(
+      showName: showName,
+      showState: showState,
     );
   }
 
@@ -111,7 +106,7 @@ class Entity {
 
   Widget buildEntityPageWidget(BuildContext context) {
     return EntityModel(
-      entity: this,
+      entity: EntityWrapper(entity: this),
       child: EntityPageContainer(children: <Widget>[
         DefaultEntityContainer(state: _buildStatePartForPage(context)),
         LastUpdatedWidget(),
@@ -133,7 +128,7 @@ class Entity {
 
   Widget buildBadgeWidget(BuildContext context) {
     return EntityModel(
-      entity: this,
+      entity: EntityWrapper(entity: this),
       child: BadgeWidget(),
       handleTap: true,
     );

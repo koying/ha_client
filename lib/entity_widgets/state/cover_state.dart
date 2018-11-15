@@ -19,7 +19,7 @@ class CoverStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final CoverEntity entity = entityModel.entity;
+    final CoverEntity entity = entityModel.entity.entity;
     List<Widget> buttons = [];
     if (entity.supportOpen) {
       buttons.add(IconButton(

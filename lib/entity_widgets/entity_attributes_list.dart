@@ -7,14 +7,14 @@ class EntityAttributesList extends StatelessWidget {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     List<Widget> attrs = [];
-    if ((entityModel.entity.attributesToShow == null) ||
-        (entityModel.entity.attributesToShow.contains("all"))) {
-      entityModel.entity.attributes.forEach((name, value) {
+    if ((entityModel.entity.entity.attributesToShow == null) ||
+        (entityModel.entity.entity.attributesToShow.contains("all"))) {
+      entityModel.entity.entity.attributes.forEach((name, value) {
         attrs.add(_buildSingleAttribute("$name", "$value"));
       });
     } else {
-      entityModel.entity.attributesToShow.forEach((String attr) {
-        String attrValue = entityModel.entity.getAttribute("$attr");
+      entityModel.entity.entity.attributesToShow.forEach((String attr) {
+        String attrValue = entityModel.entity.entity.getAttribute("$attr");
         if (attrValue != null) {
           attrs.add(
               _buildSingleAttribute("$attr", "$attrValue"));

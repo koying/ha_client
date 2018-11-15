@@ -8,7 +8,7 @@ class EntityModel extends InheritedWidget {
     @required Widget child,
   }) : super(key: key, child: child);
 
-  final Entity entity;
+  final EntityWrapper entity;
   final bool handleTap;
 
   static EntityModel of(BuildContext context) {

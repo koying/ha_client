@@ -11,7 +11,7 @@ class EntitiesCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity!= null) && (card.linkedEntity.isHidden)) {
+    if ((card.linkedEntity!= null) && (card.linkedEntity.entity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
@@ -24,12 +24,16 @@ class EntitiesCardWidget extends StatelessWidget {
 
   List<Widget> _buildCardBody(BuildContext context) {
     List<Widget> result = [];
-    card.entities.forEach((Entity entity) {
-      if (!entity.isHidden) {
+    card.entities.forEach((EntityWrapper entity) {
+      if (!entity.entity.isHidden) {
         result.add(
             Padding(
               padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
-              child: entity.buildDefaultWidget(context),
+              child: EntityModel(
+                  entity: entity,
+                  handleTap: true,
+                  child: entity.entity.buildDefaultWidget(context)
+              ),
             ));
       }
     });

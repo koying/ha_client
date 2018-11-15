@@ -413,20 +413,42 @@ class HomeAssistant {
             name: rawCard["title"],
             type: rawCard['type'],
             columnsCount: rawCard['columns'] ?? 4,
+            showName: rawCard['show_name'] ?? true,
+            showState: rawCard['show_state'] ?? true,
         );
         rawCard["entities"]?.forEach((rawEntity) {
           if (rawEntity is String) {
             if (entities.isExist(rawEntity)) {
-              card.entities.add(entities.get(rawEntity));
+              card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
             }
           } else {
             if (entities.isExist(rawEntity["entity"])) {
-              card.entities.add(entities.get(rawEntity["entity"]));
+              card.entities.add(
+                  EntityWrapper(
+                    entity: entities.get(rawEntity["entity"]),
+                    displayName: rawEntity["name"],
+                    icon: rawEntity["icon"]
+                  )
+              );
             }
           }
         });
         if (rawCard["entity"] != null) {
-          card.linkedEntity = entities.get(rawCard["entity"]);
+          var en = rawCard["entity"];
+          if (en is String) {
+            if (entities.isExist(en)) {
+              card.linkedEntity = EntityWrapper(entity: entities.get(en));
+            }
+          } else {
+            if (entities.isExist(en["entity"])) {
+              card.linkedEntity = EntityWrapper(
+                entity: entities.get(en["entity"]),
+                icon: en["icon"],
+                displayName: en["name"]
+              );
+            }
+          }
+
         }
         result.add(card);
       }

@@ -17,11 +17,11 @@ class EntityIcon extends StatelessWidget {
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
             entityModel.entity,
             iconSize,
-            EntityColor.stateColor(entityModel.entity.state)
+            EntityColor.stateColor(entityModel.entity.entity.state)
         ),
       ),
       onTap: () => entityModel.handleTap
-          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))
+          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity))
           : null,
     );
   }

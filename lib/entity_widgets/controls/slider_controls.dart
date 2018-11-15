@@ -25,7 +25,7 @@ class _SliderControlsWidgetState extends State<SliderControlsWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final SliderEntity entity = entityModel.entity;
+    final SliderEntity entity = entityModel.entity.entity;
     if (entity.valueStep < 1) {
       _multiplier = 10;
     } else if (entity.valueStep < 0.1) {

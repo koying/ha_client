@@ -8,7 +8,7 @@ class LastUpdatedWidget extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(
           Sizes.leftWidgetPadding, 0.0, 0.0, 0.0),
       child: Text(
-        '${entityModel.entity.lastUpdated}',
+        '${entityModel.entity.entity.lastUpdated}',
         textAlign: TextAlign.left,
         style: TextStyle(
             fontSize: Sizes.smallFontSize, color: Colors.black26),

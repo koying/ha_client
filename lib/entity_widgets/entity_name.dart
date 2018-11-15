@@ -26,7 +26,7 @@ class EntityName extends StatelessWidget {
       ),
       onTap: () =>
       entityModel.handleTap
-          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))
+          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity))
           : null,
     );
   }

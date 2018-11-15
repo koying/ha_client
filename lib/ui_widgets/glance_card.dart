@@ -11,7 +11,7 @@ class GlanceCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity!= null) && (card.linkedEntity.isHidden)) {
+    if ((card.linkedEntity!= null) && (card.linkedEntity.entity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> rows = [];
@@ -25,14 +25,18 @@ class GlanceCardWidget extends StatelessWidget {
   Widget _buildRows(BuildContext context) {
     List<Widget> result = [];
     double width = MediaQuery.of(context).size.width - Sizes.leftWidgetPadding - (2*Sizes.rightWidgetPadding);
-    List<Entity> toShow = card.entities.where((entity) {return !entity.isHidden;}).toList();
+    List<EntityWrapper> toShow = card.entities.where((entity) {return !entity.entity.isHidden;}).toList();
     int columnsCount = toShow.length >= card.columnsCount ? card.columnsCount : toShow.length;
-    card.entities.forEach((Entity entity) {
-      if (!entity.isHidden) {
+    card.entities.forEach((EntityWrapper entity) {
+      if (!entity.entity.isHidden) {
         result.add(
           SizedBox(
             width: width / columnsCount,
-            child: entity.buildGlanceWidget(context),
+            child: EntityModel(
+              entity: entity,
+              child: entity.entity.buildGlanceWidget(context, card.showName, card.showState),
+              handleTap: true
+            ),
           )
         );
       }

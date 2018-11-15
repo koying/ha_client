@@ -80,7 +80,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final LightEntity entity = entityModel.entity;
+    final LightEntity entity = entityModel.entity.entity;
     if (!_changedHere) {
       _resetState(entity);
     } else {

@@ -18,7 +18,7 @@ class _SelectStateWidgetState extends State<SelectStateWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final SelectEntity entity = entityModel.entity;
+    final SelectEntity entity = entityModel.entity.entity;
     Widget ctrl;
     if (entity.listOptions.isNotEmpty) {
       ctrl = DropdownButton<String>(

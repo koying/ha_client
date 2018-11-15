@@ -34,7 +34,7 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final entity = entityModel.entity;
+    final entity = entityModel.entity.entity;
     if (!updatedHere) {
       newState = entity.state;
     } else {

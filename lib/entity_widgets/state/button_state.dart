@@ -13,7 +13,7 @@ class ButtonStateWidget extends StatelessWidget {
       height: 34.0,
       child: FlatButton(
         onPressed: (() {
-          _setNewState(entityModel.entity);
+          _setNewState(entityModel.entity.entity);
         }),
         child: Text(
           "EXECUTE",

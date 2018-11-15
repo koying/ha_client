@@ -4,7 +4,7 @@ class DateTimeStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final DateTimeEntity entity = entityModel.entity;
+    final DateTimeEntity entity = entityModel.entity.entity;
     return Padding(
         padding: EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
         child: GestureDetector(

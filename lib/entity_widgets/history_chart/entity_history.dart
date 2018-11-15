@@ -65,7 +65,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   Widget build(BuildContext context) {
     final HomeAssistantModel homeAssistantModel = HomeAssistantModel.of(context);
     final EntityModel entityModel = EntityModel.of(context);
-    final Entity entity = entityModel.entity;
+    final Entity entity = entityModel.entity.entity;
     if (!_needToUpdateHistory) {
       _needToUpdateHistory = true;
     } else {

@@ -11,7 +11,7 @@ class MediaControlCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity == null) || (card.linkedEntity.isHidden)) {
+    if ((card.linkedEntity == null) || (card.linkedEntity.entity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
 

@@ -17,6 +17,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
+part 'entity_class/entity_wrapper.class.dart';
 part 'entity_class/switch_entity.class.dart';
 part 'entity_class/button_entity.class.dart';
 part 'entity_class/text_entity.class.dart';
@@ -80,7 +81,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.8 internal build 64";
+const appVersion = "0.3.8-65";
 
 String homeAssistantWebHost;
 
@@ -480,7 +481,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
           SliverAppBar(
-            //expandedHeight: 100.0,
             floating: true,
             pinned: true,
             primary: true,
@@ -530,6 +530,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
       return Scaffold(
         key: _scaffoldKey,
+        primary: true,
         drawer: _buildAppDrawer(),
         body: _buildScaffoldBody(true)
       );

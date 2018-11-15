@@ -2880,17 +2880,17 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static Widget createIconWidgetFromEntityData(Entity data, double size, Color color) {
+  static Widget createIconWidgetFromEntityData(EntityWrapper data, double size, Color color) {
     if (data == null) {
       return null;
     }
-    if (data.entityPicture != null) {
+    if (data.entity.entityPicture != null) {
       if (homeAssistantWebHost != null) {
         return CircleAvatar(
           radius: size/2,
           backgroundColor: Colors.white,
           backgroundImage: CachedNetworkImageProvider(
-            "$homeAssistantWebHost${data.entityPicture}",
+            "$homeAssistantWebHost${data.entity.entityPicture}",
           ),
         );
       } else {
@@ -2902,8 +2902,8 @@ class MaterialDesignIcons {
       if (iconName.length > 0) {
         iconCode = getIconCodeByIconName(iconName);
       } else {
-        iconCode = getDefaultIconByEntityId(data.entityId,
-            data.deviceClass, data.state); //
+        iconCode = getDefaultIconByEntityId(data.entity.entityId,
+            data.entity.deviceClass, data.entity.state); //
       }
       return Icon(
         IconData(iconCode, fontFamily: 'Material Design Icons'),

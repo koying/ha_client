@@ -4,7 +4,7 @@ class ClimateStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final ClimateEntity entity = entityModel.entity;
+    final ClimateEntity entity = entityModel.entity.entity;
     String targetTemp = "-";
     if ((entity.supportTargetTemperature) && (entity.temperature != null)) {
       targetTemp = "${entity.temperature}";

@@ -1,11 +1,13 @@
 part of '../main.dart';
 
 class HACard {
-  List<Entity> entities = [];
-  Entity linkedEntity;
+  List<EntityWrapper> entities = [];
+  EntityWrapper linkedEntity;
   String name;
   String id;
   String type;
+  bool showName;
+  bool showState;
   int columnsCount;
 
   HACard({
@@ -13,6 +15,8 @@ class HACard {
     this.id,
     this.linkedEntity,
     this.columnsCount: 4,
+    this.showName: true,
+    this.showState: true,
     @required this.type
   });
 

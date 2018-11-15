@@ -55,7 +55,7 @@ class _TextInputStateWidgetState extends State<TextInputStateWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final TextEntity entity = entityModel.entity;
+    final TextEntity entity = entityModel.entity.entity;
     _entityState = entity.state;
     _entityDomain = entity.domain;
     _entityId = entity.entityId;

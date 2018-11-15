@@ -15,7 +15,7 @@ class SimpleEntityState extends StatelessWidget {
         padding: padding,
         child: GestureDetector(
           child: Text(
-              "${entityModel.entity.state}${entityModel.entity.unitOfMeasurement}",
+              "${entityModel.entity.entity.state}${entityModel.entity.entity.unitOfMeasurement}",
               textAlign: textAlign,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -24,7 +24,7 @@ class SimpleEntityState extends StatelessWidget {
                 fontSize: Sizes.stateFontSize,
               )),
           onTap: () => entityModel.handleTap
-              ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity))
+              ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity))
               : null,
         )
     );
