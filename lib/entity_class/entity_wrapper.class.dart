@@ -6,6 +6,8 @@ class EntityWrapper {
   String icon;
   String tapAction;
   String holdAction;
+  String actionService;
+  Map<String, dynamic> actionServiceData;
   Entity entity;
 
 
@@ -14,7 +16,9 @@ class EntityWrapper {
     String icon,
     String displayName,
     this.tapAction: EntityTapAction.moreInfo,
-    this.holdAction
+    this.holdAction,
+    this.actionService,
+    this.actionServiceData
   }) {
     this.icon = icon ?? entity.icon;
     this.displayName = displayName ?? entity.displayName;

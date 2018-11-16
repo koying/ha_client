@@ -327,17 +327,40 @@ class HomeAssistant {
 
   Future callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
     _incrementMessageId();
-    String message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
-    if (additionalParams != null) {
-      additionalParams.forEach((name, value){
-        if ((value is double) || (value is int) || (value is List)) {
-          message += ', "$name" : $value';
-        } else {
-          message += ', "$name" : "$value"';
-        }
-      });
+    String message = "";
+    if (entityId != null) {
+      message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
+      if (additionalParams != null) {
+        additionalParams.forEach((name, value) {
+          if ((value is double) || (value is int) || (value is List)) {
+            message += ', "$name" : $value';
+          } else {
+            message += ', "$name" : "$value"';
+          }
+        });
+      }
+      message += '}}';
+    } else {
+      message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service"';
+      if (additionalParams != null && additionalParams.isNotEmpty) {
+        message += ', "service_data": {';
+        bool first = true;
+        additionalParams.forEach((name, value) {
+          if (!first) {
+            message += ', ';
+          }
+          if ((value is double) || (value is int) || (value is List)) {
+            message += '"$name" : $value';
+          } else {
+            message += '"$name" : "$value"';
+          }
+          first = false;
+        });
+
+        message += '}';
+      }
+      message += '}';
     }
-    message += '}}';
     return _sendMessageRaw(message, true);
   }
 
@@ -423,13 +446,16 @@ class HomeAssistant {
             }
           } else {
             if (entities.isExist(rawEntity["entity"])) {
+              Entity e = entities.get(rawEntity["entity"]);
               card.entities.add(
                   EntityWrapper(
-                    entity: entities.get(rawEntity["entity"]),
+                    entity: e,
                     displayName: rawEntity["name"],
                     icon: rawEntity["icon"],
                     tapAction: rawEntity["tap_action"] ?? EntityTapAction.moreInfo,
-                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.moreInfo
+                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.moreInfo,
+                    actionService: rawEntity["service"],
+                    actionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
                   )
               );
             }
