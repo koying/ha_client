@@ -140,6 +140,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   String _authType;
   //int _uiViewsCount = 0;
   String _instanceHost;
+  StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
@@ -208,6 +209,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _subscribe() {
+    if (_stateSubscription == null) {
+      _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
+        setState(() {});
+      });
+    }
     if (_serviceCallSubscription == null) {
       _serviceCallSubscription =
           eventBus.on<ServiceCallEvent>().listen((event) {
@@ -546,6 +552,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_stateSubscription != null) _stateSubscription.cancel();
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();

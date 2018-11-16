@@ -427,7 +427,9 @@ class HomeAssistant {
                   EntityWrapper(
                     entity: entities.get(rawEntity["entity"]),
                     displayName: rawEntity["name"],
-                    icon: rawEntity["icon"]
+                    icon: rawEntity["icon"],
+                    tapAction: rawEntity["tap_action"] ?? EntityTapAction.moreInfo,
+                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.moreInfo
                   )
               );
             }

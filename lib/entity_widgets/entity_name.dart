@@ -17,7 +17,7 @@ class EntityName extends StatelessWidget {
       child: Padding(
         padding: padding,
         child: Text(
-          "${entityModel.entity.displayName}",
+          "${entityModel.entityWrapper.displayName}",
           overflow: textOverflow,
           softWrap: wordsWrap,
           style: TextStyle(fontSize: fontSize),
@@ -26,7 +26,7 @@ class EntityName extends StatelessWidget {
       ),
       onTap: () =>
       entityModel.handleTap
-          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity))
+          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entityWrapper.entity))
           : null,
     );
   }

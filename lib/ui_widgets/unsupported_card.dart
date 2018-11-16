@@ -33,7 +33,7 @@ class UnsupportedCardWidget extends StatelessWidget {
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
             child: EntityModel(
-                entity: card.linkedEntity,
+                entityWrapper: card.linkedEntity,
                 handleTap: true,
                 child: card.linkedEntity.entity.buildDefaultWidget(context)
             ),

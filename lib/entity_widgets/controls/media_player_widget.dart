@@ -28,7 +28,7 @@ class MediaPlayerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EntityModel entityModel = EntityModel.of(context);
-    final MediaPlayerEntity entity = entityModel.entity.entity;
+    final MediaPlayerEntity entity = entityModel.entityWrapper.entity;
     return Column(
       children: <Widget>[
         Stack(
@@ -229,7 +229,7 @@ class _MediaPlayerProgressWidgetState extends State<MediaPlayerProgressWidget> {
   @override
   Widget build(BuildContext context) {
     final EntityModel entityModel = EntityModel.of(context);
-    final MediaPlayerEntity entity = entityModel.entity.entity;
+    final MediaPlayerEntity entity = entityModel.entityWrapper.entity;
     double progress;
     try {
       DateTime lastUpdated = DateTime.parse(

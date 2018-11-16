@@ -106,7 +106,7 @@ class Entity {
 
   Widget buildEntityPageWidget(BuildContext context) {
     return EntityModel(
-      entity: EntityWrapper(entity: this),
+      entityWrapper: EntityWrapper(entity: this),
       child: EntityPageContainer(children: <Widget>[
         DefaultEntityContainer(state: _buildStatePartForPage(context)),
         LastUpdatedWidget(),
@@ -128,7 +128,7 @@ class Entity {
 
   Widget buildBadgeWidget(BuildContext context) {
     return EntityModel(
-      entity: EntityWrapper(entity: this),
+      entityWrapper: EntityWrapper(entity: this),
       child: BadgeWidget(),
       handleTap: true,
     );

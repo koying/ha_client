@@ -38,7 +38,7 @@ class _CoverControlWidgetState extends State<CoverControlWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final CoverEntity entity = entityModel.entity.entity;
+    final CoverEntity entity = entityModel.entityWrapper.entity;
     if (_changedHere) {
       _changedHere = false;
     } else {
@@ -152,7 +152,7 @@ class CoverTiltControlsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final CoverEntity entity = entityModel.entity.entity;
+    final CoverEntity entity = entityModel.entityWrapper.entity;
     List<Widget> buttons = [];
     if (entity.supportOpenTilt) {
       buttons.add(IconButton(

@@ -33,7 +33,7 @@ class GlanceCardWidget extends StatelessWidget {
           SizedBox(
             width: width / columnsCount,
             child: EntityModel(
-              entity: entity,
+              entityWrapper: entity,
               child: entity.entity.buildGlanceWidget(context, card.showName, card.showState),
               handleTap: true
             ),

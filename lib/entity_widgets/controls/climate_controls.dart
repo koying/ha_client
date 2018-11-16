@@ -165,7 +165,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    final ClimateEntity entity = entityModel.entity.entity;
+    final ClimateEntity entity = entityModel.entityWrapper.entity;
     if (_changedHere) {
       _showPending = (_tmpTemperature != entity.temperature);
       _changedHere = false;

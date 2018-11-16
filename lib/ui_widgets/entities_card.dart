@@ -30,7 +30,7 @@ class EntitiesCardWidget extends StatelessWidget {
             Padding(
               padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
               child: EntityModel(
-                  entity: entity,
+                  entityWrapper: entity,
                   handleTap: true,
                   child: entity.entity.buildDefaultWidget(context)
               ),

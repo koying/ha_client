@@ -7,12 +7,12 @@ class BadgeWidget extends StatelessWidget {
     double iconSize = 26.0;
     Widget badgeIcon;
     String onBadgeTextValue;
-    Color iconColor = EntityColor.badgeColors[entityModel.entity.entity.domain] ??
+    Color iconColor = EntityColor.badgeColors[entityModel.entityWrapper.entity.domain] ??
         EntityColor.badgeColors["default"];
-    switch (entityModel.entity.entity.domain) {
+    switch (entityModel.entityWrapper.entity.domain) {
       case "sun":
         {
-          badgeIcon = entityModel.entity.entity.state == "below_horizon"
+          badgeIcon = entityModel.entityWrapper.entity.state == "below_horizon"
               ? Icon(
             MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
             size: iconSize,
@@ -25,10 +25,10 @@ class BadgeWidget extends StatelessWidget {
         }
       case "sensor":
         {
-          onBadgeTextValue = entityModel.entity.entity.unitOfMeasurement;
+          onBadgeTextValue = entityModel.entityWrapper.entity.unitOfMeasurement;
           badgeIcon = Center(
             child: Text(
-              "${entityModel.entity.entity.state}",
+              "${entityModel.entityWrapper.entity.state}",
               overflow: TextOverflow.fade,
               softWrap: false,
               textAlign: TextAlign.center,
@@ -40,14 +40,14 @@ class BadgeWidget extends StatelessWidget {
       case "device_tracker":
         {
           badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entity, iconSize, Colors.black);
-          onBadgeTextValue = entityModel.entity.entity.state;
+              entityModel.entityWrapper, iconSize, Colors.black);
+          onBadgeTextValue = entityModel.entityWrapper.entity.state;
           break;
         }
       default:
         {
           badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entity, iconSize, Colors.black);
+              entityModel.entityWrapper, iconSize, Colors.black);
         }
     }
     Widget onBadgeText;
@@ -109,7 +109,7 @@ class BadgeWidget extends StatelessWidget {
             Container(
               width: 60.0,
               child: Text(
-                "${entityModel.entity.displayName}",
+                "${entityModel.entityWrapper.displayName}",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12.0),
                 softWrap: true,
@@ -120,6 +120,6 @@ class BadgeWidget extends StatelessWidget {
           ],
         ),
         onTap: () =>
-            eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity)));
+            eventBus.fire(new ShowEntityPageEvent(entityModel.entityWrapper.entity)));
   }
 }

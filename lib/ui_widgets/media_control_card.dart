@@ -17,7 +17,7 @@ class MediaControlCardWidget extends StatelessWidget {
 
     return Card(
         child: EntityModel(
-            entity: card.linkedEntity,
+            entityWrapper: card.linkedEntity,
             handleTap: null,
             child: MediaPlayerWidget()
         )

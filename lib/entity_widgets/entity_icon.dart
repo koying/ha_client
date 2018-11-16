@@ -15,14 +15,29 @@ class EntityIcon extends StatelessWidget {
       child: Padding(
         padding: padding,
         child: MaterialDesignIcons.createIconWidgetFromEntityData(
-            entityModel.entity,
+            entityModel.entityWrapper,
             iconSize,
-            EntityColor.stateColor(entityModel.entity.entity.state)
+            EntityColor.stateColor(entityModel.entityWrapper.entity.state)
         ),
       ),
-      onTap: () => entityModel.handleTap
-          ? eventBus.fire(new ShowEntityPageEvent(entityModel.entity.entity))
-          : null,
+      onTap: () {
+        if (entityModel.handleTap) {
+          switch (entityModel.entityWrapper.tapAction) {
+            case EntityTapAction.moreInfo: {
+              eventBus.fire(
+                  new ShowEntityPageEvent(entityModel.entityWrapper.entity));
+              break;
+            }
+            case EntityTapAction.toggle: {
+              eventBus.fire(
+                  ServiceCallEvent("homeassistant", "toggle", entityModel.entityWrapper.entity.entityId, null));
+              break;
+            }
+          }
+
+        }
+      }
+
     );
   }
 }

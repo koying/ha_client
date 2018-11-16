@@ -29,3 +29,9 @@ class EntityState {
   static const ok = 'ok';
   static const problem = 'problem';
 }
+
+class EntityTapAction {
+  static const moreInfo = 'more-info';
+  static const toggle = 'toggle';
+  static const callService = 'call-service';
+}
