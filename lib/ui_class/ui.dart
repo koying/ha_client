@@ -10,7 +10,7 @@ class HomeAssistantUI {
 
   Widget build(BuildContext context) {
     return TabBarView(
-        children: _buildViews(context)
+      children: _buildViews(context)
     );
   }
 

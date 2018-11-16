@@ -494,10 +494,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 });
               },
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              //title: _buildAppTitle(),
-            ),
             bottom: empty ? null : TabBar(
               tabs: buildUIViewTabs(),
               isScrollable: true,
@@ -530,7 +526,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
       return Scaffold(
         key: _scaffoldKey,
-        primary: true,
+        primary: false,
         drawer: _buildAppDrawer(),
         body: _buildScaffoldBody(true)
       );
@@ -538,6 +534,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       return Scaffold(
         key: _scaffoldKey,
         drawer: _buildAppDrawer(),
+        primary: false,
         body: DefaultTabController(
           length: _homeAssistant.ui?.views?.length ?? 0,
           child: _buildScaffoldBody(false),

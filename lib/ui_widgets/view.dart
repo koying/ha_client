@@ -35,6 +35,7 @@ class ViewWidgetState extends State<ViewWidget> {
     return RefreshIndicator(
       color: Colors.amber,
       child: ListView(
+        padding: EdgeInsets.all(0.0),
         physics: const AlwaysScrollableScrollPhysics(),
         children: _buildChildren(context),
       ),

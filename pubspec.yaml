@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  web_socket_channel: any
   shared_preferences: any
   progress_indicators: any
   event_bus: any
