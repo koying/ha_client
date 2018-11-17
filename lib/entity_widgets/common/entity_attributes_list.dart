@@ -1,4 +1,4 @@
-part of '../main.dart';
+part of '../../main.dart';
 
 class EntityAttributesList extends StatelessWidget {
   EntityAttributesList({Key key}) : super(key: key);

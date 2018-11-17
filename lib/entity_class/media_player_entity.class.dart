@@ -72,4 +72,9 @@ class MediaPlayerEntity extends Entity {
   MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE) ==
       MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE);
 
+  @override
+  Widget _buildAdditionalControlsForPage(BuildContext context) {
+    return MediaPlayerControls();
+  }
+
 }

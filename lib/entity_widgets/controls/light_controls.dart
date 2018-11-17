@@ -99,36 +99,19 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildBrightnessControl(LightEntity entity) {
     if ((entity.supportBrightness) && (_tmpBrightness != null) && (entity.state != EntityState.unavailable)) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(height: Sizes.rowPadding,),
-          Text(
-            "Brightness",
-            style: TextStyle(fontSize: Sizes.stateFontSize),
-          ),
-          Container(height: Sizes.rowPadding,),
-          Row(
-            children: <Widget>[
-              Icon(Icons.brightness_5),
-              Expanded(
-                child: Slider(
-                  value: _tmpBrightness.toDouble(),
-                  min: 0.0,
-                  max: 255.0,
-                  onChanged: (value) {
-                    setState(() {
-                      _changedHere = true;
-                      _tmpBrightness = value.round();
-                    });
-                  },
-                  onChangeEnd: (value) => _setBrightness(entity, value),
-                ),
-              )
-            ],
-          ),
-          Container(height: Sizes.rowPadding,)
-        ],
+      return UniversalSlider(
+        onChanged: (value) {
+          setState(() {
+            _changedHere = true;
+            _tmpBrightness = value.round();
+          });
+        },
+        min: 0.0,
+        max: 255.0,
+        onChangeEnd: (value) => _setBrightness(entity, value),
+        value: _tmpBrightness.toDouble(),
+        leading: Icon(Icons.brightness_5),
+        title: "Brightness",
       );
     } else {
       return Container(width: 0.0, height: 0.0);
@@ -137,37 +120,20 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildColorTempControl(LightEntity entity) {
     if ((entity.supportColorTemp) && (_tmpColorTemp != null)) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(height: Sizes.rowPadding,),
-          Text(
-            "Color temperature",
-            style: TextStyle(fontSize: Sizes.stateFontSize),
-          ),
-          Container(height: Sizes.rowPadding,),
-          Row(
-            children: <Widget>[
-              Text("Cold", style: TextStyle(color: Colors.lightBlue),),
-              Expanded(
-                child: Slider(
-                  value: _tmpColorTemp.toDouble(),
-                  min: entity.minMireds,
-                  max: entity.maxMireds,
-                  onChanged: (value) {
-                    setState(() {
-                      _changedHere = true;
-                      _tmpColorTemp = value.round();
-                    });
-                  },
-                  onChangeEnd: (value) => _setColorTemp(entity, value),
-                ),
-              ),
-              Text("Warm", style: TextStyle(color: Colors.amberAccent),),
-            ],
-          ),
-          Container(height: Sizes.rowPadding,)
-        ],
+      return UniversalSlider(
+        title: "Color temperature",
+        leading: Text("Cold", style: TextStyle(color: Colors.lightBlue),),
+        value:  _tmpColorTemp.toDouble(),
+        onChangeEnd: (value) => _setColorTemp(entity, value),
+        max: entity.maxMireds,
+        min: entity.minMireds,
+        onChanged: (value) {
+          setState(() {
+            _changedHere = true;
+            _tmpColorTemp = value.round();
+          });
+        },
+        closing: Text("Warm", style: TextStyle(color: Colors.amberAccent),),
       );
     } else {
       return Container(width: 0.0, height: 0.0);
