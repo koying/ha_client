@@ -381,9 +381,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
         Divider(),
         new AboutListTile(
+          aboutBoxChildren: <Widget>[
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                HAUtils.launchURL("http://www.keyboardcrumbs.io/");
+              },
+              child: Text(
+                "www.keyboardcrumbs.io",
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline
+                ),
+              ),
+            )
+          ],
           applicationName: appName,
           applicationVersion: appVersion,
-          applicationLegalese: "Keyboard Crumbs | www.keyboardcrumbs.io",
+          applicationLegalese: "Keyboard Crumbs",
         )
       ]);
     }
