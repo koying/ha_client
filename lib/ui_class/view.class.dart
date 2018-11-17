@@ -54,7 +54,7 @@ class HAView {
             linkedEntity: EntityWrapper(entity: entity),
             type: "entities"
         );
-        card.entities.addAll(entity.childEntities.where((entity) {return entity.domain != "media_player";}).map((e) {return EntityWrapper(entity: entity);}));
+        card.entities.addAll(entity.childEntities.where((entity) {return entity.domain != "media_player";}).map((e) {return EntityWrapper(entity: e);}));
         entity.childEntities.where((entity) {return entity.domain == "media_player";}).forEach((entity){
           HACard mediaCard = HACard(
               name: entity.displayName,
