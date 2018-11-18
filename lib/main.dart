@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/io.dart';
-import 'package:progress_indicators/progress_indicators.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -82,7 +81,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.9";
+const appVersion = "0.3.9-68";
 
 String homeAssistantWebHost;
 
@@ -147,15 +146,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _refreshDataSubscription;
   StreamSubscription _showErrorSubscription;
-  int _isLoading = 1;
-  //bool _settingsLoaded = false;
+  bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
   bool _useLovelaceUI;
 
   @override
   void initState() {
     super.initState();
-    //_settingsLoaded = false;
+    _settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
     _homeAssistant = HomeAssistant();
@@ -176,20 +174,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _subscribe();
       _refreshData();
     }, onError: (_) {
-      setState(() {
-        _isLoading = 2;
-      });
-      _showErrorSnackBar(message: _, errorCode: 5);
+      _showErrorBottomBar(message: _, errorCode: 5);
     });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     TheLogger.debug("$state");
-    /*if (state == AppLifecycleState.resumed && _settingsLoaded && (_homeAssistant == null || _homeAssistant.entities == null)) {
-      TheLogger.debug("No data. Fetching...");
+    if (state == AppLifecycleState.resumed && _settingsLoaded) {
       _refreshData();
-    }*/
+    }
   }
 
   _loadConnectionSettings() async {
@@ -205,9 +199,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if ((domain == null) || (port == null) || (_password == null) ||
         (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
       throw("Check connection settings");
-    }/* else {
+    } else {
       _settingsLoaded = true;
-    }*/
+    }
   }
 
   _subscribe() {
@@ -239,21 +233,17 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
     if (_showErrorSubscription == null) {
       _showErrorSubscription = eventBus.on<ShowErrorEvent>().listen((event){
-        _showErrorSnackBar(message: event.text, errorCode: event.errorCode);
+        _showErrorBottomBar(message: event.text, errorCode: event.errorCode);
       });
     }
   }
 
   _refreshData() async {
     _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _authType, _useLovelaceUI);
-    setState(() {
-      _hideErrorSnackBar();
-      _isLoading = 1;
-    });
+    _hideBottomBar();
+    _showInfoBottomBar(message: "Refreshing data...");
     await _homeAssistant.fetch().then((result) {
-      setState(() {
-        _isLoading = 0;
-      });
+      _hideBottomBar();
     }).catchError((e) {
       _setErrorState(e);
     });
@@ -261,18 +251,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _setErrorState(e) {
-    setState(() {
-      _isLoading = 2;
-    });
     if (e is Error) {
       TheLogger.error(e.toString());
       TheLogger.error("${e.stackTrace}");
-      _showErrorSnackBar(
+      _showErrorBottomBar(
           message: "There was some error",
           errorCode: 13
       );
     } else {
-      _showErrorSnackBar(
+      _showErrorBottomBar(
           message: e != null ? e["errorMessage"] ?? "$e" : "Unknown error",
           errorCode: e["errorCode"] != null ? e["errorCode"] : 99
       );
@@ -302,31 +289,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       }
 
     return result;
-  }
-
-  Widget _buildAppTitle() {
-    Row titleRow = Row(
-      children: [Text(_homeAssistant != null ? _homeAssistant.locationName : "")],
-    );
-    if (_isLoading == 1) {
-      titleRow.children.add(Padding(
-        child: JumpingDotsProgressIndicator(
-          fontSize: 26.0,
-          color: Colors.white,
-        ),
-        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 30.0),
-      ));
-    } else if (_isLoading == 2) {
-      titleRow.children.add(Padding(
-        child: Icon(
-            Icons.error_outline,
-            size: 20.0,
-          color: Colors.red,
-        ),
-        padding: const EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
-      ));
-    }
-    return titleRow;
   }
 
   Drawer _buildAppDrawer() {
@@ -410,21 +372,42 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  void _hideErrorSnackBar() {
-    _scaffoldKey?.currentState?.hideCurrentSnackBar();
+  void _hideBottomBar() {
+    //_scaffoldKey?.currentState?.hideCurrentSnackBar();
+    setState(() {
+      _showBottomBar = false;
+    });
   }
 
-  void _showErrorSnackBar({Key key, @required String message, @required int errorCode}) {
-      SnackBarAction action;
+  Widget _bottomBarAction;
+  bool _showBottomBar = false;
+  String _bottomBarText;
+  Color _bottomBarColor;
+
+  void _showInfoBottomBar({@required String message}) {
+    _bottomBarAction = Container(height: 0.0, width: 0.0,);
+    _bottomBarColor = Colors.blue.shade100;
+    setState(() {
+      _bottomBarText = "$message";
+      _showBottomBar = true;
+    });
+  }
+
+  void _showErrorBottomBar({Key key, @required String message, @required int errorCode}) {
+    TextStyle textStyle = TextStyle(
+      color: Colors.blue,
+      fontSize: Sizes.nameFontSize
+    );
+    _bottomBarColor = Colors.red.shade100;
       switch (errorCode) {
         case 9:
         case 11:
         case 7:
         case 1: {
-            action = SnackBarAction(
-                label: "Retry",
+        _bottomBarAction = FlatButton(
+                child: Text("Retry", style: textStyle),
                 onPressed: () {
-                  _scaffoldKey?.currentState?.hideCurrentSnackBar();
+                  //_scaffoldKey?.currentState?.hideCurrentSnackBar();
                   _refreshData();
                 },
             );
@@ -433,10 +416,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
         case 5: {
           message = "Check connection settings";
-          action = SnackBarAction(
-            label: "Open",
+          _bottomBarAction = FlatButton(
+              child: Text("Open", style: textStyle),
             onPressed: () {
-              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               Navigator.pushNamed(context, '/connection-settings');
             },
           );
@@ -444,10 +427,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
 
         case 6: {
-          action = SnackBarAction(
-            label: "Settings",
+          _bottomBarAction = FlatButton(
+              child: Text("Settings", style: textStyle),
             onPressed: () {
-              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               Navigator.pushNamed(context, '/connection-settings');
             },
           );
@@ -455,10 +438,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
 
         case 10: {
-          action = SnackBarAction(
-            label: "Refresh",
+          _bottomBarAction = FlatButton(
+              child: Text("Refresh", style: textStyle),
             onPressed: () {
-              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();
             },
           );
@@ -466,10 +449,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
 
         case 8: {
-          action = SnackBarAction(
-            label: "Reconnect",
+          _bottomBarAction = FlatButton(
+              child: Text("Reconnect", style: textStyle),
             onPressed: () {
-              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();
             },
           );
@@ -477,24 +460,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
 
         default: {
-          action = SnackBarAction(
-            label: "Reload",
+          _bottomBarAction = FlatButton(
+              child: Text("Reload", style: textStyle),
             onPressed: () {
-              _scaffoldKey?.currentState?.hideCurrentSnackBar();
+              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               _refreshData();
             },
           );
           break;
         }
       }
-      _scaffoldKey.currentState.hideCurrentSnackBar();
+      setState(() {
+        _bottomBarText = "$message (code: $errorCode)";
+        _showBottomBar = true;
+      });
+      /*_scaffoldKey.currentState.hideCurrentSnackBar();
       _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: Text("$message (code: $errorCode)"),
           action: action,
           duration: Duration(hours: 1),
         )
-      );
+      );*/
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -507,7 +494,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             floating: true,
             pinned: true,
             primary: true,
-            title: _buildAppTitle(),
+            title: Text(_homeAssistant != null ? _homeAssistant.locationName : ""),
             leading: IconButton(
               icon: Icon(Icons.menu),
               onPressed: () {
@@ -533,7 +520,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               Icon(
                 MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
                 size: 100.0,
-                color: _isLoading == 2 ? Colors.redAccent : Colors.blue,
+                color: Colors.blue,
               ),
             ]
         ),
@@ -545,12 +532,34 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    Widget bottomBar;
+    if (_showBottomBar) {
+      bottomBar = Container(
+        color: _bottomBarColor,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, 0.0, Sizes.rowPadding),
+                child: Text(
+                  "$_bottomBarText",
+                  softWrap: true,
+                ),
+              ),
+            ),
+            _bottomBarAction
+          ],
+        ),
+      );
+    }
     // This method is rerun every time setState is called.
     if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
       return Scaffold(
         key: _scaffoldKey,
         primary: false,
         drawer: _buildAppDrawer(),
+        bottomNavigationBar: bottomBar,
         body: _buildScaffoldBody(true)
       );
     } else {
@@ -558,6 +567,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         key: _scaffoldKey,
         drawer: _buildAppDrawer(),
         primary: false,
+        bottomNavigationBar: bottomBar,
         body: DefaultTabController(
           length: _homeAssistant.ui?.views?.length ?? 0,
           child: _buildScaffoldBody(false),
