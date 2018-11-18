@@ -148,14 +148,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _refreshDataSubscription;
   StreamSubscription _showErrorSubscription;
   int _isLoading = 1;
-  bool _settingsLoaded = false;
+  //bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
   bool _useLovelaceUI;
 
   @override
   void initState() {
     super.initState();
-    _settingsLoaded = false;
+    //_settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
     _homeAssistant = HomeAssistant();
@@ -186,9 +186,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     TheLogger.debug("$state");
-    if (state == AppLifecycleState.resumed && _settingsLoaded) {
+    /*if (state == AppLifecycleState.resumed && _settingsLoaded && (_homeAssistant == null || _homeAssistant.entities == null)) {
+      TheLogger.debug("No data. Fetching...");
       _refreshData();
-    }
+    }*/
   }
 
   _loadConnectionSettings() async {
@@ -204,9 +205,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if ((domain == null) || (port == null) || (_password == null) ||
         (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
       throw("Check connection settings");
-    } else {
+    }/* else {
       _settingsLoaded = true;
-    }
+    }*/
   }
 
   _subscribe() {
