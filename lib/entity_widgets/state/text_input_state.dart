@@ -66,7 +66,9 @@ class _TextInputStateWidgetState extends State<TextInputStateWidget> {
       _tmpValue = entity.state;
     }
     if (entity.isTextField || entity.isPasswordField) {
-      return Expanded(
+      return Flexible(
+        fit: FlexFit.tight,
+        flex: 2,
         //width: Entity.INPUT_WIDTH,
         child: TextField(
             focusNode: _focusNode,

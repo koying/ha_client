@@ -23,6 +23,7 @@ class _SelectStateWidgetState extends State<SelectStateWidget> {
     if (entity.listOptions.isNotEmpty) {
       ctrl = DropdownButton<String>(
         value: entity.state,
+        isExpanded: true,
         items: entity.listOptions.map((String value) {
           return new DropdownMenuItem<String>(
             value: value,
@@ -36,7 +37,9 @@ class _SelectStateWidgetState extends State<SelectStateWidget> {
     } else {
       ctrl = Text('---');
     }
-    return Expanded(
+    return Flexible(
+      flex: 2,
+      fit: FlexFit.tight,
       //width: Entity.INPUT_WIDTH,
       child: ctrl,
     );

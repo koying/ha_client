@@ -17,7 +17,7 @@ class SimpleEntityState extends StatelessWidget {
           child: Text(
               "${entityModel.entityWrapper.entity.state}${entityModel.entityWrapper.entity.unitOfMeasurement}",
               textAlign: textAlign,
-              maxLines: 4,
+              maxLines: 10,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
               style: new TextStyle(
@@ -68,8 +68,9 @@ class SimpleEntityState extends StatelessWidget {
         )
     );
     if (expanded) {
-      return SizedBox(
-        width: MediaQuery.of(context).size.width * 0.3,
+      return Flexible(
+        fit: FlexFit.tight,
+        flex: 2,
         child: result,
       );
     } else {
