@@ -156,6 +156,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
+    TheLogger.debug("<!!!> Creating new HomeAssistant instance");
     _homeAssistant = HomeAssistant();
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
@@ -221,7 +222,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_showEntityPageSubscription == null) {
       _showEntityPageSubscription =
           eventBus.on<ShowEntityPageEvent>().listen((event) {
-            _showEntityPage(event.entity);
+            _showEntityPage(event.entity.entityId);
           });
     }
 
@@ -241,7 +242,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _refreshData() async {
     _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _authType, _useLovelaceUI);
     _hideBottomBar();
-    _showInfoBottomBar(message: "Refreshing data...");
+    _showInfoBottomBar(message: "Refreshing...");
     await _homeAssistant.fetch().then((result) {
       _hideBottomBar();
     }).catchError((e) {
@@ -270,11 +271,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
   }
 
-  void _showEntityPage(Entity entity) {
+  void _showEntityPage(String entityId) {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EntityViewPage(entity: entity, homeAssistant: _homeAssistant),
+          builder: (context) => EntityViewPage(entityId: entityId, homeAssistant: _homeAssistant),
         )
     );
   }
@@ -386,7 +387,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   void _showInfoBottomBar({@required String message}) {
     _bottomBarAction = Container(height: 0.0, width: 0.0,);
-    _bottomBarColor = Colors.blue.shade100;
+    _bottomBarColor = Colors.grey.shade50;
     setState(() {
       _bottomBarText = "$message";
       _showBottomBar = true;

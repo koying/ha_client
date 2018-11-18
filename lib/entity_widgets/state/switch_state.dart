@@ -24,7 +24,7 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
       setState(() {
         newState = entity.state;
         updatedHere = true;
-        TheLogger.debug("Timer@!!");
+        //TheLogger.debug("Timer@!!");
       });
     });
     eventBus.fire(new ServiceCallEvent(

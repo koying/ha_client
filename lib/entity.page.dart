@@ -1,9 +1,9 @@
 part of 'main.dart';
 
 class EntityViewPage extends StatefulWidget {
-  EntityViewPage({Key key, @required this.entity, @required this.homeAssistant }) : super(key: key);
+  EntityViewPage({Key key, @required this.entityId, @required this.homeAssistant }) : super(key: key);
 
-  final Entity entity;
+  final String entityId;
   final HomeAssistant homeAssistant;
 
   @override
@@ -12,21 +12,26 @@ class EntityViewPage extends StatefulWidget {
 
 class _EntityViewPageState extends State<EntityViewPage> {
   String _title;
+  StreamSubscription _refreshDataSubscription;
   StreamSubscription _stateSubscription;
 
   @override
   void initState() {
     super.initState();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-      if (event.entityId == widget.entity.entityId) {
+      TheLogger.debug("State change event handled by entity page: ${event.entityId}");
+      if (event.entityId == widget.entityId) {
         setState(() {});
       }
+    });
+    _refreshDataSubscription = eventBus.on<RefreshDataFinishedEvent>().listen((event) {
+      setState(() {});
     });
     _prepareData();
   }
 
   void _prepareData() async {
-    _title = widget.entity.displayName;
+    _title = widget.homeAssistant.entities.get(widget.entityId).displayName;
   }
 
 
@@ -45,7 +50,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
           padding: EdgeInsets.all(10.0),
           child: HomeAssistantModel(
               homeAssistant: widget.homeAssistant,
-              child: widget.entity.buildEntityPageWidget(context)
+              child: widget.homeAssistant.entities.get(widget.entityId).buildEntityPageWidget(context)
           )
       ),
     );
@@ -54,6 +59,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
   @override
   void dispose(){
     if (_stateSubscription != null) _stateSubscription.cancel();
+    if (_refreshDataSubscription != null) _refreshDataSubscription.cancel();
     super.dispose();
   }
 }
