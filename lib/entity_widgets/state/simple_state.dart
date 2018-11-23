@@ -30,7 +30,7 @@ class SimpleEntityState extends StatelessWidget {
             },
             onTap: () {
             if (entityModel.handleTap) {
-              entityModel.entityWrapper.handleHold();
+              entityModel.entityWrapper.handleTap();
             }
           }
         )
