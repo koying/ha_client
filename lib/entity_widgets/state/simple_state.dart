@@ -12,28 +12,17 @@ class SimpleEntityState extends StatelessWidget {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     Widget result = Padding(
-        padding: padding,
-        child: InkWell(
-          child: Text(
-              "${entityModel.entityWrapper.entity.state}${entityModel.entityWrapper.entity.unitOfMeasurement}",
-              textAlign: textAlign,
-              maxLines: 10,
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-              style: new TextStyle(
-                fontSize: Sizes.stateFontSize,
-              )),
-            onLongPress: () {
-              if (entityModel.handleTap) {
-                entityModel.entityWrapper.handleHold();
-              }
-            },
-            onTap: () {
-            if (entityModel.handleTap) {
-              entityModel.entityWrapper.handleTap();
-            }
-          }
+      padding: padding,
+      child: Text(
+        "${entityModel.entityWrapper.entity.state} ${entityModel.entityWrapper.entity.unitOfMeasurement}",
+        textAlign: textAlign,
+        maxLines: 10,
+        overflow: TextOverflow.ellipsis,
+        softWrap: true,
+        style: new TextStyle(
+          fontSize: Sizes.stateFontSize,
         )
+      )
     );
     if (expanded) {
       return Flexible(

@@ -11,6 +11,7 @@ class GlanceEntityContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
     List<Widget> result = [];
     if (showName) {
       result.add(EntityName(
@@ -21,10 +22,12 @@ class GlanceEntityContainer extends StatelessWidget {
         fontSize: Sizes.smallFontSize,
       ));
     }
-    result.add(EntityIcon(
-      padding: EdgeInsets.all(0.0),
-      iconSize: Sizes.iconSize,
-    ));
+    result.add(
+      EntityIcon(
+        padding: EdgeInsets.all(0.0),
+        iconSize: Sizes.iconSize,
+      )
+    );
     if (showState) {
       result.add(SimpleEntityState(
         textAlign: TextAlign.center,
@@ -32,11 +35,20 @@ class GlanceEntityContainer extends StatelessWidget {
         padding: EdgeInsets.only(top: Sizes.rowPadding),
       ));
     }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: result,
+    return Center(
+      child: InkWell(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: Sizes.iconSize*2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            //mainAxisAlignment: MainAxisAlignment.start,
+            //crossAxisAlignment: CrossAxisAlignment.center,
+            children: result,
+          ),
+        ),
+        onTap: () => entityWrapper.handleTap(),
+        onLongPress: () => entityWrapper.handleHold(),
+      ),
     );
   }
 }

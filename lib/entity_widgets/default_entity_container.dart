@@ -10,18 +10,31 @@ class DefaultEntityContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        EntityIcon(),
+    final EntityModel entityModel = EntityModel.of(context);
+    return InkWell(
+      onLongPress: () {
+        if (entityModel.handleTap) {
+          entityModel.entityWrapper.handleHold();
+        }
+      },
+      onTap: () {
+        if (entityModel.handleTap) {
+          entityModel.entityWrapper.handleTap();
+        }
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          EntityIcon(),
 
-        Flexible(
-          fit: FlexFit.tight,
-          flex: 3,
-          child: EntityName(),
-        ),
-        state
-      ],
+          Flexible(
+            fit: FlexFit.tight,
+            flex: 3,
+            child: EntityName(),
+          ),
+          state
+        ],
+      ),
     );
   }
 }

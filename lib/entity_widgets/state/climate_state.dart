@@ -19,39 +19,34 @@ class ClimateStateWidget extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.fromLTRB(
             0.0, 0.0, Sizes.rightWidgetPadding, 0.0),
-        child: GestureDetector(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text("${entity.state}",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: Sizes.stateFontSize,
-                      )),
-                  Text(" $targetTemp",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        fontSize: Sizes.stateFontSize,
-                      ))
-                ],
-              ),
-              entity.attributes["current_temperature"] != null ?
-              Text("Currently: ${entity.attributes["current_temperature"]}",
-                  textAlign: TextAlign.right,
-                  style: new TextStyle(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text("${entity.state}",
+                    textAlign: TextAlign.right,
+                    style: new TextStyle(
+                      fontWeight: FontWeight.bold,
                       fontSize: Sizes.stateFontSize,
-                      color: Colors.black45)
-              ) :
-              Container(height: 0.0,)
-            ],
-          ),
-          onTap: () => entityModel.handleTap
-              ? eventBus.fire(new ShowEntityPageEvent(entity))
-              : null,
+                    )),
+                Text(" $targetTemp",
+                    textAlign: TextAlign.right,
+                    style: new TextStyle(
+                      fontSize: Sizes.stateFontSize,
+                    ))
+              ],
+            ),
+            entity.attributes["current_temperature"] != null ?
+            Text("Currently: ${entity.attributes["current_temperature"]}",
+                textAlign: TextAlign.right,
+                style: new TextStyle(
+                    fontSize: Sizes.stateFontSize,
+                    color: Colors.black45)
+            ) :
+            Container(height: 0.0,)
+          ],
         ));
   }
 }

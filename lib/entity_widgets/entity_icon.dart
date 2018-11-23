@@ -10,27 +10,14 @@ class EntityIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entityModel = EntityModel.of(context);
-    return InkWell(
-      child: Padding(
-        padding: padding,
-        child: MaterialDesignIcons.createIconWidgetFromEntityData(
-            entityModel.entityWrapper,
-            iconSize,
-            EntityColor.stateColor(entityModel.entityWrapper.entity.state)
-        ),
+    final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
+    return Padding(
+      padding: padding,
+      child: MaterialDesignIcons.createIconWidgetFromEntityData(
+          entityWrapper,
+          iconSize,
+          EntityColor.stateColor(entityWrapper.entity.state)
       ),
-      onLongPress: () {
-        if (entityModel.handleTap) {
-          entityModel.entityWrapper.handleHold();
-        }
-      },
-      onTap: () {
-        if (entityModel.handleTap) {
-          entityModel.entityWrapper.handleTap();
-        }
-      }
-
     );
   }
 }

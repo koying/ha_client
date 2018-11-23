@@ -12,28 +12,16 @@ class EntityName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entityModel = EntityModel.of(context);
-    return InkWell(
-      child: Padding(
-        padding: padding,
-        child: Text(
-          "${entityModel.entityWrapper.displayName}",
-          overflow: textOverflow,
-          softWrap: wordsWrap,
-          style: TextStyle(fontSize: fontSize),
-          textAlign: textAlign,
-        ),
+    final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
+    return Padding(
+      padding: padding,
+      child: Text(
+        "${entityWrapper.displayName}",
+        overflow: textOverflow,
+        softWrap: wordsWrap,
+        style: TextStyle(fontSize: fontSize),
+        textAlign: textAlign,
       ),
-      onLongPress: () {
-        if (entityModel.handleTap) {
-          entityModel.entityWrapper.handleHold();
-        }
-      },
-      onTap: () {
-        if (entityModel.handleTap) {
-          entityModel.entityWrapper.handleTap();
-        }
-      }
     );
   }
 }

@@ -24,27 +24,25 @@ class GlanceCardWidget extends StatelessWidget {
 
   Widget _buildRows(BuildContext context) {
     List<Widget> result = [];
-    double width = MediaQuery.of(context).size.width - Sizes.leftWidgetPadding - (2*Sizes.rightWidgetPadding);
     List<EntityWrapper> toShow = card.entities.where((entity) {return !entity.entity.isHidden;}).toList();
     int columnsCount = toShow.length >= card.columnsCount ? card.columnsCount : toShow.length;
-    card.entities.forEach((EntityWrapper entity) {
-      if (!entity.entity.isHidden) {
-        result.add(
-          SizedBox(
-            width: width / columnsCount,
-            child: EntityModel(
-              entityWrapper: entity,
-              child: entity.entity.buildGlanceWidget(context, card.showName, card.showState),
-              handleTap: true
-            ),
-          )
-        );
-      }
+
+    toShow.forEach((EntityWrapper entity) {
+      result.add(
+        FractionallySizedBox(
+          widthFactor: 1/columnsCount,
+          child: EntityModel(
+            entityWrapper: entity,
+            child: entity.entity.buildGlanceWidget(context, card.showName, card.showState),
+            handleTap: true
+          ),
+        )
+      );
     });
     return Padding(
       padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, 2*Sizes.rowPadding),
       child: Wrap(
-        alignment: WrapAlignment.spaceAround,
+        //alignment: WrapAlignment.spaceAround,
         runSpacing: Sizes.rowPadding*2,
         children: result,
       ),
