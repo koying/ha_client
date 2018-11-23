@@ -269,6 +269,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   void _callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
+    _showInfoBottomBar(
+      message: "Calling $domain.$service",
+      duration: Duration(seconds: 3)
+    );
     _homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
   }
 
@@ -386,8 +390,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   String _bottomBarText;
   bool _bottomBarProgress;
   Color _bottomBarColor;
+  Timer _bottomBarTimer;
 
-  void _showInfoBottomBar({String message, bool progress: false}) {
+  void _showInfoBottomBar({String message, bool progress: false, Duration duration}) {
+    _bottomBarTimer?.cancel();
     _bottomBarAction = Container(height: 0.0, width: 0.0,);
     _bottomBarColor = Colors.grey.shade50;
     setState(() {
@@ -395,6 +401,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       _bottomBarProgress = progress;
       _showBottomBar = true;
     });
+    if (duration != null) {
+      _bottomBarTimer = Timer(duration, () {
+        _hideBottomBar();
+      });
+    }
   }
 
   void _showErrorBottomBar({Key key, @required String message, @required int errorCode}) {
