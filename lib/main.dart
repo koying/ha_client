@@ -13,6 +13,7 @@ import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:progress_indicators/progress_indicators.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -242,7 +243,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _refreshData() async {
     _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _authType, _useLovelaceUI);
     _hideBottomBar();
-    _showInfoBottomBar(message: "Refreshing...");
+    _showInfoBottomBar(progress: true,);
     await _homeAssistant.fetch().then((result) {
       _hideBottomBar();
     }).catchError((e) {
@@ -383,13 +384,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Widget _bottomBarAction;
   bool _showBottomBar = false;
   String _bottomBarText;
+  bool _bottomBarProgress;
   Color _bottomBarColor;
 
-  void _showInfoBottomBar({@required String message}) {
+  void _showInfoBottomBar({String message, bool progress: false}) {
     _bottomBarAction = Container(height: 0.0, width: 0.0,);
     _bottomBarColor = Colors.grey.shade50;
     setState(() {
-      _bottomBarText = "$message";
+      _bottomBarText = message;
+      _bottomBarProgress = progress;
       _showBottomBar = true;
     });
   }
@@ -472,6 +475,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
       }
       setState(() {
+        _bottomBarProgress = false;
         _bottomBarText = "$message (code: $errorCode)";
         _showBottomBar = true;
       });
@@ -535,24 +539,51 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     Widget bottomBar;
     if (_showBottomBar) {
-      bottomBar = Container(
-        color: _bottomBarColor,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, 0.0, Sizes.rowPadding),
-                child: Text(
-                  "$_bottomBarText",
-                  softWrap: true,
+      List<Widget> bottomBarChildren = [];
+      if (_bottomBarText != null) {
+        bottomBarChildren.add(
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+                Sizes.leftWidgetPadding, Sizes.rowPadding, 0.0,
+                Sizes.rowPadding),
+            child: Text(
+              "$_bottomBarText",
+              textAlign: TextAlign.left,
+              softWrap: true,
+            ),
+          )
+
+        );
+      }
+      if (_bottomBarProgress) {
+        bottomBarChildren.add(
+          CollectionScaleTransition(
+            children: <Widget>[
+              Icon(Icons.stop, size: 10.0, color: EntityColor.stateColor(EntityState.on),),
+              Icon(Icons.stop, size: 10.0, color: EntityColor.stateColor(EntityState.unavailable),),
+              Icon(Icons.stop, size: 10.0, color: EntityColor.stateColor(EntityState.off),),
+            ],
+          ),
+        );
+      }
+      if (bottomBarChildren.isNotEmpty) {
+        bottomBar = Container(
+          color: _bottomBarColor,
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: _bottomBarProgress ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: bottomBarChildren,
                 ),
               ),
-            ),
-            _bottomBarAction
-          ],
-        ),
-      );
+              _bottomBarAction
+            ],
+          ),
+        );
+      }
     }
     // This method is rerun every time setState is called.
     if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
