@@ -79,11 +79,13 @@ class MediaPlayerWidget extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Image(
-              image: CachedNetworkImageProvider("$homeAssistantWebHost${entity.entityPicture}"),
-              height: 240.0,
-              width: 320.0,
-              fit: BoxFit.contain,
+            Flexible(
+              child: Image(
+                image: CachedNetworkImageProvider("$homeAssistantWebHost${entity.entityPicture}"),
+                height: 240.0,
+                //width: 320.0,
+                fit: BoxFit.contain,
+              ),
             )
           ],
         ),

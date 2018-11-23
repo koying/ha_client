@@ -97,6 +97,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
         ],
       ),
       body: ListView(
+        scrollDirection: Axis.vertical,
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
           Text(
@@ -150,8 +151,15 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             }
           ),
           new Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Login with access token (HA >= 0.78.0)"),
+              Flexible(
+                child: Text(
+                  "Login with access token (HA >= 0.78.0)",
+                  softWrap: true,
+                  maxLines: 2,
+                ),
+              ),
               Switch(
                 value: (_newAuthType == "access_token"),
                 onChanged: (value) {
