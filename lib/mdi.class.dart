@@ -22,6 +22,8 @@ class MaterialDesignIcons {
     "cover.closed": "mdi:window-closed",
     "cover.closing": "mdi:window-open",
     "cover.opening": "mdi:window-open",
+    "lock.locked": "mdi:lock",
+    "lock.unlocked": "mdi:lock-open",
   };
 
   static Map _defaultIconsByDeviceClass = {
