@@ -256,6 +256,7 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
   double _newVolumeLevel;
   bool _changedHere = false;
   String _newSoundMode;
+  String _newSource;
 
   void _setVolume(double value, String entityId) {
     setState(() {
@@ -282,6 +283,14 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
       _newSoundMode = value;
       _changedHere = true;
       eventBus.fire(ServiceCallEvent("media_player", "select_sound_mode", entityId, {"sound_mode": "$value"}));
+    });
+  }
+
+  void _setSource(String source, String entityId) {
+    setState(() {
+      _newSource = source;
+      _changedHere = true;
+      eventBus.fire(ServiceCallEvent("media_player", "select_source", entityId, {"source": "$source"}));
     });
   }
 
@@ -369,6 +378,22 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
               value: _newSoundMode,
               onChange: (value) => _setSoundMode(value, entity.entityId)
           )
+        );
+      }
+
+      if (entity.supportSelectSource && entity.sourceList != null) {
+        if (!_changedHere) {
+          _newSource = entity.attributes["source"];
+        } else {
+          _changedHere = false;
+        }
+        children.add(
+            ModeSelectorWidget(
+                options: entity.sourceList,
+                caption: "Source",
+                value: _newSource,
+                onChange: (value) => _setSource(value, entity.entityId)
+            )
         );
       }
 
