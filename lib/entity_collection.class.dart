@@ -129,7 +129,7 @@ class EntityCollection {
     List<Entity> groups = [];
     List<Entity> nonGroupEntities = [];
     _allEntities.forEach((id, entity){
-      if (entity.isGroup && (entity.attributes['auto'] == null || !entity.attributes['auto']) && (!entity.isView)) {
+      if (entity.isGroup && (entity.attributes['auto'] == null || (entity.attributes['auto'] && !entity.isHidden)) && (!entity.isView)) {
         groups.add(entity);
       }
       if (!entity.isGroup) {
