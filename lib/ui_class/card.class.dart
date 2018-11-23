@@ -23,37 +23,37 @@ class HACard {
   Widget build(BuildContext context) {
       switch (type) {
 
-        case "entities": {
+        case CardType.entities: {
           return EntitiesCardWidget(
             card: this,
           );
         }
 
-        case "glance": {
+        case CardType.glance: {
           return GlanceCardWidget(
             card: this,
           );
         }
 
-        case "media-control": {
+        case CardType.mediaControl: {
           return MediaControlCardWidget(
             card: this,
           );
         }
 
-        case "weather-forecast":
-        case "thermostat":
-        case "sensor":
-        case "plant-status":
-        case "picture-entity":
-        case "picture-elements":
-        case "picture":
-        case "map":
-        case "iframe":
-        case "gauge":
-        case "entity-button":
-        case "conditional":
-        case "alarm-panel": {
+        case CardType.weatherForecast:
+        case CardType.thermostat:
+        case CardType.sensor:
+        case CardType.plantStatus:
+        case CardType.pictureEntity:
+        case CardType.pictureElements:
+        case CardType.picture:
+        case CardType.map:
+        case CardType.iframe:
+        case CardType.gauge:
+        case CardType.entityButton:
+        case CardType.conditional:
+        case CardType.alarmPanel: {
           return UnsupportedCardWidget(
             card: this,
           );

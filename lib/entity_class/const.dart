@@ -36,3 +36,22 @@ class EntityTapAction {
   static const callService = 'call-service';
   static const none = 'none';
 }
+
+class CardType {
+  static const entities = "entities";
+  static const glance = "glance";
+  static const mediaControl = "media-control";
+  static const weatherForecast = "weather-forecast";
+  static const thermostat = "thermostat";
+  static const sensor = "sensor";
+  static const plantStatus = "plant-status";
+  static const pictureEntity = "picture-entity";
+  static const pictureElements = "picture-elements";
+  static const picture = "picture";
+  static const map = "map";
+  static const iframe = "iframe";
+  static const gauge = "gauge";
+  static const entityButton = "entity-button";
+  static const conditional = "conditional";
+  static const alarmPanel = "alarm-panel";
+}

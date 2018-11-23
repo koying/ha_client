@@ -13,7 +13,7 @@ class SimpleEntityState extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     Widget result = Padding(
         padding: padding,
-        child: GestureDetector(
+        child: InkWell(
           child: Text(
               "${entityModel.entityWrapper.entity.state}${entityModel.entityWrapper.entity.unitOfMeasurement}",
               textAlign: textAlign,

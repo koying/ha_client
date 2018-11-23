@@ -13,7 +13,7 @@ class EntityName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    return GestureDetector(
+    return InkWell(
       child: Padding(
         padding: padding,
         child: Text(

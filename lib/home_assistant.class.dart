@@ -447,13 +447,19 @@ class HomeAssistant {
           } else {
             if (entities.isExist(rawEntity["entity"])) {
               Entity e = entities.get(rawEntity["entity"]);
+              String tapAction = EntityTapAction.moreInfo;
+              String holdAction = EntityTapAction.none;
+              if (card.type == CardType.glance) {
+                tapAction = rawEntity["tap_action"] ?? EntityTapAction.moreInfo;
+                holdAction = rawEntity["hold_action"] ?? EntityTapAction.none;
+              }
               card.entities.add(
                   EntityWrapper(
                     entity: e,
                     displayName: rawEntity["name"],
                     icon: rawEntity["icon"],
-                    tapAction: rawEntity["tap_action"] ?? EntityTapAction.moreInfo,
-                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.none,
+                    tapAction: tapAction,
+                    holdAction: holdAction,
                     tapActionService: rawEntity["service"],
                     tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
                   )
