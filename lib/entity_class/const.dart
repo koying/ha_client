@@ -34,4 +34,5 @@ class EntityTapAction {
   static const moreInfo = 'more-info';
   static const toggle = 'toggle';
   static const callService = 'call-service';
+  static const none = 'none';
 }

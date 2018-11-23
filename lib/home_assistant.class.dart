@@ -453,9 +453,9 @@ class HomeAssistant {
                     displayName: rawEntity["name"],
                     icon: rawEntity["icon"],
                     tapAction: rawEntity["tap_action"] ?? EntityTapAction.moreInfo,
-                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.moreInfo,
-                    actionService: rawEntity["service"],
-                    actionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
+                    holdAction: rawEntity["hold_action"] ?? EntityTapAction.none,
+                    tapActionService: rawEntity["service"],
+                    tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
                   )
               );
             }

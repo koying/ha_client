@@ -25,44 +25,12 @@ class SimpleEntityState extends StatelessWidget {
               )),
             onLongPress: () {
               if (entityModel.handleTap) {
-                switch (entityModel.entityWrapper.holdAction) {
-                  case EntityTapAction.toggle: {
-                    eventBus.fire(
-                        ServiceCallEvent("homeassistant", "toggle", entityModel.entityWrapper.entity.entityId, null));
-                    break;
-                  }
-
-                  default: {
-                    eventBus.fire(
-                        new ShowEntityPageEvent(entityModel.entityWrapper.entity));
-                    break;
-                  }
-                }
-
+                entityModel.entityWrapper.handleHold();
               }
             },
             onTap: () {
             if (entityModel.handleTap) {
-              switch (entityModel.entityWrapper.tapAction) {
-                case EntityTapAction.toggle: {
-                  eventBus.fire(
-                      ServiceCallEvent("homeassistant", "toggle", entityModel.entityWrapper.entity.entityId, null));
-                  break;
-                }
-
-                case EntityTapAction.callService: {
-                  eventBus.fire(
-                      ServiceCallEvent(entityModel.entityWrapper.actionService.split(".")[0], entityModel.entityWrapper.actionService.split(".")[1], null, entityModel.entityWrapper.actionServiceData));
-                  break;
-                }
-
-                default: {
-                  eventBus.fire(
-                      new ShowEntityPageEvent(entityModel.entityWrapper.entity));
-                  break;
-                }
-              }
-
+              entityModel.entityWrapper.handleHold();
             }
           }
         )

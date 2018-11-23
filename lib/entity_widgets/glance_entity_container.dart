@@ -23,7 +23,7 @@ class GlanceEntityContainer extends StatelessWidget {
     }
     result.add(EntityIcon(
       padding: EdgeInsets.all(0.0),
-      iconSize: Sizes.largeIconSize,
+      iconSize: Sizes.iconSize,
     ));
     if (showState) {
       result.add(SimpleEntityState(
