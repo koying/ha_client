@@ -12,7 +12,7 @@ class ModeSelectorWidget extends StatelessWidget {
 
   ModeSelectorWidget({
     Key key,
-    this.caption,
+    @required this.caption,
     @required this.options,
     this.value,
     @required this.onChange,

@@ -76,6 +76,15 @@ class Entity {
     }
   }
 
+  List<String> getStringListAttributeValue(String attribute) {
+    if (attributes["$attribute"] != null) {
+      List<String> result = (attributes["$attribute"] as List).cast<String>();
+      return result;
+    } else {
+      return null;
+    }
+  }
+
   Widget buildDefaultWidget(BuildContext context) {
     return DefaultEntityContainer(
         state: _buildStatePart(context)

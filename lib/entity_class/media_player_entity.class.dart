@@ -72,6 +72,8 @@ class MediaPlayerEntity extends Entity {
   MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE) ==
       MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE);
 
+  List<String> get soundModeList => getStringListAttributeValue("sound_mode_list");
+
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
     return MediaPlayerControls();

@@ -255,6 +255,7 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
 
   double _newVolumeLevel;
   bool _changedHere = false;
+  String _newSoundMode;
 
   void _setVolume(double value, String entityId) {
     setState(() {
@@ -274,6 +275,14 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
 
   void _setVolumeDown(String entityId) {
     eventBus.fire(ServiceCallEvent("media_player", "volume_down", entityId, null));
+  }
+
+  void _setSoundMode(String value, String entityId) {
+    setState(() {
+      _newSoundMode = value;
+      _changedHere = true;
+      eventBus.fire(ServiceCallEvent("media_player", "select_sound_mode", entityId, {"sound_mode": "$value"}));
+    });
   }
 
   @override
@@ -345,6 +354,22 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
             volumeStepWidget
           ],
         ));
+      }
+
+      if (entity.supportSelectSoundMode && entity.soundModeList != null) {
+        if (!_changedHere) {
+          _newSoundMode = entity.attributes["sound_mode"];
+        } else {
+          _changedHere = false;
+        }
+        children.add(
+          ModeSelectorWidget(
+              options: entity.soundModeList,
+              caption: "Sound mode",
+              value: _newSoundMode,
+              onChange: (value) => _setSoundMode(value, entity.entityId)
+          )
+        );
       }
 
     }
