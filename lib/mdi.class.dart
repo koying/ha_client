@@ -24,6 +24,7 @@ class MaterialDesignIcons {
     "cover.opening": "mdi:window-open",
     "lock.locked": "mdi:lock",
     "lock.unlocked": "mdi:lock-open",
+    "fan": "mdi:fan"
   };
 
   static Map _defaultIconsByDeviceClass = {

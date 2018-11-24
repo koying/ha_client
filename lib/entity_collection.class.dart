@@ -80,6 +80,9 @@ class EntityCollection {
       case "cover": {
         return CoverEntity(rawEntityData);
       }
+      case "fan": {
+        return FanEntity(rawEntityData);
+      }
       default: {
         return Entity(rawEntityData);
       }
