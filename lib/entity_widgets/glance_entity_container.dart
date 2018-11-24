@@ -36,7 +36,7 @@ class GlanceEntityContainer extends StatelessWidget {
       ));
     }
     return Center(
-      child: InkWell(
+      child: InkResponse(
         child: ConstrainedBox(
           constraints: BoxConstraints(minWidth: Sizes.iconSize*2),
           child: Column(
