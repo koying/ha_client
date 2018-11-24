@@ -55,6 +55,9 @@ class EntityCollection {
       case "light": {
         return LightEntity(rawEntityData);
       }
+      case "group": {
+        return GroupEntity(rawEntityData);
+      }
       case "script":
       case "scene": {
         return ButtonEntity(rawEntityData);

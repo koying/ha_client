@@ -30,6 +30,7 @@ part 'entity_class/other_entity.class.dart';
 part 'entity_class/slider_entity.dart';
 part 'entity_class/media_player_entity.class.dart';
 part 'entity_class/lock_entity.class.dart';
+part 'entity_class/group_entity.class.dart';
 part 'entity_widgets/common/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';

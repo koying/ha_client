@@ -1,6 +1,11 @@
 part of '../../main.dart';
 
 class SwitchStateWidget extends StatefulWidget {
+
+  final String domainForService;
+
+  const SwitchStateWidget({Key key, this.domainForService}) : super(key: key);
+
   @override
   _SwitchStateWidgetState createState() => _SwitchStateWidgetState();
 }
@@ -27,8 +32,14 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
         //TheLogger.debug("Timer@!!");
       });
     });
+    String domain;
+    if (widget.domainForService != null) {
+      domain = widget.domainForService;
+    } else {
+      domain = entity.domain;
+    }
     eventBus.fire(new ServiceCallEvent(
-        entity.domain, (newValue as bool) ? "turn_on" : "turn_off", entity.entityId, null));
+        domain, (newValue as bool) ? "turn_on" : "turn_off", entity.entityId, null));
   }
 
   @override
