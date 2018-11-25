@@ -11,13 +11,13 @@ class MediaControlCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity == null) || (card.linkedEntity.entity.isHidden)) {
+    if ((card.linkedEntityWrapper == null) || (card.linkedEntityWrapper.entity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
 
     return Card(
         child: EntityModel(
-            entityWrapper: card.linkedEntity,
+            entityWrapper: card.linkedEntityWrapper,
             handleTap: null,
             child: MediaPlayerWidget()
         )

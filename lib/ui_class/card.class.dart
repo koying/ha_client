@@ -2,7 +2,7 @@ part of '../main.dart';
 
 class HACard {
   List<EntityWrapper> entities = [];
-  EntityWrapper linkedEntity;
+  EntityWrapper linkedEntityWrapper;
   String name;
   String id;
   String type;
@@ -13,7 +13,7 @@ class HACard {
   HACard({
     this.name,
     this.id,
-    this.linkedEntity,
+    this.linkedEntityWrapper,
     this.columnsCount: 4,
     this.showName: true,
     this.showState: true,
@@ -65,7 +65,7 @@ class HACard {
         }
 
         default: {
-          if ((linkedEntity == null) && (entities.isNotEmpty)) {
+          if ((linkedEntityWrapper == null) && (entities.isNotEmpty)) {
             return EntitiesCardWidget(
               card: this,
             );

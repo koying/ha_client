@@ -447,38 +447,49 @@ class HomeAssistant {
           } else {
             if (entities.isExist(rawEntity["entity"])) {
               Entity e = entities.get(rawEntity["entity"]);
-              String tapAction = EntityTapAction.moreInfo;
-              String holdAction = EntityTapAction.none;
-              if (card.type == CardType.glance) {
+              String tapAction;
+              String holdAction;
+              if (card.type == CardType.glance && card.type == CardType.entityButton) {
                 tapAction = rawEntity["tap_action"] ?? EntityTapAction.moreInfo;
                 holdAction = rawEntity["hold_action"] ?? EntityTapAction.none;
+              } else {
+                tapAction = EntityTapAction.moreInfo;
+                holdAction = EntityTapAction.none;
               }
               card.entities.add(
-                  EntityWrapper(
-                    entity: e,
-                    displayName: rawEntity["name"],
-                    icon: rawEntity["icon"],
-                    tapAction: tapAction,
-                    holdAction: holdAction,
-                    tapActionService: rawEntity["service"],
-                    tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
-                  )
+                EntityWrapper(
+                  entity: e,
+                  displayName: rawEntity["name"],
+                  icon: rawEntity["icon"],
+                  tapAction: tapAction,
+                  holdAction: holdAction,
+                  tapActionService: rawEntity["service"],
+                  tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
+                )
               );
             }
           }
         });
         if (rawCard["entity"] != null) {
           var en = rawCard["entity"];
+          String tapAction = rawCard["tap_action"] ?? EntityTapAction.moreInfo;
+          String holdAction = rawCard["hold_action"] ?? EntityTapAction.none;
           if (en is String) {
             if (entities.isExist(en)) {
-              card.linkedEntity = EntityWrapper(entity: entities.get(en));
+              card.linkedEntityWrapper = EntityWrapper(
+                entity: entities.get(en),
+                tapAction: tapAction,
+                holdAction: holdAction
+              );
             }
           } else {
             if (entities.isExist(en["entity"])) {
-              card.linkedEntity = EntityWrapper(
+              card.linkedEntityWrapper = EntityWrapper(
                 entity: entities.get(en["entity"]),
                 icon: en["icon"],
-                displayName: en["name"]
+                displayName: en["name"],
+                tapAction: tapAction,
+                holdAction: holdAction
               );
             }
           }

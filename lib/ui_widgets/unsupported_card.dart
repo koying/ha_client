@@ -11,7 +11,7 @@ class UnsupportedCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntity!= null) && (card.linkedEntity.entity.isHidden)) {
+    if ((card.linkedEntityWrapper!= null) && (card.linkedEntityWrapper.entity.isHidden)) {
       return Container(width: 0.0, height: 0.0,);
     }
     List<Widget> body = [];
@@ -28,14 +28,14 @@ class UnsupportedCardWidget extends StatelessWidget {
 
   List<Widget> _buildCardBody(BuildContext context) {
     List<Widget> result = [];
-    if (card.linkedEntity != null) {
+    if (card.linkedEntityWrapper != null) {
       result.addAll(<Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
             child: EntityModel(
-                entityWrapper: card.linkedEntity,
+                entityWrapper: card.linkedEntityWrapper,
                 handleTap: true,
-                child: card.linkedEntity.entity.buildDefaultWidget(context)
+                child: card.linkedEntityWrapper.entity.buildDefaultWidget(context)
             ),
           )
       ]);

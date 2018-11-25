@@ -65,18 +65,22 @@ class GlanceEntityContainer extends StatelessWidget {
         fontSize: nameFontSize,
       ));
     }
-
+    
     if (expanded) {
-      return Container(
-        child: InkWell(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            //mainAxisAlignment: MainAxisAlignment.start,
-            //crossAxisAlignment: CrossAxisAlignment.center,
-            children: result,
+      return InkWell(
+        onTap: () => entityWrapper.handleTap(),
+        onLongPress: () => entityWrapper.handleHold(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 100.0),
+          child: FittedBox(
+            fit: BoxFit.fitHeight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              //mainAxisAlignment: MainAxisAlignment.start,
+              //crossAxisAlignment: CrossAxisAlignment.center,
+              children: result,
+            ),
           ),
-          onTap: () => entityWrapper.handleTap(),
-          onLongPress: () => entityWrapper.handleHold(),
         ),
       );
     } else {

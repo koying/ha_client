@@ -11,15 +11,17 @@ class EntityButtonCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (card.linkedEntity!= null && card.linkedEntity.entity.isHidden) {
+    if (card.linkedEntityWrapper!= null && card.linkedEntityWrapper.entity.isHidden) {
       return Container(width: 0.0, height: 0.0,);
     }
-    card.linkedEntity.displayName = card.name;
+    if (card.name != null) {
+      card.linkedEntityWrapper.displayName = card.name;
+    }
     return Card(
       child: Padding(
         padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, Sizes.rowPadding),
         child: EntityModel(
-          entityWrapper: card.linkedEntity,
+          entityWrapper: card.linkedEntityWrapper,
           child: GlanceEntityContainer(
             showName: true,
             showState: false,
