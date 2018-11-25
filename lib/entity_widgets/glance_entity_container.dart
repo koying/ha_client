@@ -7,7 +7,7 @@ class GlanceEntityContainer extends StatelessWidget {
   final bool nameInTheBottom;
   final double iconSize;
   final double nameFontSize;
-  final bool expanded;
+  final bool wordsWrapInName;
 
   GlanceEntityContainer({
     Key key,
@@ -16,7 +16,7 @@ class GlanceEntityContainer extends StatelessWidget {
     this.nameInTheBottom: false,
     this.iconSize: Sizes.iconSize,
     this.nameFontSize: Sizes.smallFontSize,
-    this.expanded: false
+    this.wordsWrapInName: false
   }) : super(key: key);
 
   @override
@@ -25,21 +25,11 @@ class GlanceEntityContainer extends StatelessWidget {
     List<Widget> result = [];
     if (!nameInTheBottom) {
       if (showName) {
-        result.add(EntityName(
-          padding: EdgeInsets.only(bottom: Sizes.rowPadding),
-          textOverflow: TextOverflow.ellipsis,
-          wordsWrap: false,
-          textAlign: TextAlign.center,
-          fontSize: nameFontSize,
-        ));
+        result.add(_buildName());
       }
     } else {
       if (showState) {
-        result.add(SimpleEntityState(
-          textAlign: TextAlign.center,
-          expanded: false,
-          padding: EdgeInsets.only(top: Sizes.rowPadding),
-        ));
+        result.add(_buildState());
       }
     }
     result.add(
@@ -50,55 +40,45 @@ class GlanceEntityContainer extends StatelessWidget {
     );
     if (!nameInTheBottom) {
       if (showState) {
-        result.add(SimpleEntityState(
-          textAlign: TextAlign.center,
-          expanded: false,
-          padding: EdgeInsets.only(top: Sizes.rowPadding),
-        ));
+        result.add(_buildState());
       }
     } else {
-      result.add(EntityName(
-        padding: EdgeInsets.only(bottom: Sizes.rowPadding),
-        textOverflow: TextOverflow.ellipsis,
-        wordsWrap: false,
-        textAlign: TextAlign.center,
-        fontSize: nameFontSize,
-      ));
+      result.add(_buildName());
     }
-    
-    if (expanded) {
-      return InkWell(
+
+    return Center(
+      child: InkResponse(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: Sizes.iconSize * 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            //mainAxisAlignment: MainAxisAlignment.start,
+            //crossAxisAlignment: CrossAxisAlignment.center,
+            children: result,
+          ),
+        ),
         onTap: () => entityWrapper.handleTap(),
         onLongPress: () => entityWrapper.handleHold(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 100.0),
-          child: FittedBox(
-            fit: BoxFit.fitHeight,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              //mainAxisAlignment: MainAxisAlignment.start,
-              //crossAxisAlignment: CrossAxisAlignment.center,
-              children: result,
-            ),
-          ),
-        ),
-      );
-    } else {
-      return Center(
-        child: InkResponse(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: Sizes.iconSize * 2),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              //mainAxisAlignment: MainAxisAlignment.start,
-              //crossAxisAlignment: CrossAxisAlignment.center,
-              children: result,
-            ),
-          ),
-          onTap: () => entityWrapper.handleTap(),
-          onLongPress: () => entityWrapper.handleHold(),
-        ),
-      );
-    }
+      ),
+    );
+  }
+
+  Widget _buildName() {
+    return EntityName(
+      padding: EdgeInsets.only(bottom: Sizes.rowPadding),
+      textOverflow: TextOverflow.ellipsis,
+      wordsWrap: wordsWrapInName,
+      textAlign: TextAlign.center,
+      fontSize: nameFontSize,
+    );
+  }
+
+  Widget _buildState() {
+    return SimpleEntityState(
+      textAlign: TextAlign.center,
+      expanded: false,
+      maxLines: 1,
+      padding: EdgeInsets.only(top: Sizes.rowPadding),
+    );
   }
 }

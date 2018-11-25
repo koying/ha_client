@@ -2,6 +2,7 @@ part of '../main.dart';
 
 class HACard {
   List<EntityWrapper> entities = [];
+  List<HACard> childCards = [];
   EntityWrapper linkedEntityWrapper;
   String name;
   String id;
@@ -45,6 +46,27 @@ class HACard {
           return EntityButtonCardWidget(
             card: this,
           );
+        }
+
+        case CardType.horizontalStack: {
+          if (childCards.isNotEmpty) {
+            List<Widget> children = [];
+            childCards.forEach((card) {
+              children.add(
+                Flexible(
+                  fit: FlexFit.tight,
+                  child: card.build(context),
+                )
+              );
+            });
+            return Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            );
+          }
+          return Container(height: 0.0, width: 0.0,);
         }
 
         case CardType.weatherForecast:

@@ -428,75 +428,80 @@ class HomeAssistant {
   List<HACard> _createLovelaceCards(List rawCards) {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
+      HACard card = HACard(
+        id: "card",
+        name: rawCard["title"] ?? rawCard["name"],
+        type: rawCard['type'],
+        columnsCount: rawCard['columns'] ?? 4,
+        showName: rawCard['show_name'] ?? true,
+        showState: rawCard['show_state'] ?? true,
+      );
       if (rawCard["cards"] != null) {
-        result.addAll(_createLovelaceCards(rawCard["cards"]));
-      } else {
-        HACard card = HACard(
-            id: "card",
-            name: rawCard["title"] ?? rawCard["name"],
-            type: rawCard['type'],
-            columnsCount: rawCard['columns'] ?? 4,
-            showName: rawCard['show_name'] ?? true,
-            showState: rawCard['show_state'] ?? true,
-        );
-        rawCard["entities"]?.forEach((rawEntity) {
-          if (rawEntity is String) {
-            if (entities.isExist(rawEntity)) {
-              card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
-            }
-          } else {
-            if (entities.isExist(rawEntity["entity"])) {
-              Entity e = entities.get(rawEntity["entity"]);
-              String tapAction;
-              String holdAction;
-              if (card.type == CardType.glance && card.type == CardType.entityButton) {
-                tapAction = rawEntity["tap_action"] ?? EntityTapAction.moreInfo;
-                holdAction = rawEntity["hold_action"] ?? EntityTapAction.none;
-              } else {
-                tapAction = EntityTapAction.moreInfo;
-                holdAction = EntityTapAction.none;
-              }
-              card.entities.add(
-                EntityWrapper(
-                  entity: e,
-                  displayName: rawEntity["name"],
-                  icon: rawEntity["icon"],
-                  tapAction: tapAction,
-                  holdAction: holdAction,
-                  tapActionService: rawEntity["service"],
-                  tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
-                )
-              );
-            }
+        card.childCards = _createLovelaceCards(rawCard["cards"]);
+      }
+      rawCard["entities"]?.forEach((rawEntity) {
+        if (rawEntity is String) {
+          if (entities.isExist(rawEntity)) {
+            card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
           }
-        });
-        if (rawCard["entity"] != null) {
-          var en = rawCard["entity"];
-          String tapAction = rawCard["tap_action"] ?? EntityTapAction.moreInfo;
-          String holdAction = rawCard["hold_action"] ?? EntityTapAction.none;
-          if (en is String) {
-            if (entities.isExist(en)) {
-              card.linkedEntityWrapper = EntityWrapper(
-                entity: entities.get(en),
-                tapAction: tapAction,
-                holdAction: holdAction
-              );
+        } else {
+          if (entities.isExist(rawEntity["entity"])) {
+            Entity e = entities.get(rawEntity["entity"]);
+            String tapAction;
+            String holdAction;
+            if (card.type == CardType.glance || card.type == CardType.entityButton) {
+              tapAction = rawEntity["tap_action"] ?? EntityTapAction.moreInfo;
+              holdAction = rawEntity["hold_action"] ?? EntityTapAction.none;
+            } else {
+              tapAction = EntityTapAction.moreInfo;
+              holdAction = EntityTapAction.none;
             }
-          } else {
-            if (entities.isExist(en["entity"])) {
-              card.linkedEntityWrapper = EntityWrapper(
-                entity: entities.get(en["entity"]),
+            card.entities.add(
+                EntityWrapper(
+                    entity: e,
+                    displayName: rawEntity["name"],
+                    icon: rawEntity["icon"],
+                    tapAction: tapAction,
+                    holdAction: holdAction,
+                    tapActionService: rawEntity["service"],
+                    tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
+                )
+            );
+          }
+        }
+      });
+      if (rawCard["entity"] != null) {
+        var en = rawCard["entity"];
+        String tapAction = rawCard["tap_action"] ?? EntityTapAction.moreInfo;
+        String holdAction = rawCard["hold_action"] ?? EntityTapAction.none;
+        if (en is String) {
+          if (entities.isExist(en)) {
+            Entity e = entities.get(en);
+            card.linkedEntityWrapper = EntityWrapper(
+                entity: e,
+                tapAction: tapAction,
+                holdAction: holdAction,
+                tapActionService: rawCard["service"],
+                tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
+            );
+          }
+        } else {
+          if (entities.isExist(en["entity"])) {
+            Entity e = entities.get(en["entity"]);
+            card.linkedEntityWrapper = EntityWrapper(
+                entity: e,
                 icon: en["icon"],
                 displayName: en["name"],
                 tapAction: tapAction,
-                holdAction: holdAction
-              );
-            }
+                holdAction: holdAction,
+                tapActionService: rawCard["service"],
+                tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
+            );
           }
-
         }
-        result.add(card);
+
       }
+      result.add(card);
     });
     return result;
   }

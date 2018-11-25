@@ -36,6 +36,7 @@ part 'entity_widgets/common/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
 part 'entity_widgets/glance_entity_container.dart';
+part 'entity_widgets/button_entity_container.dart';
 part 'entity_widgets/common/entity_attributes_list.dart';
 part 'entity_widgets/entity_icon.dart';
 part 'entity_widgets/entity_name.dart';

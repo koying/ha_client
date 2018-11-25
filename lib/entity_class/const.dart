@@ -38,6 +38,8 @@ class EntityTapAction {
 }
 
 class CardType {
+  static const horizontalStack = "horizontal-stack";
+  static const verticalStack = "vertical-stack";
   static const entities = "entities";
   static const glance = "glance";
   static const mediaControl = "media-control";

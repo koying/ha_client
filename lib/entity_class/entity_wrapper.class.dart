@@ -29,6 +29,7 @@ class EntityWrapper {
   }
 
   void handleTap() {
+    TheLogger.debug(tapAction);
     switch (tapAction) {
       case EntityTapAction.toggle: {
         eventBus.fire(

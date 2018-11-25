@@ -7,8 +7,9 @@ class EntityName extends StatelessWidget {
   final bool wordsWrap;
   final double fontSize;
   final TextAlign textAlign;
+  final int maxLines;
 
-  const EntityName({Key key, this.padding: const EdgeInsets.only(right: 10.0), this.textOverflow: TextOverflow.ellipsis, this.wordsWrap: true, this.fontSize: Sizes.nameFontSize, this.textAlign: TextAlign.left}) : super(key: key);
+  const EntityName({Key key, this.maxLines, this.padding: const EdgeInsets.only(right: 10.0), this.textOverflow: TextOverflow.ellipsis, this.wordsWrap: true, this.fontSize: Sizes.nameFontSize, this.textAlign: TextAlign.left}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,7 @@ class EntityName extends StatelessWidget {
         "${entityWrapper.displayName}",
         overflow: textOverflow,
         softWrap: wordsWrap,
+        maxLines: maxLines,
         style: TextStyle(fontSize: fontSize),
         textAlign: textAlign,
       ),
