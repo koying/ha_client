@@ -91,13 +91,6 @@ class Entity {
     );
   }
 
-  Widget buildGlanceWidget(BuildContext context, bool showName, bool showState) {
-    return GlanceEntityContainer(
-      showName: showName,
-      showState: showState,
-    );
-  }
-
   Widget _buildStatePart(BuildContext context) {
     return SimpleEntityState();
   }

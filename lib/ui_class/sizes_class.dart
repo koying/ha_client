@@ -5,7 +5,7 @@ class Sizes {
   static const leftWidgetPadding = 8.0;
   static const extendedWidgetHeight = 50.0;
   static const iconSize = 28.0;
-  static const largeIconSize = 34.0;
+  static const largeIconSize = 46.0;
   static const stateFontSize = 15.0;
   static const nameFontSize = 15.0;
   static const smallFontSize = 14.0;

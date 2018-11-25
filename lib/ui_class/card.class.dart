@@ -41,6 +41,12 @@ class HACard {
           );
         }
 
+        case CardType.entityButton: {
+          return EntityButtonCardWidget(
+            card: this,
+          );
+        }
+
         case CardType.weatherForecast:
         case CardType.thermostat:
         case CardType.sensor:
@@ -51,7 +57,6 @@ class HACard {
         case CardType.map:
         case CardType.iframe:
         case CardType.gauge:
-        case CardType.entityButton:
         case CardType.conditional:
         case CardType.alarmPanel: {
           return UnsupportedCardWidget(

@@ -433,7 +433,7 @@ class HomeAssistant {
       } else {
         HACard card = HACard(
             id: "card",
-            name: rawCard["title"],
+            name: rawCard["title"] ?? rawCard["name"],
             type: rawCard['type'],
             columnsCount: rawCard['columns'] ?? 4,
             showName: rawCard['show_name'] ?? true,
