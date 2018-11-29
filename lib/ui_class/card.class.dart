@@ -69,6 +69,23 @@ class HACard {
           return Container(height: 0.0, width: 0.0,);
         }
 
+        case CardType.verticalStack: {
+          if (childCards.isNotEmpty) {
+            List<Widget> children = [];
+            childCards.forEach((card) {
+              children.add(
+                  card.build(context)
+              );
+            });
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: children,
+            );
+          }
+          return Container(height: 0.0, width: 0.0,);
+        }
+
         case CardType.weatherForecast:
         case CardType.thermostat:
         case CardType.sensor:
