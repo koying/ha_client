@@ -9,7 +9,9 @@ class HACard {
   String type;
   bool showName;
   bool showState;
+  bool showEmpty;
   int columnsCount;
+  List stateFilter;
 
   HACard({
     this.name,
@@ -18,104 +20,27 @@ class HACard {
     this.columnsCount: 4,
     this.showName: true,
     this.showState: true,
+    this.stateFilter: const [],
+    this.showEmpty: true,
     @required this.type
   });
 
-  Widget build(BuildContext context) {
-      switch (type) {
-
-        case CardType.entities: {
-          return EntitiesCardWidget(
-            card: this,
-          );
-        }
-
-        case CardType.glance: {
-          return GlanceCardWidget(
-            card: this,
-          );
-        }
-
-        case CardType.mediaControl: {
-          return MediaControlCardWidget(
-            card: this,
-          );
-        }
-
-        case CardType.entityButton: {
-          return EntityButtonCardWidget(
-            card: this,
-          );
-        }
-
-        case CardType.horizontalStack: {
-          if (childCards.isNotEmpty) {
-            List<Widget> children = [];
-            childCards.forEach((card) {
-              children.add(
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: card.build(context),
-                )
-              );
-            });
-            return Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: children,
-            );
-          }
-          return Container(height: 0.0, width: 0.0,);
-        }
-
-        case CardType.verticalStack: {
-          if (childCards.isNotEmpty) {
-            List<Widget> children = [];
-            childCards.forEach((card) {
-              children.add(
-                  card.build(context)
-              );
-            });
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: children,
-            );
-          }
-          return Container(height: 0.0, width: 0.0,);
-        }
-
-        case CardType.weatherForecast:
-        case CardType.thermostat:
-        case CardType.sensor:
-        case CardType.plantStatus:
-        case CardType.pictureEntity:
-        case CardType.pictureElements:
-        case CardType.picture:
-        case CardType.map:
-        case CardType.iframe:
-        case CardType.gauge:
-        case CardType.conditional:
-        case CardType.alarmPanel: {
-          return UnsupportedCardWidget(
-            card: this,
-          );
-        }
-
-        default: {
-          if ((linkedEntityWrapper == null) && (entities.isNotEmpty)) {
-            return EntitiesCardWidget(
-              card: this,
-            );
-          } else {
-            return UnsupportedCardWidget(
-              card: this,
-            );
-          }
-        }
-
+  List<EntityWrapper> getEntitiesToShow() {
+    return entities.where((entityWrapper) {
+      if (entityWrapper.entity.isHidden) {
+        return false;
       }
+      if (stateFilter.isNotEmpty) {
+        return stateFilter.contains(entityWrapper.entity.state);
+      }
+      return true;
+    }).toList();
+  }
+
+  Widget build(BuildContext context) {
+    return CardWidget(
+      card: this,
+    );
   }
 
 }

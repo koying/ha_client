@@ -428,13 +428,16 @@ class HomeAssistant {
   List<HACard> _createLovelaceCards(List rawCards) {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
+      bool isThereCardOptionsInside = rawCard["card"] != null;
       HACard card = HACard(
         id: "card",
-        name: rawCard["title"] ?? rawCard["name"],
-        type: rawCard['type'],
-        columnsCount: rawCard['columns'] ?? 4,
-        showName: rawCard['show_name'] ?? true,
-        showState: rawCard['show_state'] ?? true,
+        name: isThereCardOptionsInside ? rawCard["card"]["title"] ?? rawCard["card"]["name"] : rawCard["title"] ?? rawCard["name"],
+        type: isThereCardOptionsInside ? rawCard["card"]['type'] : rawCard['type'],
+        columnsCount: isThereCardOptionsInside ? rawCard["card"]['columns'] ?? 4 : rawCard['columns'] ?? 4,
+        showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ?? true : rawCard['show_name'] ?? true,
+        showState: isThereCardOptionsInside ? rawCard["card"]['show_state'] ?? true : rawCard['show_state'] ?? true,
+        showEmpty: rawCard['show_empty'] ?? true,
+        stateFilter: rawCard['state_filter'] ?? []
       );
       if (rawCard["cards"] != null) {
         card.childCards = _createLovelaceCards(rawCard["cards"]);

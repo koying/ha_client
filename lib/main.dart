@@ -79,11 +79,7 @@ part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
 part 'ui_class/sizes_class.dart';
 part 'ui_widgets/view.dart';
-part 'ui_widgets/entities_card.dart';
-part 'ui_widgets/glance_card.dart';
-part 'ui_widgets/entity_button_card.dart';
-part 'ui_widgets/unsupported_card.dart';
-part 'ui_widgets/media_control_card.dart';
+part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
 
 
