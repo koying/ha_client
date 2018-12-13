@@ -450,14 +450,13 @@ class HomeAssistant {
         } else {
           if (entities.isExist(rawEntity["entity"])) {
             Entity e = entities.get(rawEntity["entity"]);
-            String tapAction;
-            String holdAction;
+            String tapAction = EntityTapAction.moreInfo;
+            String holdAction = EntityTapAction.none;
             if (card.type == CardType.glance || card.type == CardType.entityButton) {
-              tapAction = rawEntity["tap_action"] ?? EntityTapAction.moreInfo;
-              holdAction = rawEntity["hold_action"] ?? EntityTapAction.none;
-            } else {
-              tapAction = EntityTapAction.moreInfo;
-              holdAction = EntityTapAction.none;
+              if (rawEntity["tap_action"] != null && !(rawEntity["tap_action"] is String)) {
+                tapAction = rawEntity["tap_action"]["action"];
+                holdAction = rawEntity["hold_action"]["action"];
+              }
             }
             card.entities.add(
                 EntityWrapper(
@@ -466,8 +465,8 @@ class HomeAssistant {
                     icon: rawEntity["icon"],
                     tapAction: tapAction,
                     holdAction: holdAction,
-                    tapActionService: rawEntity["service"],
-                    tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
+                    //tapActionService: rawEntity["service"],
+                    //tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
                 )
             );
           }
@@ -475,8 +474,12 @@ class HomeAssistant {
       });
       if (rawCard["entity"] != null) {
         var en = rawCard["entity"];
-        String tapAction = rawCard["tap_action"] ?? EntityTapAction.moreInfo;
-        String holdAction = rawCard["hold_action"] ?? EntityTapAction.none;
+        String tapAction = EntityTapAction.moreInfo;
+        String holdAction = EntityTapAction.none;
+        if (rawCard["tap_action"] != null && !(rawCard["tap_action"] is String)) {
+          tapAction = rawCard["tap_action"]["action"];
+          holdAction = rawCard["hold_action"]["action"];
+        }
         if (en is String) {
           if (entities.isExist(en)) {
             Entity e = entities.get(en);
@@ -484,8 +487,8 @@ class HomeAssistant {
                 entity: e,
                 tapAction: tapAction,
                 holdAction: holdAction,
-                tapActionService: rawCard["service"],
-                tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
+                //tapActionService: rawCard["service"],
+                //tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
             );
           }
         } else {
