@@ -453,9 +453,14 @@ class HomeAssistant {
             String tapAction = EntityTapAction.moreInfo;
             String holdAction = EntityTapAction.none;
             if (card.type == CardType.glance || card.type == CardType.entityButton) {
-              if (rawEntity["tap_action"] != null && !(rawEntity["tap_action"] is String)) {
-                tapAction = rawEntity["tap_action"]["action"];
-                holdAction = rawEntity["hold_action"]["action"];
+              if (rawEntity["tap_action"] != null) {
+                if (rawEntity["tap_action"] is String) {
+                  tapAction = rawEntity["tap_action"];
+                  holdAction = rawEntity["hold_action"];
+                } else {
+                  tapAction = rawEntity["tap_action"]["action"];
+                  holdAction = rawEntity["hold_action"]["action"];
+                }
               }
             }
             card.entities.add(
@@ -476,9 +481,14 @@ class HomeAssistant {
         var en = rawCard["entity"];
         String tapAction = EntityTapAction.moreInfo;
         String holdAction = EntityTapAction.none;
-        if (rawCard["tap_action"] != null && !(rawCard["tap_action"] is String)) {
-          tapAction = rawCard["tap_action"]["action"];
-          holdAction = rawCard["hold_action"]["action"];
+        if (rawCard["tap_action"] != null) {
+          if (rawCard["tap_action"] is String) {
+            tapAction = rawCard["tap_action"];
+            holdAction = rawCard["hold_action"];
+          } else {
+            tapAction = rawCard["tap_action"]["action"];
+            holdAction = rawCard["hold_action"]["action"];
+          }
         }
         if (en is String) {
           if (entities.isExist(en)) {
