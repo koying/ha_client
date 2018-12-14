@@ -20,6 +20,7 @@ class Entity {
 
   List<Entity> childEntities = [];
   List<String> attributesToShow = ["all"];
+  String deviceClass;
   EntityHistoryConfig historyConfig = EntityHistoryConfig(
     chartType: EntityHistoryWidgetType.simple
   );
@@ -27,7 +28,6 @@ class Entity {
   String get displayName =>
       attributes["friendly_name"] ?? (attributes["name"] ?? entityId.split(".")[1].replaceAll("_", " "));
 
-  String get deviceClass => attributes["device_class"] ?? null;
   bool get isView =>
       (domain == "group") &&
       (attributes != null ? attributes["view"] ?? false : false);
@@ -50,6 +50,10 @@ class Entity {
     attributes = rawData["attributes"] ?? {};
     domain = rawData["entity_id"].split(".")[0];
     entityId = rawData["entity_id"];
+    deviceClass = attributes["device_class"];
+    if (deviceClass != null) {
+      TheLogger.debug("Found device class '$deviceClass' for '$entityId'. Icon is '${this.icon}'");
+    }
     state = rawData["state"];
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }

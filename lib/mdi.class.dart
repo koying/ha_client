@@ -41,8 +41,8 @@ class MaterialDesignIcons {
     "binary_sensor.heat.off": "mdi:thermometer",
     "binary_sensor.light.on": "mdi:brightness-7",
     "binary_sensor.light.off": "mdi:brightness-5",
-    //"binary_sensor.lock.on": "mdi:",
-    //"binary_sensor.lock.off": "mdi:",
+    "binary_sensor.lock.on": "mdi:lock-open",
+    "binary_sensor.lock.off": "mdi:lock",
     "binary_sensor.moisture.on": "mdi:water",
     "binary_sensor.moisture.off": "mdi:water-off",
     "binary_sensor.motion.on": "mdi:run",
@@ -59,8 +59,8 @@ class MaterialDesignIcons {
     "binary_sensor.power.off": "mdi:verified",
     //"binary_sensor.presence.on": "mdi:",
     //"binary_sensor.presence.off": "mdi:",
-    //"binary_sensor.problem.on": "mdi:",
-    //"binary_sensor.problem.off": "mdi:",
+    "binary_sensor.problem.on": "mdi:alert-outline",
+    "binary_sensor.problem.off": "mdi:check-outline",
     "binary_sensor.safety.on": "mdi:alert",
     "binary_sensor.safety.off": "mdi:verified",
     "binary_sensor.smoke.on": "mdi:alert",
@@ -69,13 +69,13 @@ class MaterialDesignIcons {
     "binary_sensor.sound.off": "mdi:music-note-off",
     "binary_sensor.vibration.on": "mdi:vibrate",
     "binary_sensor.vibration.off": "mdi:mdi-crop-portrait",
-    //"binary_sensor.window.on": "mdi:",
-    //"binary_sensor.window.off": "mdi:",
+    "binary_sensor.window.on": "mdi:window-open",
+    "binary_sensor.window.off": "mdi:window-closed",
     "sensor.battery": "mdi:battery-80",
     "sensor.humidity": "mdi:water-percent",
     //"sensor.illuminance": "mdi:",
     "sensor.temperature": "mdi:thermometer",
-    //"cover.window": "mdi:",
+    "cover.window": "mdi:mdi:window-closed",
     "cover.garage.closed": "mdi:garage",
     "cover.garage.open": "mdi:garage-open",
     "cover.garage.opening": "mdi:garage-open",
@@ -2933,6 +2933,7 @@ class MaterialDesignIcons {
     String iconNameByDomain = _defaultIconsByDomains["$domain.$state"] ?? _defaultIconsByDomains["$domain"];
     String iconNameByDeviceClass;
     if (deviceClass != null) {
+      //TheLogger.debug("Icons: by device class: '$domain.$deviceClass.$state' or '$domain.$deviceClass'");
       iconNameByDeviceClass = _defaultIconsByDeviceClass["$domain.$deviceClass.$state"] ?? _defaultIconsByDeviceClass["$domain.$deviceClass"];
     }
     String iconName = iconNameByDeviceClass ?? iconNameByDomain;
