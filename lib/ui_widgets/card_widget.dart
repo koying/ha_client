@@ -150,24 +150,33 @@ class CardWidget extends StatelessWidget {
   }
 
   Widget _buildMediaControlsCard(BuildContext context) {
-    return Card(
-      child: EntityModel(
-        entityWrapper: card.linkedEntityWrapper,
-          handleTap: null,
-          child: MediaPlayerWidget()
-      )
-    );
+    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
+      return Container(width: 0, height: 0,);
+    } else {
+      return Card(
+          child: EntityModel(
+              entityWrapper: card.linkedEntityWrapper,
+              handleTap: null,
+              child: MediaPlayerWidget()
+          )
+      );
+    }
   }
 
   Widget _buildEntityButtonCard(BuildContext context) {
-    card.linkedEntityWrapper.displayName = card.name?.toUpperCase() ?? card.linkedEntityWrapper.displayName.toUpperCase();
-    return Card(
-        child: EntityModel(
-            entityWrapper: card.linkedEntityWrapper,
-            child: ButtonEntityContainer(),
-            handleTap: true
-        )
-    );
+    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
+      return Container(width: 0, height: 0,);
+    } else {
+      card.linkedEntityWrapper.displayName = card.name?.toUpperCase() ??
+          card.linkedEntityWrapper.displayName.toUpperCase();
+      return Card(
+          child: EntityModel(
+              entityWrapper: card.linkedEntityWrapper,
+              child: ButtonEntityContainer(),
+              handleTap: true
+          )
+      );
+    }
   }
 
   Widget _buildUnsupportedCard(BuildContext context) {
