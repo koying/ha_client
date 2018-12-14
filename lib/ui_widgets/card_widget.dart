@@ -37,12 +37,14 @@ class CardWidget extends StatelessWidget {
         if (card.childCards.isNotEmpty) {
           List<Widget> children = [];
           card.childCards.forEach((card) {
-            children.add(
-                Flexible(
-                  fit: FlexFit.tight,
-                  child: card.build(context),
-                )
-            );
+            if (card.getEntitiesToShow().isNotEmpty || card.showEmpty) {
+              children.add(
+                  Flexible(
+                    fit: FlexFit.tight,
+                    child: card.build(context),
+                  )
+              );
+            }
           });
           return Row(
             mainAxisSize: MainAxisSize.max,
