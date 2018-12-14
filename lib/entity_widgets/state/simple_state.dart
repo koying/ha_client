@@ -12,10 +12,15 @@ class SimpleEntityState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
+    String state = entityModel.entityWrapper.entity.state ?? "";
+    state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
+    while (state.contains("  ")){
+      state = state.replaceAll("  ", " ");
+    }
     Widget result = Padding(
       padding: padding,
       child: Text(
-        "${entityModel.entityWrapper.entity.state} ${entityModel.entityWrapper.entity.unitOfMeasurement}",
+        "$state ${entityModel.entityWrapper.entity.unitOfMeasurement}",
         textAlign: textAlign,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
