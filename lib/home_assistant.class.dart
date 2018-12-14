@@ -450,28 +450,12 @@ class HomeAssistant {
         } else {
           if (entities.isExist(rawEntity["entity"])) {
             Entity e = entities.get(rawEntity["entity"]);
-            String tapAction = EntityTapAction.moreInfo;
-            String holdAction = EntityTapAction.none;
-            if (card.type == CardType.glance || card.type == CardType.entityButton) {
-              if (rawEntity["tap_action"] != null) {
-                if (rawEntity["tap_action"] is String) {
-                  tapAction = rawEntity["tap_action"];
-                  holdAction = rawEntity["hold_action"];
-                } else {
-                  tapAction = rawEntity["tap_action"]["action"];
-                  holdAction = rawEntity["hold_action"]["action"];
-                }
-              }
-            }
             card.entities.add(
                 EntityWrapper(
                     entity: e,
                     displayName: rawEntity["name"],
                     icon: rawEntity["icon"],
-                    tapAction: tapAction,
-                    holdAction: holdAction,
-                    //tapActionService: rawEntity["service"],
-                    //tapActionServiceData: rawEntity["service_data"] ?? {"entity_id": e.entityId}
+                    uiAction: EntityUIAction(rawEntityData: rawEntity)
                 )
             );
           }
@@ -479,26 +463,12 @@ class HomeAssistant {
       });
       if (rawCard["entity"] != null) {
         var en = rawCard["entity"];
-        String tapAction = EntityTapAction.moreInfo;
-        String holdAction = EntityTapAction.none;
-        if (rawCard["tap_action"] != null) {
-          if (rawCard["tap_action"] is String) {
-            tapAction = rawCard["tap_action"];
-            holdAction = rawCard["hold_action"];
-          } else {
-            tapAction = rawCard["tap_action"]["action"];
-            holdAction = rawCard["hold_action"]["action"];
-          }
-        }
         if (en is String) {
           if (entities.isExist(en)) {
             Entity e = entities.get(en);
             card.linkedEntityWrapper = EntityWrapper(
                 entity: e,
-                tapAction: tapAction,
-                holdAction: holdAction,
-                //tapActionService: rawCard["service"],
-                //tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
+                uiAction: EntityUIAction(rawEntityData: rawCard)
             );
           }
         } else {
@@ -508,10 +478,7 @@ class HomeAssistant {
                 entity: e,
                 icon: en["icon"],
                 displayName: en["name"],
-                tapAction: tapAction,
-                holdAction: holdAction,
-                tapActionService: rawCard["service"],
-                tapActionServiceData: rawCard["service_data"] ?? {"entity_id": e.entityId}
+                uiAction: EntityUIAction(rawEntityData: rawCard)
             );
           }
         }

@@ -4,12 +4,7 @@ class EntityWrapper {
 
   String displayName;
   String icon;
-  String tapAction;
-  String holdAction;
-  String tapActionService;
-  Map<String, dynamic> tapActionServiceData;
-  String holdActionService;
-  Map<String, dynamic> holdActionServiceData;
+  EntityUIAction uiAction;
   Entity entity;
 
 
@@ -17,59 +12,65 @@ class EntityWrapper {
     this.entity,
     String icon,
     String displayName,
-    this.tapAction: EntityTapAction.moreInfo,
-    this.holdAction: EntityTapAction.none,
-    this.tapActionService,
-    this.tapActionServiceData,
-    this.holdActionService,
-    this.holdActionServiceData
+    this.uiAction
   }) {
     this.icon = icon ?? entity.icon;
     this.displayName = displayName ?? entity.displayName;
   }
 
   void handleTap() {
-    TheLogger.debug(tapAction);
-    switch (tapAction) {
-      case EntityTapAction.toggle: {
+    switch (uiAction.tapAction) {
+      case EntityUIAction.toggle: {
         eventBus.fire(
             ServiceCallEvent("homeassistant", "toggle", entity.entityId, null));
         break;
       }
 
-      case EntityTapAction.callService: {
-        eventBus.fire(
-            ServiceCallEvent(tapActionService.split(".")[0], tapActionService.split(".")[1], null, tapActionServiceData));
+      case EntityUIAction.callService: {
+        if (uiAction.tapService != null) {
+          eventBus.fire(
+              ServiceCallEvent(uiAction.tapService.split(".")[0],
+                  uiAction.tapService.split(".")[1], null,
+                  uiAction.tapServiceData));
+        }
         break;
       }
 
-      case EntityTapAction.none: {
+      case EntityUIAction.none: {
+        break;
+      }
+
+      case EntityUIAction.moreInfo: {
+        eventBus.fire(
+            new ShowEntityPageEvent(entity));
         break;
       }
 
       default: {
-        eventBus.fire(
-            new ShowEntityPageEvent(entity));
         break;
       }
     }
   }
 
   void handleHold() {
-      switch (holdAction) {
-        case EntityTapAction.toggle: {
+      switch (uiAction.holdAction) {
+        case EntityUIAction.toggle: {
           eventBus.fire(
               ServiceCallEvent("homeassistant", "toggle", entity.entityId, null));
           break;
         }
 
-        case EntityTapAction.callService: {
-          eventBus.fire(
-              ServiceCallEvent(tapActionService.split(".")[0], tapActionService.split(".")[1], null, tapActionServiceData));
+        case EntityUIAction.callService: {
+          if (uiAction.holdService != null) {
+            eventBus.fire(
+                ServiceCallEvent(uiAction.holdService.split(".")[0],
+                    uiAction.holdService.split(".")[1], null,
+                    uiAction.holdServiceData));
+          }
           break;
         }
 
-        case EntityTapAction.moreInfo: {
+        case EntityUIAction.moreInfo: {
           eventBus.fire(
               new ShowEntityPageEvent(entity));
           break;
