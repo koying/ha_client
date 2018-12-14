@@ -150,6 +150,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
               _newHassioPort = value;
             }
           ),
+          new Text(
+            "Try ports 80 and 443 if default is not working and you don't know why.",
+            style: TextStyle(color: Colors.grey),
+          ),
           new Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -169,6 +173,10 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
                 },
               )
             ],
+          ),
+          new Text(
+            "You should use access token for HA >= 0.84.1. Legacy password will not work there.",
+            style: TextStyle(color: Colors.grey),
           ),
           new TextField(
             decoration: InputDecoration(
