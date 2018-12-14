@@ -2933,7 +2933,6 @@ class MaterialDesignIcons {
     String iconNameByDomain = _defaultIconsByDomains["$domain.$state"] ?? _defaultIconsByDomains["$domain"];
     String iconNameByDeviceClass;
     if (deviceClass != null) {
-      //TheLogger.debug("Icons: by device class: '$domain.$deviceClass.$state' or '$domain.$deviceClass'");
       iconNameByDeviceClass = _defaultIconsByDeviceClass["$domain.$deviceClass.$state"] ?? _defaultIconsByDeviceClass["$domain.$deviceClass"];
     }
     String iconName = iconNameByDeviceClass ?? iconNameByDomain;

@@ -51,9 +51,6 @@ class Entity {
     domain = rawData["entity_id"].split(".")[0];
     entityId = rawData["entity_id"];
     deviceClass = attributes["device_class"];
-    if (deviceClass != null) {
-      TheLogger.debug("Found device class '$deviceClass' for '$entityId'. Icon is '${this.icon}'");
-    }
     state = rawData["state"];
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
