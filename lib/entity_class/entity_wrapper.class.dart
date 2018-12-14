@@ -16,6 +16,9 @@ class EntityWrapper {
   }) {
     this.icon = icon ?? entity.icon;
     this.displayName = displayName ?? entity.displayName;
+    if (this.uiAction == null) {
+      this.uiAction = EntityUIAction();
+    }
   }
 
   void handleTap() {
