@@ -61,16 +61,16 @@ class HomeAssistant {
     _password = password;
     _authType = authType;
     _useLovelace = useLovelace;
-    TheLogger.debug( "Use lovelace is $_useLovelace");
+    Logger.d( "Use lovelace is $_useLovelace");
   }
 
   Future fetch() {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
-      TheLogger.warning("Previous fetch is not complited");
+      Logger.w("Previous fetch is not complited");
     } else {
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
-        TheLogger.error( "Data fetching timeout");
+        Logger.e( "Data fetching timeout");
         disconnect().then((_) {
           _completeFetching({
             "errorCode": 9,
@@ -90,7 +90,7 @@ class HomeAssistant {
   disconnect() async {
     if ((_hassioChannel != null) && (_hassioChannel.closeCode == null) && (_hassioChannel.sink != null)) {
       await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
-        onTimeout: () => TheLogger.debug( "Socket sink closed")
+        onTimeout: () => Logger.d( "Socket sink closed")
       );
       await _socketSubscription.cancel();
       _hassioChannel = null;
@@ -100,15 +100,15 @@ class HomeAssistant {
 
   Future _connection() {
     if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
-      TheLogger.debug("Previous connection is not complited");
+      Logger.d("Previous connection is not complited");
     } else {
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
         _connectionCompleter = new Completer();
         autoReconnect = false;
         disconnect().then((_){
-          TheLogger.debug( "Socket connecting...");
+          Logger.d( "Socket connecting...");
           _connectionTimer = Timer(connectTimeout, () {
-            TheLogger.error( "Socket connection timeout");
+            Logger.e( "Socket connection timeout");
             _handleSocketError(null);
           });
           if (_socketSubscription != null) {
@@ -131,15 +131,15 @@ class HomeAssistant {
   }
 
   void _handleSocketClose() {
-    TheLogger.debug("Socket disconnected. Automatic reconnect is $autoReconnect");
+    Logger.d("Socket disconnected. Automatic reconnect is $autoReconnect");
     if (autoReconnect) {
       _reconnect();
     }
   }
 
   void _handleSocketError(e) {
-    TheLogger.error("Socket stream Error: $e");
-    TheLogger.debug("Automatic reconnect is $autoReconnect");
+    Logger.e("Socket stream Error: $e");
+    Logger.d("Automatic reconnect is $autoReconnect");
     if (autoReconnect) {
       _reconnect();
     } else {
@@ -186,7 +186,7 @@ class HomeAssistant {
         _fetchCompleter.completeError(error);
       } else {
         autoReconnect = true;
-        TheLogger.debug( "Fetch complete successful");
+        Logger.d( "Fetch complete successful");
         _fetchCompleter.complete();
       }
     }
@@ -220,7 +220,7 @@ class HomeAssistant {
     } else if (data["type"] == "auth_invalid") {
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
-      TheLogger.debug("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
+      Logger.d("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
       if (data["id"] == _configMessageId) {
         _parseConfig(data);
       } else if (data["id"] == _statesMessageId) {
@@ -234,15 +234,15 @@ class HomeAssistant {
       }
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
-        TheLogger.debug("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
+        Logger.d("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
         _handleEntityStateChange(data["event"]["data"]);
       } else if (data["event"] != null) {
-        TheLogger.warning("Unhandled event type: ${data["event"]["event_type"]}");
+        Logger.w("Unhandled event type: ${data["event"]["event_type"]}");
       } else {
-        TheLogger.error("Event is null: $message");
+        Logger.e("Event is null: $message");
       }
     } else {
-      TheLogger.warning("Unknown message type: $message");
+      Logger.w("Unknown message type: $message");
     }
   }
 
@@ -302,7 +302,7 @@ class HomeAssistant {
   }
 
   void _sendAuthMessageRaw(String message) {
-    TheLogger.debug( "[Sending] ==> auth request");
+    Logger.d( "[Sending] ==> auth request");
     _hassioChannel.sink.add(message);
   }
 
@@ -311,11 +311,11 @@ class HomeAssistant {
     if (queued) _messageQueue.add(message);
     _connection().then((r) {
       _messageQueue.getActualMessages().forEach((message){
-        TheLogger.debug( "[Sending queued] ==> $message");
+        Logger.d( "[Sending queued] ==> $message");
         _hassioChannel.sink.add(message);
       });
       if (!queued) {
-        TheLogger.debug( "[Sending] ==> $message");
+        Logger.d( "[Sending] ==> $message");
         _hassioChannel.sink.add(message);
       }
       sendCompleter.complete();
@@ -367,8 +367,10 @@ class HomeAssistant {
   void _handleEntityStateChange(Map eventData) {
     //TheLogger.debug( "New state for ${eventData['entity_id']}");
     Map data = Map.from(eventData);
-    entities.updateState(data);
-    eventBus.fire(new StateChangedEvent(data["entity_id"], null));
+    eventBus.fire(new StateChangedEvent(
+      entityId: data["entity_id"],
+      needToRebuildUI: entities.updateState(data)
+    ));
   }
 
   void _parseConfig(Map data) {
@@ -385,7 +387,7 @@ class HomeAssistant {
       _userName = data["result"]["name"];
     } else {
       _userName = null;
-      TheLogger.warning("There was an error getting current user: $data");
+      Logger.w("There was an error getting current user: $data");
     }
     _userInfoCompleter.complete();
   }
@@ -398,19 +400,19 @@ class HomeAssistant {
     if (response["success"] == true) {
       _rawLovelaceData = response["result"];
     } else {
-      TheLogger.error("There was an error getting Lovelace config: $response");
+      Logger.e("There was an error getting Lovelace config: $response");
       _rawLovelaceData = null;
     }
     _lovelaceCompleter.complete();
   }
 
   void _parseLovelace() {
-      TheLogger.debug("--Title: ${_rawLovelaceData["title"]}");
+      Logger.d("--Title: ${_rawLovelaceData["title"]}");
       ui.title = _rawLovelaceData["title"];
       int viewCounter = 0;
-      TheLogger.debug("--Views count: ${_rawLovelaceData['views'].length}");
+      Logger.d("--Views count: ${_rawLovelaceData['views'].length}");
       _rawLovelaceData["views"].forEach((rawView){
-        TheLogger.debug("----view id: ${rawView['id']}");
+        Logger.d("----view id: ${rawView['id']}");
         HAView view = HAView(
             count: viewCounter,
             id: "${rawView['id']}",
@@ -501,10 +503,10 @@ class HomeAssistant {
   void _createUI() {
     ui = HomeAssistantUI();
     if ((_useLovelace) && (_rawLovelaceData != null)) {
-      TheLogger.debug("Creating Lovelace UI");
+      Logger.d("Creating Lovelace UI");
       _parseLovelace();
     } else {
-      TheLogger.debug("Creating group-based UI");
+      Logger.d("Creating group-based UI");
       int viewCounter = 0;
       if (!entities.hasDefaultView) {
         HAView view = HAView(
@@ -543,7 +545,7 @@ class HomeAssistant {
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
-    TheLogger.debug("[Sending] ==> $url");
+    Logger.d("[Sending] ==> $url");
     http.Response historyResponse;
     if (_authType == "access_token") {
       historyResponse = await http.get(url, headers: {
@@ -558,7 +560,7 @@ class HomeAssistant {
     }
     var history = json.decode(historyResponse.body);
     if (history is List) {
-      TheLogger.debug( "[Received] <== ${history.first.length} history recors");
+      Logger.d( "[Received] <== ${history.first.length} history recors");
       return history;
     } else {
       return [];

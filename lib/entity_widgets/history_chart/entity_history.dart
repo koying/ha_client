@@ -42,7 +42,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   void _loadHistory(HomeAssistant ha, String entityId) {
     DateTime now = DateTime.now();
     if (_historyLastUpdated != null) {
-      TheLogger.debug("History was updated ${now.difference(_historyLastUpdated).inSeconds} seconds ago");
+      Logger.d("History was updated ${now.difference(_historyLastUpdated).inSeconds} seconds ago");
     }
     if (_historyLastUpdated == null || now.difference(_historyLastUpdated).inSeconds > 30) {
       _historyLastUpdated = now;
@@ -52,7 +52,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
           _needToUpdateHistory = false;
         });
       }).catchError((e) {
-        TheLogger.error("Error loading $entityId history: $e");
+        Logger.e("Error loading $entityId history: $e");
         setState(() {
           _history = [];
           _needToUpdateHistory = false;
@@ -122,7 +122,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
       }
 
       default: {
-        TheLogger.debug("  Simple selected as default");
+        Logger.d("  Simple selected as default");
         return SimpleStateHistoryChartWidget(
           rawHistory: _history,
         );

@@ -94,11 +94,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
   }
 
   List<charts.Series<EntityHistoryMoment, DateTime>> _parseHistory() {
-    TheLogger.debug("  parsing history...");
+    Logger.d("  parsing history...");
     Map<String, List<EntityHistoryMoment>> numericDataLists = {};
     int colorIdCounter = 0;
     widget.config.numericAttributesToShow.forEach((String attrName) {
-      TheLogger.debug("    parsing attribute $attrName");
+      Logger.d("    parsing attribute $attrName");
       List<EntityHistoryMoment> data = [];
       DateTime now = DateTime.now();
       for (var i = 0; i < widget.rawHistory.length; i++) {
@@ -152,7 +152,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     }
     List<charts.Series<EntityHistoryMoment, DateTime>> result = [];
     numericDataLists.forEach((attrName, dataList) {
-      TheLogger.debug("  adding ${dataList.length} data values");
+      Logger.d("  adding ${dataList.length} data values");
       result.add(
         new charts.Series<EntityHistoryMoment, DateTime>(
           id: "value",

@@ -78,7 +78,7 @@ class ViewWidgetState extends State<ViewWidget> {
 
   Future _refreshData() {
     if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
-      TheLogger.debug("Previous data refresh is still in progress");
+      Logger.d("Previous data refresh is still in progress");
     } else {
       _refreshCompleter = Completer();
       eventBus.fire(RefreshDataEvent());

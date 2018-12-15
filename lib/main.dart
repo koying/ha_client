@@ -91,8 +91,8 @@ String homeAssistantWebHost;
 
 void main() {
   FlutterError.onError = (errorDetails) {
-    TheLogger.error( "${errorDetails.exception}");
-    if (TheLogger.isInDebugMode) {
+    Logger.e( "${errorDetails.exception}");
+    if (Logger.isInDebugMode) {
       FlutterError.dumpErrorToConsole(errorDetails);
     }
   };
@@ -100,9 +100,9 @@ void main() {
   runZoned(() {
     runApp(new HAClientApp());
   }, onError: (error, stack) {
-    TheLogger.error("$error");
-    TheLogger.error("$stack");
-    if (TheLogger.isInDebugMode) {
+    Logger.e("$error");
+    Logger.e("$stack");
+    if (Logger.isInDebugMode) {
       debugPrint("$stack");
     }
   });
@@ -160,11 +160,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
-    TheLogger.debug("<!!!> Creating new HomeAssistant instance");
+    Logger.d("<!!!> Creating new HomeAssistant instance");
     _homeAssistant = HomeAssistant();
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
-      TheLogger.debug("Settings change event: reconnect=${event.reconnect}");
+      Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
         _homeAssistant.disconnect().then((_){
           _initialLoad();
@@ -185,7 +185,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    TheLogger.debug("$state");
+    Logger.d("$state");
     if (state == AppLifecycleState.resumed && _settingsLoaded) {
       _refreshData();
     }
@@ -212,7 +212,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _subscribe() {
     if (_stateSubscription == null) {
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-        setState(() {});
+        if (event.needToRebuildUI) {
+          Logger.d("New entity. Need to rebuild UI");
+          _refreshData();
+        } else {
+          setState(() {});
+        }
       });
     }
     if (_serviceCallSubscription == null) {
@@ -257,8 +262,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _setErrorState(e) {
     if (e is Error) {
-      TheLogger.error(e.toString());
-      TheLogger.error("${e.stackTrace}");
+      Logger.e(e.toString());
+      Logger.e("${e.stackTrace}");
       _showErrorBottomBar(
           message: "There was some error",
           errorCode: 13

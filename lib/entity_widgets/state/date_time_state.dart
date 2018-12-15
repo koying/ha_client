@@ -54,7 +54,7 @@ class DateTimeStateWidget extends StatelessWidget {
         }
       });
     } else {
-      TheLogger.warning( "${entity.entityId} has no date and no time");
+      Logger.w( "${entity.entityId} has no date and no time");
     }
   }
 

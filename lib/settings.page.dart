@@ -83,13 +83,13 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             icon: Icon(Icons.check),
             onPressed: (){
               if (_checkConfigChanged()) {
-                TheLogger.debug("Settings changed. Saving...");
+                Logger.d("Settings changed. Saving...");
                 _saveSettings().then((r) {
                   Navigator.pop(context);
                   eventBus.fire(SettingsChangedEvent(true));
                 });
               } else {
-                TheLogger.debug("Settings was not changed");
+                Logger.d("Settings was not changed");
                 Navigator.pop(context);
               }
             }

@@ -52,7 +52,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     setState(() {
       _tmpColor = color;
       _changedHere = true;
-      TheLogger.debug( "Color: [${color.red}, ${color.green}, ${color.blue}]");
+      Logger.d( "Color: [${color.red}, ${color.green}, ${color.blue}]");
       if ((color == Colors.black) || ((color.red == color.green) && (color.green == color.blue)))  {
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_off", entity.entityId,

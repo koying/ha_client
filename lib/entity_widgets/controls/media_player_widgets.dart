@@ -120,12 +120,12 @@ class MediaPlayerPlaybackControls extends StatelessWidget {
   void _setPower(MediaPlayerEntity entity) {
     if (entity.state != EntityState.unavailable && entity.state != EntityState.unknown) {
       if (entity.state == EntityState.off) {
-        TheLogger.debug("${entity.entityId} turn_on");
+        Logger.d("${entity.entityId} turn_on");
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_on", entity.entityId,
             null));
       } else {
-        TheLogger.debug("${entity.entityId} turn_off");
+        Logger.d("${entity.entityId} turn_off");
         eventBus.fire(new ServiceCallEvent(
             entity.domain, "turn_off", entity.entityId,
             null));
@@ -134,7 +134,7 @@ class MediaPlayerPlaybackControls extends StatelessWidget {
   }
 
   void _callAction(MediaPlayerEntity entity, String action) {
-    TheLogger.debug("${entity.entityId} $action");
+    Logger.d("${entity.entityId} $action");
     eventBus.fire(new ServiceCallEvent(
         entity.domain, "$action", entity.entityId,
         null));

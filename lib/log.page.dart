@@ -19,7 +19,7 @@ class _LogViewPageState extends State<LogViewPage> {
   }
 
   _loadLog() async {
-    _logData = TheLogger.getLog();
+    _logData = Logger.getLog();
   }
 
   @override

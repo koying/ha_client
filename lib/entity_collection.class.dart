@@ -19,7 +19,7 @@ class EntityCollection {
     _allEntities.clear();
     //views.clear();
 
-    TheLogger.debug("Parsing ${rawData.length} Home Assistant entities");
+    Logger.d("Parsing ${rawData.length} Home Assistant entities");
     rawData.forEach((rawEntityData) {
       addFromRaw(rawEntityData);
     });
@@ -89,11 +89,13 @@ class EntityCollection {
     }
   }
 
-  void updateState(Map rawStateData) {
+  bool updateState(Map rawStateData) {
     if (isExist(rawStateData["entity_id"])) {
       updateFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
+      return false;
     } else {
       addFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
+      return true;
     }
   }
 
@@ -101,10 +103,9 @@ class EntityCollection {
     _allEntities[entity.entityId] = entity;
   }
 
-  Entity addFromRaw(Map rawEntityData) {
+  void addFromRaw(Map rawEntityData) {
     Entity entity = _createEntityInstance(rawEntityData);
     _allEntities[entity.entityId] = entity;
-    return entity;
   }
 
   void updateFromRaw(Map rawEntityData) {

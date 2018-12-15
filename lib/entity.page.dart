@@ -19,7 +19,7 @@ class _EntityViewPageState extends State<EntityViewPage> {
   void initState() {
     super.initState();
     _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
-      TheLogger.debug("State change event handled by entity page: ${event.entityId}");
+      Logger.d("State change event handled by entity page: ${event.entityId}");
       if (event.entityId == widget.entityId) {
         setState(() {});
       }

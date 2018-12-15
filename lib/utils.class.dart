@@ -1,6 +1,6 @@
 part of 'main.dart';
 
-class TheLogger {
+class Logger {
 
   static List<String> _log = [];
 
@@ -20,15 +20,15 @@ class TheLogger {
     return inDebugMode;
   }
 
-  static void error(String message) {
+  static void e(String message) {
     _writeToLog("Error", message);
   }
 
-  static void warning(String message) {
+  static void w(String message) {
     _writeToLog("Warning", message);
   }
 
-  static void debug(String message) {
+  static void d(String message) {
     _writeToLog("Debug", message);
   }
 
@@ -50,7 +50,7 @@ class HAUtils {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      TheLogger.error( "Could not launch $url");
+      Logger.e( "Could not launch $url");
     }
   }
 }
@@ -58,8 +58,13 @@ class HAUtils {
 class StateChangedEvent {
   String entityId;
   String newState;
+  bool needToRebuildUI;
 
-  StateChangedEvent(this.entityId, this.newState);
+  StateChangedEvent({
+    this.entityId,
+    this.newState,
+    this.needToRebuildUI: false
+  });
 }
 
 class SettingsChangedEvent {

@@ -85,7 +85,7 @@ class _TextInputStateWidgetState extends State<TextInputStateWidget> {
             }),
       );
     } else {
-      TheLogger.warning( "Unsupported input mode for ${entity.entityId}");
+      Logger.w( "Unsupported input mode for ${entity.entityId}");
       return SimpleEntityState();
     }
   }
