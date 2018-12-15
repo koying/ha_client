@@ -12,10 +12,60 @@ class Entity {
     "sensor"
   ];
 
+  static Map StateByDeviceClass = {
+    "battery.on": "Low",
+    "battery.off": "Normal",
+    "cold.on": "Cold",
+    "cold.off": "Normal",
+    "connectivity.on": "Connected",
+    "connectivity.off": "Diconnected",
+    "door.on": "Open",
+    "door.off": "Closed",
+    "garage_door.on": "Open",
+    "garage_door.off": "Closed",
+    "gas.on": "Detected",
+    "gas.off": "Clear",
+    "heat.on": "Hot",
+    "heat.off": "Normal",
+    "light.on": "Detected",
+    "lignt.off": "No light",
+    "lock.on": "Unlocked",
+    "lock.off": "Locked",
+    "moisture.on": "Wet",
+    "moisture.off": "Dry",
+    "motion.on": "Detected",
+    "motion.off": "Cler",
+    "moving.on": "Moving",
+    "moving.off": "Stopped",
+    "occupancy.on": "Occupied",
+    "occupancy.off": "Clear",
+    "opening.on": "Open",
+    "opening.off": "Closed",
+    "plug.on": "Plugged in",
+    "plug.off": "Unplugged",
+    "power.on": "Powered",
+    "power.off": "No power",
+    "presence.on": "Home",
+    "presence.off": "Away",
+    "problem.on": "Problem",
+    "problem.off": "OK",
+    "safety.on": "Unsafe",
+    "safety.off": "Safe",
+    "smoke.on": "Detected",
+    "smoke.off": "Clear",
+    "sound.on": "Detected",
+    "sound.off": "Clear",
+    "vibration.on": "Detected",
+    "vibration.off": "Clear",
+    "window.on": "Open",
+    "window.off": "Closed"
+  };
+
   Map attributes;
   String domain;
   String entityId;
   String state;
+  String displayState;
   DateTime _lastUpdated;
 
   List<Entity> childEntities = [];
@@ -52,6 +102,7 @@ class Entity {
     entityId = rawData["entity_id"];
     deviceClass = attributes["device_class"];
     state = rawData["state"];
+    displayState = Entity.StateByDeviceClass["$deviceClass.$state"] ?? state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
   }
 

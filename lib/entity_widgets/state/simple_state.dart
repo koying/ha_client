@@ -12,7 +12,7 @@ class SimpleEntityState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    String state = entityModel.entityWrapper.entity.state ?? "";
+    String state = entityModel.entityWrapper.entity.displayState ?? "";
     state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
     while (state.contains("  ")){
       state = state.replaceAll("  ", " ");
