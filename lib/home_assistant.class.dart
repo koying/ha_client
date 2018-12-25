@@ -470,6 +470,8 @@ class HomeAssistant {
             Entity e = entities.get(en);
             card.linkedEntityWrapper = EntityWrapper(
                 entity: e,
+                icon: rawCard["icon"],
+                displayName: rawCard["name"],
                 uiAction: EntityUIAction(rawEntityData: rawCard)
             );
           }
