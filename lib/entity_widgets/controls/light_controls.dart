@@ -10,15 +10,15 @@ class LightControlsWidget extends StatefulWidget {
 class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   int _tmpBrightness;
-  int _tmpColorTemp;
-  Color _tmpColor;
+  int _tmpColorTemp = 0;
+  Color _tmpColor = Colors.white;
   bool _changedHere = false;
   String _tmpEffect;
 
   void _resetState(LightEntity entity) {
     _tmpBrightness = entity.brightness ?? 0;
-    _tmpColorTemp = entity.colorTemp;
-    _tmpColor = entity.color;
+    _tmpColorTemp = entity.colorTemp ?? entity.minMireds?.toInt();
+    _tmpColor = entity.color ?? _tmpColor;
     _tmpEffect = null;
   }
 
@@ -119,7 +119,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildColorTempControl(LightEntity entity) {
-    if ((entity.supportColorTemp) && (_tmpColorTemp != null)) {
+    if (entity.supportColorTemp) {
       return UniversalSlider(
         title: "Color temperature",
         leading: Text("Cold", style: TextStyle(color: Colors.lightBlue),),
@@ -141,7 +141,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildColorControl(LightEntity entity) {
-    if ((entity.supportColor) && (entity.color != null)) {
+    if (entity.supportColor) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
