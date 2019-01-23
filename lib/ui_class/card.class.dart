@@ -12,6 +12,7 @@ class HACard {
   bool showEmpty;
   int columnsCount;
   List stateFilter;
+  String content;
 
   HACard({
     this.name,
@@ -22,6 +23,7 @@ class HACard {
     this.showState: true,
     this.stateFilter: const [],
     this.showEmpty: true,
+    this.content,
     @required this.type
   });
 

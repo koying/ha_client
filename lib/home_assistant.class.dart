@@ -439,7 +439,8 @@ class HomeAssistant {
         showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ?? true : rawCard['show_name'] ?? true,
         showState: isThereCardOptionsInside ? rawCard["card"]['show_state'] ?? true : rawCard['show_state'] ?? true,
         showEmpty: rawCard['show_empty'] ?? true,
-        stateFilter: rawCard['state_filter'] ?? []
+        stateFilter: rawCard['state_filter'] ?? [],
+        content: rawCard['content']
       );
       if (rawCard["cards"] != null) {
         card.childCards = _createLovelaceCards(rawCard["cards"]);

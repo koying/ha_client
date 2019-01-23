@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/material_picker.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -85,7 +86,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.13-82";
+const appVersion = "0.3.13-83";
 
 String homeAssistantWebHost;
 

@@ -94,4 +94,5 @@ class CardType {
   static const entityButton = "entity-button";
   static const conditional = "conditional";
   static const alarmPanel = "alarm-panel";
+  static const markdown = "markdown";
 }

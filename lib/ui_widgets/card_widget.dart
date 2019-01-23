@@ -33,6 +33,10 @@ class CardWidget extends StatelessWidget {
         return _buildEntityButtonCard(context);
       }
 
+      case CardType.markdown: {
+        return _buildMarkdownCard(context);
+      }
+
       case CardType.horizontalStack: {
         if (card.childCards.isNotEmpty) {
           List<Widget> children = [];
@@ -106,6 +110,21 @@ class CardWidget extends StatelessWidget {
     });
     return Card(
         child: new Column(mainAxisSize: MainAxisSize.min, children: body)
+    );
+  }
+
+  Widget _buildMarkdownCard(BuildContext context) {
+    if (card.content == null) {
+      return Container(height: 0.0, width: 0.0,);
+    }
+    List<Widget> body = [];
+    body.add(CardHeaderWidget(name: card.name));
+    body.add(MarkdownBody(data: card.content));
+    return Card(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, Sizes.rowPadding),
+          child: new Column(mainAxisSize: MainAxisSize.min, children: body),
+        )
     );
   }
 
