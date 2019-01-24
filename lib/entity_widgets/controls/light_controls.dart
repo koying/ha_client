@@ -19,7 +19,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     _tmpBrightness = entity.brightness ?? 0;
     _tmpColorTemp = entity.colorTemp ?? entity.minMireds?.toInt();
     _tmpColor = entity.color ?? _tmpColor;
-    _tmpEffect = null;
+    _tmpEffect = entity.effect;
   }
 
   void _setBrightness(LightEntity entity, double value) {

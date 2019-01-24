@@ -33,6 +33,7 @@ class LightEntity extends Entity {
       LightEntity.SUPPORT_WHITE_VALUE);
 
   int get brightness => _getIntAttributeValue("brightness");
+  String get effect => attributes["effect"];
   int get colorTemp => _getIntAttributeValue("color_temp");
   double get maxMireds => _getDoubleAttributeValue("max_mireds");
   double get minMireds => _getDoubleAttributeValue("min_mireds");
