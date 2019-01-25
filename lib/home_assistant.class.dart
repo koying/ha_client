@@ -417,6 +417,16 @@ class HomeAssistant {
             name: rawView['title'],
             iconName: rawView['icon']
         );
+
+        if (rawView['badges'] != null && rawView['badges'] is List) {
+          rawView['badges'].forEach((entity) {
+            if (entities.isExist(entity)) {
+              Entity e = entities.get(entity);
+              view.badges.add(e);
+            }
+          });
+        }
+
         view.cards.addAll(_createLovelaceCards(rawView["cards"] ?? []));
         ui.views.add(
             view
