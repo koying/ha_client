@@ -296,10 +296,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
           TemperatureControlWidget(
             value: _tmpTemperature,
             fontColor: _showPending ? Colors.red : Colors.black,
-            onLargeDec: () => _temperatureDown(entity, 0.5),
-            onLargeInc: () => _temperatureUp(entity, 0.5),
-            onSmallDec: () => _temperatureDown(entity, 0.1),
-            onSmallInc: () => _temperatureUp(entity, 0.1),
+            onDec: () => _temperatureDown(entity, 0.5),
+            onInc: () => _temperatureUp(entity, 0.5),
           )
         ],
       );
@@ -315,10 +313,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         TemperatureControlWidget(
           value: _tmpTargetLow,
           fontColor: _showPending ? Colors.red : Colors.black,
-          onLargeDec: () => _targetLowDown(entity, 0.5),
-          onLargeInc: () => _targetLowUp(entity, 0.5),
-          onSmallDec: () => _targetLowDown(entity, 0.1),
-          onSmallInc: () => _targetLowUp(entity, 0.1),
+          onDec: () => _targetLowDown(entity, 0.5),
+          onInc: () => _targetLowUp(entity, 0.5),
         ),
         Expanded(
           child: Container(height: 10.0),
@@ -330,10 +326,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
           TemperatureControlWidget(
             value: _tmpTargetHigh,
             fontColor: _showPending ? Colors.red : Colors.black,
-            onLargeDec: () => _targetHighDown(entity, 0.5),
-            onLargeInc: () => _targetHighUp(entity, 0.5),
-            onSmallDec: () => _targetHighDown(entity, 0.1),
-            onSmallInc: () => _targetHighUp(entity, 0.1),
+            onDec: () => _targetHighDown(entity, 0.5),
+            onInc: () => _targetHighUp(entity, 0.5),
           )
       );
     }
@@ -419,18 +413,14 @@ class TemperatureControlWidget extends StatelessWidget {
   final double value;
   final double fontSize;
   final Color fontColor;
-  final onSmallInc;
-  final onLargeInc;
-  final onSmallDec;
-  final onLargeDec;
+  final onInc;
+  final onDec;
 
   TemperatureControlWidget(
       {Key key,
         @required this.value,
-        @required this.onSmallInc,
-        @required this.onSmallDec,
-        @required this.onLargeInc,
-        @required this.onLargeDec,
+        @required this.onInc,
+        @required this.onDec,
         this.fontSize,
         this.fontColor})
       : super(key: key);
@@ -453,29 +443,13 @@ class TemperatureControlWidget extends StatelessWidget {
               icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
                   'mdi:chevron-up')),
               iconSize: 30.0,
-              onPressed: () => onSmallInc(),
+              onPressed: () => onInc(),
             ),
             IconButton(
               icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
                   'mdi:chevron-down')),
               iconSize: 30.0,
-              onPressed: () => onSmallDec(),
-            )
-          ],
-        ),
-        Column(
-          children: <Widget>[
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
-                  'mdi:chevron-double-up')),
-              iconSize: 30.0,
-              onPressed: () => onLargeInc(),
-            ),
-            IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
-                  'mdi:chevron-double-down')),
-              iconSize: 30.0,
-              onPressed: () => onLargeDec(),
+              onPressed: () => onDec(),
             )
           ],
         )
