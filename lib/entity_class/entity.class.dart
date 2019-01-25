@@ -34,7 +34,7 @@ class Entity {
     "moisture.on": "Wet",
     "moisture.off": "Dry",
     "motion.on": "Detected",
-    "motion.off": "Cler",
+    "motion.off": "Clear",
     "moving.on": "Moving",
     "moving.off": "Stopped",
     "occupancy.on": "Occupied",
