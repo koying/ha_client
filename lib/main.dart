@@ -142,7 +142,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Map _instanceConfig;
   String _webSocketApiEndpoint;
   String _password;
-  String _authType;
   //int _uiViewsCount = 0;
   String _instanceHost;
   StreamSubscription _stateSubscription;
@@ -200,7 +199,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _webSocketApiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
     _password = prefs.getString('hassio-password');
-    _authType = prefs.getString('hassio-auth-type');
     _useLovelaceUI = prefs.getBool('use-lovelace') ?? false;
     if ((domain == null) || (port == null) || (_password == null) ||
         (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
@@ -250,7 +248,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _refreshData() async {
-    _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _authType, _useLovelaceUI);
+    _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
     await _homeAssistant.fetch().then((result) {

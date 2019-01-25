@@ -3,7 +3,6 @@ part of 'main.dart';
 class HomeAssistant {
   String _webSocketAPIEndpoint;
   String _password;
-  String _authType;
   bool _useLovelace = false;
 
   IOWebSocketChannel _hassioChannel;
@@ -56,10 +55,9 @@ class HomeAssistant {
     _messageQueue = SendMessageQueue(messageExpirationTime);
   }
 
-  void updateSettings(String url, String password, String authType, bool useLovelace) {
+  void updateSettings(String url, String password, bool useLovelace) {
     _webSocketAPIEndpoint = url;
     _password = password;
-    _authType = authType;
     _useLovelace = useLovelace;
     Logger.d( "Use lovelace is $_useLovelace");
   }
@@ -213,7 +211,7 @@ class HomeAssistant {
   _handleMessage(String message) {
     var data = json.decode(message);
     if (data["type"] == "auth_required") {
-      _sendAuthMessageRaw('{"type": "auth","$_authType": "$_password"}');
+      _sendAuthMessageRaw('{"type": "auth","access_token": "$_password"}');
     } else if (data["type"] == "auth_ok") {
       _completeConnecting(null);
       _sendSubscribe();
@@ -550,17 +548,10 @@ class HomeAssistant {
     String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
     Logger.d("[Sending] ==> $url");
     http.Response historyResponse;
-    if (_authType == "access_token") {
-      historyResponse = await http.get(url, headers: {
+    historyResponse = await http.get(url, headers: {
         "authorization": "Bearer $_password",
         "Content-Type": "application/json"
-      });
-    } else {
-      historyResponse = await http.get(url, headers: {
-        "X-HA-Access": "$_password",
-        "Content-Type": "application/json"
-      });
-    }
+    });
     var history = json.decode(historyResponse.body);
     if (history is List) {
       Logger.d( "[Received] <== ${history.first.length} history recors");

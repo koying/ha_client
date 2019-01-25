@@ -18,8 +18,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newHassioPassword = "";
   String _socketProtocol = "wss";
   String _newSocketProtocol = "wss";
-  String _authType = "access_token";
-  String _newAuthType = "access_token";
   bool _useLovelace = false;
   bool _newUseLovelace = false;
 
@@ -37,7 +35,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       _hassioPort = _newHassioPort = prefs.getString("hassio-port") ?? "";
       _hassioPassword = _newHassioPassword = prefs.getString("hassio-password") ?? "";
       _socketProtocol = _newSocketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
-      _authType = _newAuthType = prefs.getString("hassio-auth-type") ?? 'access_token';
       try {
         _useLovelace = _newUseLovelace = prefs.getBool("use-lovelace") ?? false;
       } catch (e) {
@@ -51,7 +48,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       (_newHassioPort != _hassioPort) ||
       (_newHassioDomain != _hassioDomain) ||
       (_newSocketProtocol != _socketProtocol) ||
-      (_newAuthType != _authType) ||
       (_newUseLovelace != _useLovelace));
 
   }
@@ -66,7 +62,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     prefs.setString("hassio-password", _newHassioPassword);
     prefs.setString("hassio-protocol", _newSocketProtocol);
     prefs.setString("hassio-res-protocol", _newSocketProtocol == "wss" ? "https" : "http");
-    prefs.setString("hassio-auth-type", _newAuthType);
     prefs.setBool("use-lovelace", _newUseLovelace);
   }
 
@@ -154,33 +149,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             "Try ports 80 and 443 if default is not working and you don't know why.",
             style: TextStyle(color: Colors.grey),
           ),
-          new Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  "Login with access token (HA >= 0.78.0)",
-                  softWrap: true,
-                  maxLines: 2,
-                ),
-              ),
-              Switch(
-                value: (_newAuthType == "access_token"),
-                onChanged: (value) {
-                  setState(() {
-                    _newAuthType = value ? "access_token" : "api_password";
-                  });
-                },
-              )
-            ],
-          ),
-          new Text(
-            "You should use access token for HA >= 0.84.1. Legacy password will not work there.",
-            style: TextStyle(color: Colors.grey),
-          ),
           new TextField(
             decoration: InputDecoration(
-                labelText: _newAuthType == "access_token" ? "Access token" : "API password"
+                labelText: "Access token"
             ),
             controller: new TextEditingController.fromValue(
                 new TextEditingValue(
