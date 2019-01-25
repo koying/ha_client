@@ -428,66 +428,77 @@ class HomeAssistant {
   List<HACard> _createLovelaceCards(List rawCards) {
     List<HACard> result = [];
     rawCards.forEach((rawCard){
-      bool isThereCardOptionsInside = rawCard["card"] != null;
-      HACard card = HACard(
-        id: "card",
-        name: isThereCardOptionsInside ? rawCard["card"]["title"] ?? rawCard["card"]["name"] : rawCard["title"] ?? rawCard["name"],
-        type: isThereCardOptionsInside ? rawCard["card"]['type'] : rawCard['type'],
-        columnsCount: isThereCardOptionsInside ? rawCard["card"]['columns'] ?? 4 : rawCard['columns'] ?? 4,
-        showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ?? true : rawCard['show_name'] ?? true,
-        showState: isThereCardOptionsInside ? rawCard["card"]['show_state'] ?? true : rawCard['show_state'] ?? true,
-        showEmpty: rawCard['show_empty'] ?? true,
-        stateFilter: rawCard['state_filter'] ?? [],
-        content: rawCard['content']
-      );
-      if (rawCard["cards"] != null) {
-        card.childCards = _createLovelaceCards(rawCard["cards"]);
-      }
-      rawCard["entities"]?.forEach((rawEntity) {
-        if (rawEntity is String) {
-          if (entities.isExist(rawEntity)) {
-            card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
+      try {
+        bool isThereCardOptionsInside = rawCard["card"] != null;
+        HACard card = HACard(
+            id: "card",
+            name: isThereCardOptionsInside ? rawCard["card"]["title"] ??
+                rawCard["card"]["name"] : rawCard["title"] ?? rawCard["name"],
+            type: isThereCardOptionsInside
+                ? rawCard["card"]['type']
+                : rawCard['type'],
+            columnsCount: isThereCardOptionsInside
+                ? rawCard["card"]['columns'] ?? 4
+                : rawCard['columns'] ?? 4,
+            showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ??
+                true : rawCard['show_name'] ?? true,
+            showState: isThereCardOptionsInside
+                ? rawCard["card"]['show_state'] ?? true
+                : rawCard['show_state'] ?? true,
+            showEmpty: rawCard['show_empty'] ?? true,
+            stateFilter: rawCard['state_filter'] ?? [],
+            content: rawCard['content']
+        );
+        if (rawCard["cards"] != null) {
+          card.childCards = _createLovelaceCards(rawCard["cards"]);
+        }
+        rawCard["entities"]?.forEach((rawEntity) {
+          if (rawEntity is String) {
+            if (entities.isExist(rawEntity)) {
+              card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
+            }
+          } else {
+            if (entities.isExist(rawEntity["entity"])) {
+              Entity e = entities.get(rawEntity["entity"]);
+              card.entities.add(
+                  EntityWrapper(
+                      entity: e,
+                      displayName: rawEntity["name"].toString(),
+                      icon: rawEntity["icon"].toString(),
+                      uiAction: EntityUIAction(rawEntityData: rawEntity)
+                  )
+              );
+            }
           }
-        } else {
-          if (entities.isExist(rawEntity["entity"])) {
-            Entity e = entities.get(rawEntity["entity"]);
-            card.entities.add(
-                EntityWrapper(
-                    entity: e,
-                    displayName: rawEntity["name"],
-                    icon: rawEntity["icon"],
-                    uiAction: EntityUIAction(rawEntityData: rawEntity)
-                )
-            );
+        });
+        if (rawCard["entity"] != null) {
+          var en = rawCard["entity"];
+          if (en is String) {
+            if (entities.isExist(en)) {
+              Entity e = entities.get(en);
+              card.linkedEntityWrapper = EntityWrapper(
+                  entity: e,
+                  icon: rawCard["icon"].toString(),
+                  displayName: rawCard["name"].toString(),
+                  uiAction: EntityUIAction(rawEntityData: rawCard)
+              );
+            }
+          } else {
+            if (entities.isExist(en["entity"])) {
+              Entity e = entities.get(en["entity"]);
+              card.linkedEntityWrapper = EntityWrapper(
+                  entity: e,
+                  icon: en["icon"].toString(),
+                  displayName: en["name"].toString(),
+                  uiAction: EntityUIAction(rawEntityData: rawCard)
+              );
+            }
           }
         }
-      });
-      if (rawCard["entity"] != null) {
-        var en = rawCard["entity"];
-        if (en is String) {
-          if (entities.isExist(en)) {
-            Entity e = entities.get(en);
-            card.linkedEntityWrapper = EntityWrapper(
-                entity: e,
-                icon: rawCard["icon"],
-                displayName: rawCard["name"],
-                uiAction: EntityUIAction(rawEntityData: rawCard)
-            );
-          }
-        } else {
-          if (entities.isExist(en["entity"])) {
-            Entity e = entities.get(en["entity"]);
-            card.linkedEntityWrapper = EntityWrapper(
-                entity: e,
-                icon: en["icon"],
-                displayName: en["name"],
-                uiAction: EntityUIAction(rawEntityData: rawCard)
-            );
-          }
-        }
-
+        result.add(card);
+      } catch (e) {
+          Logger.e("There was an error parsing card: ${e.toString()}");
       }
-      result.add(card);
     });
     return result;
   }
