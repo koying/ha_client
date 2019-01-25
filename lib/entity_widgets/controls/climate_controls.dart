@@ -13,6 +13,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   bool _showPending = false;
   bool _changedHere = false;
   Timer _resetTimer;
+  Timer _tempThrottleTimer;
+  Timer _targetTempThrottleTimer;
   double _tmpTemperature = 0.0;
   double _tmpTargetLow = 0.0;
   double _tmpTargetHigh = 0.0;
@@ -71,21 +73,37 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   }
 
   void _setTemperature(ClimateEntity entity) {
+    if (_tempThrottleTimer!=null) {
+      _tempThrottleTimer.cancel();
+    }
     setState(() {
-      _tmpTemperature = double.parse(_tmpTemperature.toStringAsFixed(1));
       _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"temperature": "${_tmpTemperature.toStringAsFixed(1)}"}));
-      _resetStateTimer(entity);
+      _tmpTemperature = double.parse(_tmpTemperature.toStringAsFixed(1));
+    });
+    _tempThrottleTimer = Timer(Duration(seconds: 2), () {
+      setState(() {
+        _changedHere = true;
+        eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"temperature": "${_tmpTemperature.toStringAsFixed(1)}"}));
+        _resetStateTimer(entity);
+      });
     });
   }
 
   void _setTargetTemp(ClimateEntity entity) {
+    if (_targetTempThrottleTimer!=null) {
+      _targetTempThrottleTimer.cancel();
+    }
     setState(() {
+      _changedHere = true;
       _tmpTargetLow = double.parse(_tmpTargetLow.toStringAsFixed(1));
       _tmpTargetHigh = double.parse(_tmpTargetHigh.toStringAsFixed(1));
-      _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"target_temp_high": "${_tmpTargetHigh.toStringAsFixed(1)}", "target_temp_low": "${_tmpTargetLow.toStringAsFixed(1)}"}));
-      _resetStateTimer(entity);
+    });
+    _targetTempThrottleTimer = Timer(Duration(seconds: 2), () {
+      setState(() {
+        _changedHere = true;
+        eventBus.fire(new ServiceCallEvent(entity.domain, "set_temperature", entity.entityId,{"target_temp_high": "${_tmpTargetHigh.toStringAsFixed(1)}", "target_temp_low": "${_tmpTargetLow.toStringAsFixed(1)}"}));
+        _resetStateTimer(entity);
+      });
     });
   }
 
@@ -167,7 +185,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     final entityModel = EntityModel.of(context);
     final ClimateEntity entity = entityModel.entityWrapper.entity;
     if (_changedHere) {
-      _showPending = (_tmpTemperature != entity.temperature);
+      _showPending = (_tmpTemperature != entity.temperature || _tmpTargetHigh != entity.targetHigh || _tmpTargetLow != entity.targetLow);
       _changedHere = false;
     } else {
       _resetTimer?.cancel();
