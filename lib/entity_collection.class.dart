@@ -47,7 +47,10 @@ class EntityCollection {
       case 'lock': {
         return LockEntity(rawEntityData);
       }
-      case "automation":
+      case "automation": {
+        return AutomationEntity(rawEntityData);
+      }
+
       case "input_boolean":
       case "switch": {
         return SwitchEntity(rawEntityData);

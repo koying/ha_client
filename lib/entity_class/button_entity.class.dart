@@ -5,6 +5,8 @@ class ButtonEntity extends Entity {
 
   @override
   Widget _buildStatePart(BuildContext context) {
-    return ButtonStateWidget();
+    return FlatServiceButton(
+      text: "EXECUTE",
+    );
   }
 }
