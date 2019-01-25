@@ -199,7 +199,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _webSocketApiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
     _password = prefs.getString('hassio-password');
-    _useLovelaceUI = prefs.getBool('use-lovelace') ?? false;
+    _useLovelaceUI = prefs.getBool('use-lovelace') ?? true;
     if ((domain == null) || (port == null) || (_password == null) ||
         (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
       throw("Check connection settings");

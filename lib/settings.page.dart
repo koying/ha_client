@@ -18,8 +18,8 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newHassioPassword = "";
   String _socketProtocol = "wss";
   String _newSocketProtocol = "wss";
-  bool _useLovelace = false;
-  bool _newUseLovelace = false;
+  bool _useLovelace = true;
+  bool _newUseLovelace = true;
 
   @override
   void initState() {
@@ -36,9 +36,9 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
       _hassioPassword = _newHassioPassword = prefs.getString("hassio-password") ?? "";
       _socketProtocol = _newSocketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
       try {
-        _useLovelace = _newUseLovelace = prefs.getBool("use-lovelace") ?? false;
+        _useLovelace = _newUseLovelace = prefs.getBool("use-lovelace") ?? true;
       } catch (e) {
-        _useLovelace = _newUseLovelace = false;
+        _useLovelace = _newUseLovelace = true;
       }
     });
   }
