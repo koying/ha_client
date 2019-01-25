@@ -473,7 +473,7 @@ class HomeAssistant {
               card.entities.add(
                   EntityWrapper(
                       entity: e,
-                      displayName: rawEntity["name"].toString(),
+                      displayName: rawEntity["name"],
                       icon: rawEntity["icon"],
                       uiAction: EntityUIAction(rawEntityData: rawEntity)
                   )
@@ -489,7 +489,7 @@ class HomeAssistant {
               card.linkedEntityWrapper = EntityWrapper(
                   entity: e,
                   icon: rawCard["icon"],
-                  displayName: rawCard["name"].toString(),
+                  displayName: rawCard["name"],
                   uiAction: EntityUIAction(rawEntityData: rawCard)
               );
             }
@@ -499,7 +499,7 @@ class HomeAssistant {
               card.linkedEntityWrapper = EntityWrapper(
                   entity: e,
                   icon: en["icon"],
-                  displayName: en["name"].toString(),
+                  displayName: en["name"],
                   uiAction: EntityUIAction(rawEntityData: rawCard)
               );
             }
