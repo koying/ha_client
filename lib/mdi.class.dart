@@ -24,7 +24,14 @@ class MaterialDesignIcons {
     "cover.opening": "mdi:window-open",
     "lock.locked": "mdi:lock",
     "lock.unlocked": "mdi:lock-open",
-    "fan": "mdi:fan"
+    "fan": "mdi:fan",
+    "alarm_control_panel.disarmed" : "mdi:bell-outline",
+    "alarm_control_panel.armed_home" : "mdi:bell-plus",
+    "alarm_control_panel.armed_away" : "mdi:bell",
+    "alarm_control_panel.armed_night" : "mdi:bell-sleep",
+    "alarm_control_panel.armed_custom_bypass" : "mdi:bell-sleep",
+    "alarm_control_panel.triggered" : "mdi:bell-ring",
+    "alarm_control_panel" : "mdi:bell"
   };
 
   static Map _defaultIconsByDeviceClass = {

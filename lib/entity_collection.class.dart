@@ -86,6 +86,9 @@ class EntityCollection {
       case "fan": {
         return FanEntity(rawEntityData);
       }
+      case "alarm_control_panel": {
+        return AlarmControlPanelEntity(rawEntityData);
+      }
       default: {
         return Entity(rawEntityData);
       }
