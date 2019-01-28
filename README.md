@@ -4,7 +4,7 @@
 
 Home Assistant Android client on Dart with Flutter.
 
-Visit [www.keyboardcrumbs.io](http://www.keyboardcrumbs.io/ha-client) for more info.
+Visit [www.vynn.co](https://www.vynn.co/ha-client) for more info.
 
 Join [Google Group](https://groups.google.com/d/forum/ha-client-alpha-testing) to become an alpha tester
 
