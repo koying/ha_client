@@ -5,6 +5,8 @@ class AlarmControlPanelEntity extends Entity {
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    return AlarmControlPanelControlsWidget();
+    return AlarmControlPanelControlsWidget(
+      extended: false,
+    );
   }
 }

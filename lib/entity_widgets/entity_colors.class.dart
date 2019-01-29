@@ -23,6 +23,15 @@ class EntityColor {
     "cool": Colors.lightBlue,
     EntityState.unavailable: Colors.black26,
     EntityState.unknown: Colors.black26,
+    EntityState.alarm_disarmed: Colors.green,
+    EntityState.alarm_armed_away: Colors.redAccent,
+    EntityState.alarm_armed_custom_bypass: Colors.redAccent,
+    EntityState.alarm_armed_home: Colors.redAccent,
+    EntityState.alarm_armed_night: Colors.redAccent,
+    EntityState.alarm_triggered: Colors.redAccent,
+    EntityState.alarm_arming: Colors.amber,
+    EntityState.alarm_disarming: Colors.amber,
+    EntityState.alarm_pending: Colors.amber,
   };
 
   static Color stateColor(String state) {

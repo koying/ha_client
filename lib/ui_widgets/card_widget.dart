@@ -37,6 +37,10 @@ class CardWidget extends StatelessWidget {
         return _buildMarkdownCard(context);
       }
 
+      case CardType.alarmPanel: {
+        return _buildAlarmPanelCard(context);
+      }
+
       case CardType.horizontalStack: {
         if (card.childCards.isNotEmpty) {
           List<Widget> children = [];
@@ -126,6 +130,42 @@ class CardWidget extends StatelessWidget {
           child: new Column(mainAxisSize: MainAxisSize.min, children: body),
         )
     );
+  }
+
+  Widget _buildAlarmPanelCard(BuildContext context) {
+    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
+      return Container(width: 0, height: 0,);
+    } else {
+      List<Widget> body = [];
+      body.add(CardHeaderWidget(
+        name: card.name ?? "",
+        subtitle: Text("${card.linkedEntityWrapper.entity.displayState}",
+          style: TextStyle(
+            color: Colors.grey
+          ),
+        ),
+        trailing: EntityIcon(
+          iconSize: 50.0,
+        ),
+      ));
+      body.add(
+        AlarmControlPanelControlsWidget(
+          extended: true,
+          states: card.states,
+        )
+      );
+      return Card(
+        child: EntityModel(
+          entityWrapper: card.linkedEntityWrapper,
+          handleTap: null,
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: body
+          )
+        )
+      );
+    }
   }
 
   Widget _buildGlanceCard(BuildContext context) {

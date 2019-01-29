@@ -457,6 +457,7 @@ class HomeAssistant {
                 : rawCard['show_state'] ?? true,
             showEmpty: rawCard['show_empty'] ?? true,
             stateFilter: rawCard['state_filter'] ?? [],
+            states: rawCard['states'],
             content: rawCard['content']
         );
         if (rawCard["cards"] != null) {
