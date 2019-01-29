@@ -37,6 +37,35 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
     });
   }
 
+  void _askToTrigger(AlarmControlPanelEntity entity) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Are you sure?"),
+          content: new Text("Are you sure want to trigger alarm ${entity.displayName}?"),
+          actions: <Widget>[
+            FlatButton(
+              child: new Text("Yes"),
+              onPressed: () {
+                eventBus.fire(new ServiceCallEvent(entity.domain, "alarm_trigger", entity.entityId, null));
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: new Text("No"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
@@ -86,84 +115,79 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
         )
       );
     }
-    Widget pinPad;
-    if (widget.extended) {
-      pinPad = Padding(
-          padding: EdgeInsets.only(bottom: Sizes.rowPadding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Wrap(
-                spacing: 5.0,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("1"),
-                    child: Text("1"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("2"),
-                    child: Text("2"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("3"),
-                    child: Text("3"),
-                  )
-                ],
-              ),
-              Wrap(
-                spacing: 5.0,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("4"),
-                    child: Text("4"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("5"),
-                    child: Text("5"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("6"),
-                    child: Text("6"),
-                  )
-                ],
-              ),
-              Wrap(
-                spacing: 5.0,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("7"),
-                    child: Text("7"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("8"),
-                    child: Text("8"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("9"),
-                    child: Text("9"),
-                  )
-                ],
-              ),
-              Wrap(
-                spacing: 5.0,
-                alignment: WrapAlignment.end,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: () => _pinPadHandler("0"),
-                    child: Text("0"),
-                  ),
-                  RaisedButton(
-                    onPressed: () => _pinPadClear(),
-                    child: Text("CLEAR"),
-                  )
-                ],
-              )
-            ],
-          )
-      );
-    } else {
-      pinPad = Container();
-    }
+    Widget pinPad = Padding(
+        padding: EdgeInsets.only(bottom: Sizes.rowPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Wrap(
+              spacing: 5.0,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("1"),
+                  child: Text("1"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("2"),
+                  child: Text("2"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("3"),
+                  child: Text("3"),
+                )
+              ],
+            ),
+            Wrap(
+              spacing: 5.0,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("4"),
+                  child: Text("4"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("5"),
+                  child: Text("5"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("6"),
+                  child: Text("6"),
+                )
+              ],
+            ),
+            Wrap(
+              spacing: 5.0,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("7"),
+                  child: Text("7"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("8"),
+                  child: Text("8"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("9"),
+                  child: Text("9"),
+                )
+              ],
+            ),
+            Wrap(
+              spacing: 5.0,
+              alignment: WrapAlignment.end,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: () => _pinPadHandler("0"),
+                  child: Text("0"),
+                ),
+                RaisedButton(
+                  onPressed: () => _pinPadClear(),
+                  child: Text("CLEAR"),
+                )
+              ],
+            )
+          ],
+        )
+    );
     Widget inputWrapper = Container(
         width: 150.0,
         child: TextField(
@@ -193,12 +217,24 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
             children: buttons
         )
     );
+    Widget triggerButton = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        FlatButton(
+          child: Text(
+            "TRIGGER",
+            style: TextStyle(color: Colors.redAccent)
+          ),
+          onPressed: () => _askToTrigger(entity),
+        )
+      ]
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         widget.extended ? buttonsWrapper : inputWrapper,
         widget.extended ? inputWrapper : buttonsWrapper,
-        pinPad
+        widget.extended ? pinPad : triggerButton
       ]
 
     );

@@ -144,8 +144,24 @@ class CardWidget extends StatelessWidget {
             color: Colors.grey
           ),
         ),
-        trailing: EntityIcon(
-          iconSize: 50.0,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            EntityIcon(
+              iconSize: 50.0,
+            ),
+            Container(
+              width: 26.0,
+              child: IconButton(
+                  padding: EdgeInsets.all(0.0),
+                  alignment: Alignment.centerRight,
+                  icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
+                      "mdi:dots-vertical")),
+                  onPressed: () => eventBus.fire(new ShowEntityPageEvent(card.linkedEntityWrapper.entity))
+              )
+            )
+          ]
         ),
       ));
       body.add(
