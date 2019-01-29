@@ -12,35 +12,40 @@ class CameraControlsWidget extends StatefulWidget {
 
 class _CameraControlsWidgetState extends State<CameraControlsWidget> {
 
-  VideoPlayerController _controller;
-
   @override
   void initState() {
     super.initState();
     Logger.d("Camera source: ${widget.url}");
-    _controller = VideoPlayerController.network(widget.url)
-      ..initialize().then((_) {
-        setState(() {});
-      });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Image.network(widget.url);
+    return Column(
+      children: <Widget>[
+        Image.network(
+            "${widget.url}",
+        ),
+        FlatButton(
+          child: Text("VIEW"),
+          onPressed: () {
+            setState(() {
 
-    return Center(
-      child: _controller.value.initialized
-          ? AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: VideoPlayer(_controller),
-      )
-          : Container(),
+            });
+          },
+        )
+      ],
+    );
+    return Image.network("${widget.url}");
+    return FlatButton(
+      child: Text("VIEW"),
+      onPressed: () {
+        HAUtils.launchURL(widget.url);
+      },
     );
   }
 
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
   }
 }

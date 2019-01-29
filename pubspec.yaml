@@ -19,7 +19,6 @@ dependencies:
   flutter_colorpicker: any
   charts_flutter: any
   flutter_markdown: any
-  video_player: any
 
 dev_dependencies:
   flutter_test:

@@ -15,7 +15,6 @@ import 'package:flutter_colorpicker/material_picker.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:video_player/video_player.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -72,6 +71,8 @@ part 'entity_widgets/controls/cover_controls.dart';
 part 'entity_widgets/controls/light_controls.dart';
 part 'entity_widgets/controls/media_player_widgets.dart';
 part 'entity_widgets/controls/fan_controls.dart';
+part 'entity_widgets/controls/alarm_control_panel_controls.dart';
+part 'entity_widgets/controls/camera_controls.dart';
 part 'settings.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
