@@ -13,7 +13,7 @@ class CameraEntity extends Entity {
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
     return CameraControlsWidget(
-      url: 'https://citadel.vynn.co:8123${this.entityPicture}',
+      url: 'https://citadel.vynn.co:8123/api/camera_proxy_stream/camera.demo_camera?token=${this.attributes['access_token']}',
     );
   }
 }
