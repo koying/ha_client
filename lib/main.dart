@@ -92,7 +92,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.3.13-83";
+const appVersion = "0.3.14";
 
 String homeAssistantWebHost;
 
@@ -367,10 +367,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURL("http://www.keyboardcrumbs.io/");
+                HAUtils.launchURL("http://www.vynn.co/");
               },
               child: Text(
-                "www.keyboardcrumbs.io",
+                "www.vynn.co",
                 style: TextStyle(
                   color: Colors.blue,
                   decoration: TextDecoration.underline
