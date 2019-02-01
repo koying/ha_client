@@ -5,7 +5,7 @@ class AlarmControlPanelControlsWidget extends StatefulWidget {
   final bool extended;
   final List states;
 
-  const AlarmControlPanelControlsWidget({Key key, @required this.extended, this.states: const ["arm_home", "arm_away"]}) : super(key: key);
+  const AlarmControlPanelControlsWidget({Key key, @required this.extended, this.states}) : super(key: key);
 
   @override
   _AlarmControlPanelControlsWidgetWidgetState createState() => _AlarmControlPanelControlsWidgetWidgetState();
@@ -15,6 +15,14 @@ class AlarmControlPanelControlsWidget extends StatefulWidget {
 class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPanelControlsWidget> {
 
   String code = "";
+  List supportedStates;
+
+  @override
+  void initState() {
+    super.initState();
+    supportedStates = widget.states ?? ["arm_home", "arm_away"];
+  }
+
 
   void _callService(AlarmControlPanelEntity entity, String service) {
     eventBus.fire(new ServiceCallEvent(
@@ -72,7 +80,7 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
     final AlarmControlPanelEntity entity = entityModel.entityWrapper.entity;
     List<Widget> buttons = [];
     if (entity.state == EntityState.alarm_disarmed) {
-      if (widget.states.contains("arm_home")) {
+      if (supportedStates.contains("arm_home")) {
         buttons.add(
           RaisedButton(
             onPressed: () => _callService(entity, "alarm_arm_home"),
@@ -80,7 +88,7 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
           )
         );
       }
-      if (widget.states.contains("arm_away")) {
+      if (supportedStates.contains("arm_away")) {
         buttons.add(
             RaisedButton(
               onPressed: () => _callService(entity, "alarm_arm_away"),
@@ -89,7 +97,7 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
         );
       }
       if (widget.extended) {
-        if (widget.states.contains("arm_night")) {
+        if (supportedStates.contains("arm_night")) {
           buttons.add(
               RaisedButton(
                 onPressed: () => _callService(entity, "alarm_arm_night"),
@@ -97,7 +105,7 @@ class _AlarmControlPanelControlsWidgetWidgetState extends State<AlarmControlPane
               )
           );
         }
-        if (widget.states.contains("arm_custom_bypass")) {
+        if (supportedStates.contains("arm_custom_bypass")) {
           buttons.add(
               RaisedButton(
                 onPressed: () =>
