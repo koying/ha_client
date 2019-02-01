@@ -18,7 +18,7 @@ class CardHeaderWidget extends StatelessWidget {
         title: Text("$name",
             textAlign: TextAlign.left,
             overflow: TextOverflow.ellipsis,
-            style: new TextStyle(fontSize: Sizes.mediumFontSize)),
+            style: new TextStyle(fontWeight: FontWeight.bold, fontSize: Sizes.largeFontSize)),
       );
     } else {
       result = new Container(width: 0.0, height: 0.0);
