@@ -15,8 +15,6 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   @override
   void initState() {
     super.initState();
-    Logger.d("Camera source: ${widget.url}");
-
     _getData();
   }
 
@@ -26,68 +24,46 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
 
   void _getData() async {
     client = new http.Client(); // create a client to make api calls
-
     http.Request request = new http.Request("GET", Uri.parse(widget.url));  // create get request
-    //Log.d
-    Logger.d("==Sending");
+    Logger.d("[Sending] ==> ${widget.url}");
     response = await client.send(request); // sends request and waits for response stream
-    Logger.d("==Reading");
-    int byteCount = 0;
-    Logger.d("==${response.headers}");
+    Logger.d("[Received] <== ${response.headers}");
     List<int> primaryBuffer=[];
-    List<int> secondaryBuffer=[];
+    int imageSizeStart = 0;
+    int imageSizeEnd = 0;
     int imageStart = 0;
-    int imageEnd = 0;
     response.stream.transform(
         StreamTransformer.fromHandlers(
           handleData: (data, sink) {
             primaryBuffer.addAll(data);
-            Logger.d("== data recived: ${data.length}");
-            Logger.d("== primary buffer size: ${primaryBuffer.length}");
-            //Logger.d("${data.toString()}");
-            for (int i = 0; i < primaryBuffer.length - 15; i++) {
-              String startBoundary = utf8.decode(primaryBuffer.sublist(i, i+15),allowMalformed: true);
-              if (startBoundary == "--frameboundary") {
-                Logger.d("== START found at $i");
-                imageStart = i;
-                //secondaryBuffer.addAll(primaryBuffer.sublist(i));
-                //Logger.d("== secondary.length=${secondaryBuffer.length}. clearinig primary");
-                //primaryBuffer.clear();
-                break;
-              }
-              /*String startBoundary = utf8.decode(primaryBuffer.sublist(i, i+4),allowMalformed: true);
-              if (startBoundary == "\r\n\r\n") {
-                Logger.d("==Binary image start found ($i). primary.length=${primaryBuffer.length}");
-                secondaryBuffer.addAll(primaryBuffer.sublist(i+5));
-                Logger.d("==secondary.length=${secondaryBuffer.length}. clearinig primary");
-                primaryBuffer.clear();
-                Logger.d("==secondary.length=${secondaryBuffer.length}");
-                for (int j = 0; j < secondaryBuffer.length - 15; j++) {
-                  String endBoundary = utf8.decode(secondaryBuffer.sublist(j, j+15),allowMalformed: true);
-                  if (endBoundary == "--frameboundary") {
-                    Logger.d("==Binary image end found");
-                    sink.add(secondaryBuffer.sublist(0, j-1));
-                    primaryBuffer.addAll(secondaryBuffer.sublist(j));
-                    secondaryBuffer.clear();
-                    break;
-                  }
+            if (primaryBuffer.length >= 40) {
+              for (int i = 15; i < primaryBuffer.length - 16; i++) {
+                String tmp1 = utf8.decode(
+                    primaryBuffer.sublist(i, i + 16), allowMalformed: true);
+                if (tmp1 == "Content-Length: ") {
+                  imageSizeStart = i + 16;
+                  break;
                 }
-                break;
-              }*/
-            }
-            for (int i = imageStart+15; i < primaryBuffer.length - 15; i++) {
-              String endBoundary = utf8.decode(primaryBuffer.sublist(i, i+15),allowMalformed: true);
-              if (endBoundary == "--frameboundary") {
-                Logger.d("==END found");
-                imageEnd = i;
-                sink.add(primaryBuffer.sublist(imageStart, imageEnd - 1));
-                primaryBuffer = primaryBuffer.sublist(imageEnd);
-                break;
+              }
+              for (int i = imageSizeStart; i < primaryBuffer.length - 4; i++) {
+                String tmp1 = utf8.decode(
+                    primaryBuffer.sublist(i, i + 4), allowMalformed: true);
+                if (tmp1 == "\r\n\r\n") {
+                  imageSizeEnd = i;
+                  imageStart = i + 4;
+                  break;
+                }
+              }
+              int imageSize = int.tryParse(utf8.decode(
+                  primaryBuffer.sublist(imageSizeStart, imageSizeEnd),
+                  allowMalformed: true));
+              //Logger.d("== imageSize=$imageSize");
+              if (primaryBuffer.length >= imageStart + imageSize) {
+                sink.add(
+                    primaryBuffer.sublist(imageStart, imageStart + imageSize));
+                primaryBuffer = primaryBuffer.sublist(imageStart + imageSize);
               }
             }
-            //byteCount += data.length;
-            //Logger.d("$byteCount");
-
           },
           handleError: (error, stack, sink) {},
           handleDone: (sink) {
@@ -98,32 +74,20 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
       setState(() {
         binaryImage = d;
       });
-      //Logger.d("==binary imagesize=${d.length}");
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Image.memory(Uint8List.fromList(binaryImage)),
-        FlatButton(
-          child: Text("VIEW"),
-          onPressed: () {
-            setState(() {
-
-            });
-          },
-        )
-      ],
-    );
-    return Image.network("${widget.url}");
-    return FlatButton(
-      child: Text("VIEW"),
-      onPressed: () {
-        HAUtils.launchURL(widget.url);
-      },
-    );
+    if (binaryImage.isEmpty) {
+      return Text("Loading...");
+    } else {
+      return Column(
+        children: <Widget>[
+          Image.memory(Uint8List.fromList(binaryImage), gaplessPlayback: true),
+        ],
+      );
+    }
   }
 
   @override

@@ -86,9 +86,9 @@ class EntityCollection {
       case "fan": {
         return FanEntity(rawEntityData);
       }
-      /*case "camera": {
+      case "camera": {
         return CameraEntity(rawEntityData);
-      }*/
+      }
       case "alarm_control_panel": {
         return AlarmControlPanelEntity(rawEntityData);
       }

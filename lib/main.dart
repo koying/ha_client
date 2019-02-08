@@ -367,10 +367,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURL("http://www.vynn.co/");
+                HAUtils.launchURL("http://ha-client.vynn.co/");
               },
               child: Text(
-                "www.vynn.co",
+                "ha-client.vynn.co",
                 style: TextStyle(
                   color: Colors.blue,
                   decoration: TextDecoration.underline
