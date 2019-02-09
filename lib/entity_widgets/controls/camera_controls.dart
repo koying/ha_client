@@ -21,53 +21,59 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   http.Client client;
   http.StreamedResponse response;
   List<int> binaryImage = [];
+  String cameraState = "Connecting...";
+  bool timeToStop = false;
+  Completer streamCompleter;
 
   void _getData() async {
     client = new http.Client(); // create a client to make api calls
     http.Request request = new http.Request("GET", Uri.parse(widget.url));  // create get request
     Logger.d("[Sending] ==> ${widget.url}");
-    response = await client.send(request); // sends request and waits for response stream
+    response = await client.send(request);
+    setState(() {
+      cameraState = "Starting...";
+    });
     Logger.d("[Received] <== ${response.headers}");
     List<int> primaryBuffer=[];
-    int imageSizeStart = 0;
+    final int imageSizeStart = 59;
     int imageSizeEnd = 0;
     int imageStart = 0;
+    int imageSize = 0;
+    String strBuffer = "";
+    streamCompleter = Completer();
     response.stream.transform(
         StreamTransformer.fromHandlers(
           handleData: (data, sink) {
             primaryBuffer.addAll(data);
-            if (primaryBuffer.length >= 40) {
-              for (int i = 15; i < primaryBuffer.length - 16; i++) {
-                String tmp1 = utf8.decode(
-                    primaryBuffer.sublist(i, i + 16), allowMalformed: true);
-                if (tmp1 == "Content-Length: ") {
-                  imageSizeStart = i + 16;
-                  break;
-                }
-              }
+            if (primaryBuffer.length >= 66) {
               for (int i = imageSizeStart; i < primaryBuffer.length - 4; i++) {
-                String tmp1 = utf8.decode(
+                strBuffer = utf8.decode(
                     primaryBuffer.sublist(i, i + 4), allowMalformed: true);
-                if (tmp1 == "\r\n\r\n") {
+                if (strBuffer == "\r\n\r\n") {
                   imageSizeEnd = i;
                   imageStart = i + 4;
                   break;
                 }
               }
-              int imageSize = int.tryParse(utf8.decode(
+              imageSize = int.tryParse(utf8.decode(
                   primaryBuffer.sublist(imageSizeStart, imageSizeEnd),
                   allowMalformed: true));
-              //Logger.d("== imageSize=$imageSize");
-              if (primaryBuffer.length >= imageStart + imageSize) {
+              if (imageSize != null && primaryBuffer.length >= imageStart + imageSize + 2) {
                 sink.add(
                     primaryBuffer.sublist(imageStart, imageStart + imageSize));
-                primaryBuffer = primaryBuffer.sublist(imageStart + imageSize);
+                primaryBuffer.removeRange(0, imageStart + imageSize + 2);
               }
             }
+            if (timeToStop) {
+              sink?.close();
+              streamCompleter.complete();
+            }
           },
-          handleError: (error, stack, sink) {},
+          handleError: (error, stack, sink) {
+            Logger.e("Error parsing MJPEG stream: $error");
+          },
           handleDone: (sink) {
-            sink.close();
+            sink?.close();
           },
         )
     ).listen((d) {
@@ -80,7 +86,11 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   @override
   Widget build(BuildContext context) {
     if (binaryImage.isEmpty) {
-      return Text("Loading...");
+      return Column(
+        children: <Widget>[
+          Text("$cameraState")
+        ],
+      );
     } else {
       return Column(
         children: <Widget>[
@@ -92,7 +102,14 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
 
   @override
   void dispose() {
-    client.close();
     super.dispose();
+    timeToStop = true;
+    if (streamCompleter != null && !streamCompleter.isCompleted) {
+      streamCompleter.future.then((_) {
+        client?.close();
+      });
+    } else {
+      client?.close();
+    }
   }
 }
