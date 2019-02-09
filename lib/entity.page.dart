@@ -46,12 +46,9 @@ class _EntityViewPageState extends State<EntityViewPage> {
         // the App.build method, and use it to set our appbar title.
         title: new Text(_title),
       ),
-      body: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: HomeAssistantModel(
-              homeAssistant: widget.homeAssistant,
-              child: widget.homeAssistant.entities.get(widget.entityId).buildEntityPageWidget(context)
-          )
+      body: HomeAssistantModel(
+          homeAssistant: widget.homeAssistant,
+          child: widget.homeAssistant.entities.get(widget.entityId).buildEntityPageWidget(context)
       ),
     );
   }

@@ -1,8 +1,8 @@
 part of '../main.dart';
 
 class Sizes {
-  static const rightWidgetPadding = 14.0;
-  static const leftWidgetPadding = 8.0;
+  static const rightWidgetPadding = 16.0;
+  static const leftWidgetPadding = 16.0;
   static const buttonPadding = 4.0;
   static const extendedWidgetHeight = 50.0;
   static const iconSize = 28.0;

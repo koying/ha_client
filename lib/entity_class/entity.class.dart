@@ -162,7 +162,10 @@ class Entity {
     return EntityModel(
       entityWrapper: EntityWrapper(entity: this),
       child: EntityPageContainer(children: <Widget>[
-        DefaultEntityContainer(state: _buildStatePartForPage(context)),
+        Padding(
+          padding: EdgeInsets.only(top: Sizes.rowPadding),
+          child: DefaultEntityContainer(state: _buildStatePartForPage(context)),
+        ),
         LastUpdatedWidget(),
         Divider(),
         _buildAdditionalControlsForPage(context),
