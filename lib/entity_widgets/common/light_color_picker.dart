@@ -24,19 +24,28 @@ class LightColorPickerState extends State<LightColorPicker> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> colors = [];
+    List<Widget> colorRows = [];
     Border border;
+    bool isSomethingSelected = false;
     Logger.d("Current colotfor picker: [${widget.color.hue}, ${widget.color.saturation}]");
     for (double saturation = 1.0; saturation >= (0.0 + widget.saturationStep); saturation = double.parse((saturation - widget.saturationStep).toStringAsFixed(2))) {
       List<Widget> rowChildren = [];
-      Logger.d("$saturation");
+      //Logger.d("$saturation");
+      double roundedSaturation = double.parse(widget.color.saturation.toStringAsFixed(1));
+      //Logger.d("Rounded saturation=$roundedSaturation");
       for (double hue = 0; hue <= (365 - widget.hueStep);
       hue += widget.hueStep) {
-        if (widget.color.hue.round() >= hue && widget.color.hue.round() < (hue+widget.hueStep) && widget.color.saturation == saturation) {
+        bool isExactHue = widget.color.hue.round() == hue;
+        bool isHueInRange = widget.color.hue.round() > hue && widget.color.hue.round() < (hue+widget.hueStep);
+        bool isExactSaturation = roundedSaturation == saturation;
+        bool isSaturationInRange = roundedSaturation > saturation && roundedSaturation < double.parse((saturation+widget.saturationStep).toStringAsFixed(1));
+        if ((isExactHue || isHueInRange) && (isExactSaturation || isSaturationInRange)) {
+          //Logger.d("$isExactHue $isHueInRange $isExactSaturation $isSaturationInRange (${saturation+widget.saturationStep})");
           border = Border.all(
             width: 2.0,
             color: Colors.white,
           );
+          isSomethingSelected = true;
         } else {
           border = null;
         }
@@ -56,19 +65,23 @@ class LightColorPickerState extends State<LightColorPicker> {
             )
         );
       }
-      colors.add(
+      colorRows.add(
           Row(
             children: rowChildren,
           )
       );
     }
-    colors.add(
+    colorRows.add(
         Flexible(
             child: GestureDetector(
               child: Container(
                 height: 40.0,
                 decoration: BoxDecoration(
-                    color: Colors.white
+                  color: Colors.white,
+                  border: isSomethingSelected ? null : Border.all(
+                    width: 2.0,
+                    color: Colors.amber[200],
+                  )
                 ),
               ),
               onTap: () => widget.onColorSelected(HSVColor.fromAHSV(1.0, 30.0, 0.0, 1.0)),
@@ -78,7 +91,8 @@ class LightColorPickerState extends State<LightColorPicker> {
     return Padding(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: colors,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: colorRows,
       ),
       padding: widget.padding,
     );

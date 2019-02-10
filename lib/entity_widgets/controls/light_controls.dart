@@ -117,7 +117,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       return UniversalSlider(
         title: "Color temperature",
         leading: Text("Cold", style: TextStyle(color: Colors.lightBlue),),
-        value:  _tmpColorTemp.toDouble(),
+        value:  _tmpColorTemp == null ? 0 : _tmpColorTemp.toDouble(),
         onChangeEnd: (value) => _setColorTemp(entity, value),
         max: entity.maxMireds,
         min: entity.minMireds,
