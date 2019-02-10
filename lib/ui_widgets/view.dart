@@ -17,29 +17,17 @@ class ViewWidget extends StatefulWidget {
 
 class ViewWidgetState extends State<ViewWidget> {
 
-  StreamSubscription _refreshDataSubscription;
-  Completer _refreshCompleter;
-
   @override
   void initState() {
     super.initState();
-    _refreshDataSubscription = eventBus.on<RefreshDataFinishedEvent>().listen((event) {
-      if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
-        _refreshCompleter.complete();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      color: Colors.amber,
-      child: ListView(
-        padding: EdgeInsets.all(0.0),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: _buildChildren(context),
-      ),
-      onRefresh: () => _refreshData(),
+    return ListView(
+      padding: EdgeInsets.all(0.0),
+      //physics: const AlwaysScrollableScrollPhysics(),
+      children: _buildChildren(context),
     );
   }
 
@@ -57,11 +45,21 @@ class ViewWidgetState extends State<ViewWidget> {
       );
     }
 
+    List<Widget> cards = [];
     widget.view.cards.forEach((HACard card){
-      result.add(
-          card.build(context)
+      cards.add(
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 500),
+            child: card.build(context),
+          )
       );
     });
+
+    result.add(
+      Column (
+        children: cards,
+      )
+    );
 
     return result;
   }
@@ -76,19 +74,8 @@ class ViewWidgetState extends State<ViewWidget> {
     return result;
   }
 
-  Future _refreshData() {
-    if ((_refreshCompleter != null) && (!_refreshCompleter.isCompleted)) {
-      Logger.d("Previous data refresh is still in progress");
-    } else {
-      _refreshCompleter = Completer();
-      eventBus.fire(RefreshDataEvent());
-    }
-    return _refreshCompleter.future;
-  }
-
   @override
   void dispose() {
-    _refreshDataSubscription.cancel();
     super.dispose();
   }
 

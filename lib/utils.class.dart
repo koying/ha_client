@@ -73,10 +73,6 @@ class SettingsChangedEvent {
   SettingsChangedEvent(this.reconnect);
 }
 
-class RefreshDataEvent {
-  RefreshDataEvent();
-}
-
 class RefreshDataFinishedEvent {
   RefreshDataFinishedEvent();
 }

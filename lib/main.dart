@@ -155,7 +155,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
-  StreamSubscription _refreshDataSubscription;
   StreamSubscription _showErrorSubscription;
   bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
@@ -239,12 +238,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
           eventBus.on<ShowEntityPageEvent>().listen((event) {
             _showEntityPage(event.entity.entityId);
           });
-    }
-
-    if (_refreshDataSubscription == null) {
-      _refreshDataSubscription = eventBus.on<RefreshDataEvent>().listen((event){
-        _refreshData();
-      });
     }
 
     if (_showErrorSubscription == null) {
@@ -525,6 +518,26 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             pinned: true,
             primary: true,
             title: Text(_homeAssistant != null ? _homeAssistant.locationName : ""),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
+                    "mdi:dots-vertical"), color: Colors.white,),
+                onPressed: () {
+                  showMenu(
+                    position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width, 70.0, 0.0, 0.0),
+                    context: context,
+                    items: [PopupMenuItem<String>(
+                      child: new Text("Reload"),
+                      value: "reload",
+                    )]
+                  ).then((String val) {
+                    if (val == "reload") {
+                      _refreshData();
+                    }
+                  });
+                }
+              )
+            ],
             leading: IconButton(
               icon: Icon(Icons.menu),
               onPressed: () {
@@ -640,7 +653,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
-    if (_refreshDataSubscription != null) _refreshDataSubscription.cancel();
     if (_showErrorSubscription != null) _showErrorSubscription.cancel();
     _homeAssistant.disconnect();
     super.dispose();

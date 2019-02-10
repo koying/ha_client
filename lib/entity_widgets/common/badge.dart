@@ -23,7 +23,22 @@ class BadgeWidget extends StatelessWidget {
           );
           break;
         }
-      case "sensor":
+      case "camera":
+      case "media_player":
+      case "binary_sensor":
+        {
+          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
+              entityModel.entityWrapper, iconSize, Colors.black);
+          break;
+        }
+      case "device_tracker":
+        {
+          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
+              entityModel.entityWrapper, iconSize, Colors.black);
+          onBadgeTextValue = entityModel.entityWrapper.entity.state;
+          break;
+        }
+      default:
         {
           onBadgeTextValue = entityModel.entityWrapper.entity.unitOfMeasurement;
           badgeIcon = Center(
@@ -36,18 +51,6 @@ class BadgeWidget extends StatelessWidget {
             ),
           );
           break;
-        }
-      case "device_tracker":
-        {
-          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entityWrapper, iconSize, Colors.black);
-          onBadgeTextValue = entityModel.entityWrapper.entity.state;
-          break;
-        }
-      default:
-        {
-          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entityWrapper, iconSize, Colors.black);
         }
     }
     Widget onBadgeText;
