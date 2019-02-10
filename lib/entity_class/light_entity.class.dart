@@ -65,7 +65,7 @@ class LightEntity extends Entity {
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    if (!isAdditionalControls) {
+    if (!isAdditionalControls || state == EntityState.unavailable) {
       return Container(height: 0.0, width: 0.0);
     } else {
       return LightControlsWidget();

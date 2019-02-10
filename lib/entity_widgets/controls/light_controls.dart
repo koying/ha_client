@@ -92,7 +92,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
   }
 
   Widget _buildBrightnessControl(LightEntity entity) {
-    if ((entity.supportBrightness) && (_tmpBrightness != null) && (entity.state != EntityState.unavailable)) {
+    if ((entity.supportBrightness) && (_tmpBrightness != null)) {
       return UniversalSlider(
         onChanged: (value) {
           setState(() {
@@ -103,7 +103,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         min: 0.0,
         max: 255.0,
         onChangeEnd: (value) => _setBrightness(entity, value),
-        value: _tmpBrightness.toDouble(),
+        value: _tmpBrightness == null ? 0.0 : _tmpBrightness.toDouble(),
         leading: Icon(Icons.brightness_5),
         title: "Brightness",
       );
@@ -117,7 +117,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       return UniversalSlider(
         title: "Color temperature",
         leading: Text("Cold", style: TextStyle(color: Colors.lightBlue),),
-        value:  _tmpColorTemp == null ? 0 : _tmpColorTemp.toDouble(),
+        value:  _tmpColorTemp == null ? entity.maxMireds : _tmpColorTemp.toDouble(),
         onChangeEnd: (value) => _setColorTemp(entity, value),
         max: entity.maxMireds,
         min: entity.minMireds,
