@@ -11,7 +11,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   int _tmpBrightness;
   int _tmpColorTemp = 0;
-  Color _tmpColor = Colors.white;
+  HSVColor _tmpColor = HSVColor.fromAHSV(1.0, 30.0, 0.0, 1.0);
   bool _changedHere = false;
   String _tmpEffect;
 
@@ -48,20 +48,14 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     });
   }
 
-  void _setColor(LightEntity entity, Color color) {
+  void _setColor(LightEntity entity, HSVColor color) {
     setState(() {
       _tmpColor = color;
       _changedHere = true;
-      Logger.d( "Color: [${color.red}, ${color.green}, ${color.blue}]");
-      if ((color == Colors.black) || ((color.red == color.green) && (color.green == color.blue)))  {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_off", entity.entityId,
-            null));
-      } else {
-        eventBus.fire(new ServiceCallEvent(
-            entity.domain, "turn_on", entity.entityId,
-            {"rgb_color": [color.red, color.green, color.blue]}));
-      }
+      Logger.d( "HS Color: [${color.hue}, ${color.saturation}]");
+      eventBus.fire(new ServiceCallEvent(
+        entity.domain, "turn_on", entity.entityId,
+          {"hs_color": [color.hue, color.saturation*100]}));
     });
   }
 
@@ -142,25 +136,9 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildColorControl(LightEntity entity) {
     if (entity.supportColor) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(height: Sizes.rowPadding,),
-          RaisedButton(
-            onPressed: () => _showColorPicker(entity),
-            color: _tmpColor ?? Colors.black45,
-            child: Text(
-              "COLOR",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 50.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black12,
-              ),
-            ),
-          ),
-          Container(height: 2*Sizes.rowPadding,),
-        ],
+      return LightColorPicker(
+        color: _tmpColor,
+        onColorSelected: (color) => _setColor(entity, color),
       );
     } else {
       return Container(width: 0.0, height: 0.0);
@@ -174,15 +152,8 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         return AlertDialog(
           titlePadding: EdgeInsets.all(0.0),
           contentPadding: EdgeInsets.all(0.0),
-          content: SingleChildScrollView(
-            child: MaterialPicker(
-              pickerColor: _tmpColor,
-              onColorChanged: (color) {
-                _setColor(entity, color);
-                Navigator.of(context).pop();
-              },
-              enableLabel: true,
-            ),
+          content: LightColorPicker(
+            color: _tmpColor,
           ),
         );
       },

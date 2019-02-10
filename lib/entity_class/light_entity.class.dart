@@ -37,17 +37,19 @@ class LightEntity extends Entity {
   int get colorTemp => _getIntAttributeValue("color_temp");
   double get maxMireds => _getDoubleAttributeValue("max_mireds");
   double get minMireds => _getDoubleAttributeValue("min_mireds");
-  Color get color => _getColor();
+  HSVColor get color => _getColor();
   bool get isAdditionalControls => ((attributes["supported_features"] != null) && (attributes["supported_features"] != 0));
   List<String> get effectList => getStringListAttributeValue("effect_list");
 
   LightEntity(Map rawData) : super(rawData);
 
-  Color _getColor() {
-    List rgb = attributes["rgb_color"];
+  HSVColor _getColor() {
+    List hs = attributes["hs_color"];
     try {
-      if ((rgb != null) && (rgb.length > 0)) {
-        return Color.fromARGB(255, rgb[0], rgb[1], rgb[2]);
+      if ((hs != null) && (hs.length > 0)) {
+        double sat = hs[1]/100;
+        String ssat = sat.toStringAsFixed(2);
+        return HSVColor.fromAHSV(1.0, hs[0], double.parse(ssat), 1.0);
       } else {
         return null;
       }

@@ -112,14 +112,7 @@ packages:
       name: flutter_cache_manager
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0-alpha.2"
-  flutter_colorpicker:
-    dependency: "direct main"
-    description:
-      name: flutter_colorpicker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.1"
+    version: "0.3.0-beta.2+1"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -159,7 +152,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.6"
+    version: "2.0.7"
   intl:
     dependency: transitive
     description:
@@ -236,7 +229,7 @@ packages:
       name: shared_preferences
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1+1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -311,7 +304,7 @@ packages:
       name: url_launcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0"
+    version: "5.0.1"
   uuid:
     dependency: transitive
     description:

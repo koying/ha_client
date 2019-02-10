@@ -16,7 +16,6 @@ dependencies:
   cached_network_image: any
   url_launcher: any
   date_format: any
-  flutter_colorpicker: any
   charts_flutter: any
   flutter_markdown: any
 

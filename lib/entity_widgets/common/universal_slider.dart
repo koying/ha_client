@@ -10,8 +10,9 @@ class UniversalSlider extends StatelessWidget {
   final double min;
   final double max;
   final double value;
+  final EdgeInsets padding;
 
-  const UniversalSlider({Key key, this.onChanged, this.onChangeEnd, this.leading, this.closing, this.title, this.min, this.max, this.value}) : super(key: key);
+  const UniversalSlider({Key key, this.onChanged, this.onChangeEnd, this.leading, this.closing, this.title, this.min, this.max, this.value, this.padding: const EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0)}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,21 +34,24 @@ class UniversalSlider extends StatelessWidget {
     if (closing != null) {
       row.add(closing);
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Container(height: Sizes.rowPadding,),
-        Text(
-          "$title",
-          style: TextStyle(fontSize: Sizes.stateFontSize),
-        ),
-        Container(height: Sizes.rowPadding,),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: row,
-        ),
-        Container(height: Sizes.rowPadding,)
-      ],
+    return Padding(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(height: Sizes.rowPadding,),
+          Text(
+            "$title",
+            style: TextStyle(fontSize: Sizes.stateFontSize),
+          ),
+          Container(height: Sizes.rowPadding,),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: row,
+          ),
+          Container(height: Sizes.rowPadding,)
+        ],
+      ),
     );
   }
 
