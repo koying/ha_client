@@ -21,10 +21,13 @@ class EntityAttributesList extends StatelessWidget {
         }
       });
     }
-    return Column(
-      children: attrs,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: EdgeInsets.only(bottom: Sizes.rowPadding),
+      child: Column(
+        children: attrs,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+      )
     );
   }
 

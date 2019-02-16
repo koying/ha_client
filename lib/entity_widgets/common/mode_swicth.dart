@@ -7,6 +7,7 @@ class ModeSwitchWidget extends StatelessWidget {
   final double captionFontSize;
   final bool value;
   final bool expanded;
+  final EdgeInsets padding;
 
   ModeSwitchWidget({
     Key key,
@@ -14,19 +15,23 @@ class ModeSwitchWidget extends StatelessWidget {
     @required this.onChange,
     this.captionFontSize,
     this.value,
-    this.expanded: true
+    this.expanded: true,
+    this.padding: const EdgeInsets.only(left: Sizes.leftWidgetPadding, right: Sizes.rightWidgetPadding)
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        _buildCaption(),
-        Switch(
-          onChanged: (value) => onChange(value),
-          value: value ?? false,
-        )
-      ],
+    return Padding(
+      padding: this.padding,
+      child: Row(
+        children: <Widget>[
+          _buildCaption(),
+          Switch(
+            onChanged: (value) => onChange(value),
+            value: value ?? false,
+          )
+        ],
+      )
     );
   }
 
