@@ -42,33 +42,33 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     _changedHere = false;
   }
 
-  void _temperatureUp(ClimateEntity entity, double step) {
-    _tmpTemperature = ((_tmpTemperature + step) <= entity.maxTemp) ? _tmpTemperature + step : entity.maxTemp;
+  void _temperatureUp(ClimateEntity entity) {
+    _tmpTemperature = ((_tmpTemperature + entity.temperatureStep) <= entity.maxTemp) ? _tmpTemperature + entity.temperatureStep : entity.maxTemp;
     _setTemperature(entity);
   }
 
-  void _temperatureDown(ClimateEntity entity, double step) {
-    _tmpTemperature = ((_tmpTemperature - step) >= entity.minTemp) ? _tmpTemperature - step : entity.minTemp;
+  void _temperatureDown(ClimateEntity entity) {
+    _tmpTemperature = ((_tmpTemperature - entity.temperatureStep) >= entity.minTemp) ? _tmpTemperature - entity.temperatureStep : entity.minTemp;
     _setTemperature(entity);
   }
 
-  void _targetLowUp(ClimateEntity entity, double step) {
-    _tmpTargetLow = ((_tmpTargetLow + step) <= entity.maxTemp) ? _tmpTargetLow + step : entity.maxTemp;
+  void _targetLowUp(ClimateEntity entity) {
+    _tmpTargetLow = ((_tmpTargetLow + entity.temperatureStep) <= entity.maxTemp) ? _tmpTargetLow + entity.temperatureStep : entity.maxTemp;
     _setTargetTemp(entity);
   }
 
-  void _targetLowDown(ClimateEntity entity, double step) {
-    _tmpTargetLow = ((_tmpTargetLow - step) >= entity.minTemp) ? _tmpTargetLow - step : entity.minTemp;
+  void _targetLowDown(ClimateEntity entity) {
+    _tmpTargetLow = ((_tmpTargetLow - entity.temperatureStep) >= entity.minTemp) ? _tmpTargetLow - entity.temperatureStep : entity.minTemp;
     _setTargetTemp(entity);
   }
 
-  void _targetHighUp(ClimateEntity entity, double step) {
-    _tmpTargetHigh = ((_tmpTargetHigh + step) <= entity.maxTemp) ? _tmpTargetHigh + step : entity.maxTemp;
+  void _targetHighUp(ClimateEntity entity) {
+    _tmpTargetHigh = ((_tmpTargetHigh + entity.temperatureStep) <= entity.maxTemp) ? _tmpTargetHigh + entity.temperatureStep : entity.maxTemp;
     _setTargetTemp(entity);
   }
 
-  void _targetHighDown(ClimateEntity entity, double step) {
-    _tmpTargetHigh = ((_tmpTargetHigh - step) >= entity.minTemp) ? _tmpTargetHigh - step : entity.minTemp;
+  void _targetHighDown(ClimateEntity entity) {
+    _tmpTargetHigh = ((_tmpTargetHigh - entity.temperatureStep) >= entity.minTemp) ? _tmpTargetHigh - entity.temperatureStep : entity.minTemp;
     _setTargetTemp(entity);
   }
 
@@ -296,8 +296,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
           TemperatureControlWidget(
             value: _tmpTemperature,
             fontColor: _showPending ? Colors.red : Colors.black,
-            onDec: () => _temperatureDown(entity, 0.5),
-            onInc: () => _temperatureUp(entity, 0.5),
+            onDec: () => _temperatureDown(entity),
+            onInc: () => _temperatureUp(entity),
           )
         ],
       );
@@ -313,8 +313,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         TemperatureControlWidget(
           value: _tmpTargetLow,
           fontColor: _showPending ? Colors.red : Colors.black,
-          onDec: () => _targetLowDown(entity, 0.5),
-          onInc: () => _targetLowUp(entity, 0.5),
+          onDec: () => _targetLowDown(entity),
+          onInc: () => _targetLowUp(entity),
         ),
         Expanded(
           child: Container(height: 10.0),
@@ -326,8 +326,8 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
           TemperatureControlWidget(
             value: _tmpTargetHigh,
             fontColor: _showPending ? Colors.red : Colors.black,
-            onDec: () => _targetHighDown(entity, 0.5),
-            onInc: () => _targetHighUp(entity, 0.5),
+            onDec: () => _targetHighDown(entity),
+            onInc: () => _targetHighUp(entity),
           )
       );
     }

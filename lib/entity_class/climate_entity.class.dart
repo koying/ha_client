@@ -80,6 +80,7 @@ class ClimateEntity extends Entity {
   double get targetHumidity => _getDoubleAttributeValue('humidity');
   double get maxHumidity => _getDoubleAttributeValue('max_humidity');
   double get minHumidity => _getDoubleAttributeValue('min_humidity');
+  double get temperatureStep => _getDoubleAttributeValue('target_temp_step') ?? 0.5;
   String get operationMode => attributes['operation_mode'];
   String get fanMode => attributes['fan_mode'];
   String get swingMode => attributes['swing_mode'];
