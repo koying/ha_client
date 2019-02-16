@@ -6,6 +6,9 @@ class ButtonEntity extends Entity {
   @override
   Widget _buildStatePart(BuildContext context) {
     return FlatServiceButton(
+      entityId: entityId,
+      serviceDomain: domain,
+      serviceName: 'turn_on',
       text: "EXECUTE",
     );
   }

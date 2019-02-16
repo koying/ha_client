@@ -75,6 +75,7 @@ part 'entity_widgets/controls/fan_controls.dart';
 part 'entity_widgets/controls/alarm_control_panel_controls.dart';
 part 'entity_widgets/controls/camera_controls.dart';
 part 'settings.page.dart';
+part 'configuration.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
 part 'entity.page.dart';
@@ -129,6 +130,7 @@ class HAClientApp extends StatelessWidget {
       routes: {
         "/": (context) => MainPage(title: 'HA Client'),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
+        "/configuration": (context) => ConfigurationPage(title: "Configuration"),
         "/log-view": (context) => LogViewPage(title: "Log")
       },
     );
@@ -339,6 +341,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
       ]);
     } else {
       menuItems.addAll([
+        new ListTile(
+          leading: Icon(Icons.settings),
+          title: Text("Configuration"),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/configuration');
+          },
+        ),
         new ListTile(
           leading: Icon(Icons.insert_drive_file),
           title: Text("Log"),

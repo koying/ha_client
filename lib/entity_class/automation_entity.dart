@@ -15,6 +15,8 @@ class AutomationEntity extends Entity {
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
         FlatServiceButton(
+          serviceDomain: domain,
+          entityId: entityId,
           text: "TRIGGER",
           serviceName: "trigger",
         )
