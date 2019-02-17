@@ -91,6 +91,7 @@ class Entity {
   String get lastUpdated => _getLastUpdatedFormatted();
   bool get isHidden => attributes["hidden"] ?? false;
   double get doubleState => double.tryParse(state) ?? 0.0;
+  int get supportedFeatures => attributes["supported_features"] ?? 0;
 
   Entity(Map rawData) {
     update(rawData);

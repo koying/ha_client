@@ -22,53 +22,53 @@ class MediaPlayerEntity extends Entity {
 
   MediaPlayerEntity(Map rawData) : super(rawData);
 
-  bool get supportPause => ((attributes["supported_features"] &
+  bool get supportPause => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_PAUSE) ==
       MediaPlayerEntity.SUPPORT_PAUSE);
-  bool get supportSeek => ((attributes["supported_features"] &
+  bool get supportSeek => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_SEEK) ==
       MediaPlayerEntity.SUPPORT_SEEK);
-  bool get supportVolumeSet => ((attributes["supported_features"] &
+  bool get supportVolumeSet => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_VOLUME_SET) ==
       MediaPlayerEntity.SUPPORT_VOLUME_SET);
-  bool get supportVolumeMute => ((attributes["supported_features"] &
+  bool get supportVolumeMute => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_VOLUME_MUTE) ==
       MediaPlayerEntity.SUPPORT_VOLUME_MUTE);
-  bool get supportPreviousTrack => ((attributes["supported_features"] &
+  bool get supportPreviousTrack => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_PREVIOUS_TRACK) ==
       MediaPlayerEntity.SUPPORT_PREVIOUS_TRACK);
-  bool get supportNextTrack => ((attributes["supported_features"] &
+  bool get supportNextTrack => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_NEXT_TRACK) ==
       MediaPlayerEntity.SUPPORT_NEXT_TRACK);
 
-  bool get supportTurnOn => ((attributes["supported_features"] &
+  bool get supportTurnOn => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_TURN_ON) ==
       MediaPlayerEntity.SUPPORT_TURN_ON);
-  bool get supportTurnOff => ((attributes["supported_features"] &
+  bool get supportTurnOff => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_TURN_OFF) ==
       MediaPlayerEntity.SUPPORT_TURN_OFF);
-  bool get supportPlayMedia => ((attributes["supported_features"] &
+  bool get supportPlayMedia => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_PLAY_MEDIA) ==
       MediaPlayerEntity.SUPPORT_PLAY_MEDIA);
-  bool get supportVolumeStep => ((attributes["supported_features"] &
+  bool get supportVolumeStep => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_VOLUME_STEP) ==
       MediaPlayerEntity.SUPPORT_VOLUME_STEP);
-  bool get supportSelectSource => ((attributes["supported_features"] &
+  bool get supportSelectSource => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_SELECT_SOURCE) ==
       MediaPlayerEntity.SUPPORT_SELECT_SOURCE);
-  bool get supportStop => ((attributes["supported_features"] &
+  bool get supportStop => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_STOP) ==
       MediaPlayerEntity.SUPPORT_STOP);
-  bool get supportClearPlaylist => ((attributes["supported_features"] &
+  bool get supportClearPlaylist => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_CLEAR_PLAYLIST) ==
       MediaPlayerEntity.SUPPORT_CLEAR_PLAYLIST);
-  bool get supportPlay => ((attributes["supported_features"] &
+  bool get supportPlay => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_PLAY) ==
       MediaPlayerEntity.SUPPORT_PLAY);
-  bool get supportShuffleSet => ((attributes["supported_features"] &
+  bool get supportShuffleSet => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_SHUFFLE_SET) ==
       MediaPlayerEntity.SUPPORT_SHUFFLE_SET);
-  bool get supportSelectSoundMode => ((attributes["supported_features"] &
+  bool get supportSelectSoundMode => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE) ==
       MediaPlayerEntity.SUPPORT_SELECT_SOUND_MODE);
 

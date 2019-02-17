@@ -10,25 +10,25 @@ class LightEntity extends Entity {
   static const SUPPORT_TRANSITION = 32;
   static const SUPPORT_WHITE_VALUE = 128;
 
-  bool get supportBrightness => ((attributes["supported_features"] &
+  bool get supportBrightness => ((supportedFeatures &
   LightEntity.SUPPORT_BRIGHTNESS) ==
       LightEntity.SUPPORT_BRIGHTNESS);
-  bool get supportColorTemp => ((attributes["supported_features"] &
+  bool get supportColorTemp => ((supportedFeatures &
   LightEntity.SUPPORT_COLOR_TEMP) ==
       LightEntity.SUPPORT_COLOR_TEMP);
-  bool get supportEffect => ((attributes["supported_features"] &
+  bool get supportEffect => ((supportedFeatures &
   LightEntity.SUPPORT_EFFECT) ==
       LightEntity.SUPPORT_EFFECT);
-  bool get supportFlash => ((attributes["supported_features"] &
+  bool get supportFlash => ((supportedFeatures &
   LightEntity.SUPPORT_FLASH) ==
       LightEntity.SUPPORT_FLASH);
-  bool get supportColor => ((attributes["supported_features"] &
+  bool get supportColor => ((supportedFeatures &
   LightEntity.SUPPORT_COLOR) ==
       LightEntity.SUPPORT_COLOR);
-  bool get supportTransition => ((attributes["supported_features"] &
+  bool get supportTransition => ((supportedFeatures &
   LightEntity.SUPPORT_TRANSITION) ==
       LightEntity.SUPPORT_TRANSITION);
-  bool get supportWhiteValue => ((attributes["supported_features"] &
+  bool get supportWhiteValue => ((supportedFeatures &
   LightEntity.SUPPORT_WHITE_VALUE) ==
       LightEntity.SUPPORT_WHITE_VALUE);
 
@@ -38,7 +38,7 @@ class LightEntity extends Entity {
   double get maxMireds => _getDoubleAttributeValue("max_mireds");
   double get minMireds => _getDoubleAttributeValue("min_mireds");
   HSVColor get color => _getColor();
-  bool get isAdditionalControls => ((attributes["supported_features"] != null) && (attributes["supported_features"] != 0));
+  bool get isAdditionalControls => ((supportedFeatures != null) && (supportedFeatures != 0));
   List<String> get effectList => getStringListAttributeValue("effect_list");
 
   LightEntity(Map rawData) : super(rawData);

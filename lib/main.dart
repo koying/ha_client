@@ -93,8 +93,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.4.0";
-const appBuild = "91";
+const appVersion = "0.4.1";
 
 String homeAssistantWebHost;
 
@@ -383,8 +382,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
             )
           ],
           applicationName: appName,
-          applicationVersion: appVersion,
-          applicationLegalese: "build $appBuild",
+          applicationVersion: appVersion
         )
       ]);
     }

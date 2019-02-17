@@ -23,44 +23,44 @@ class ClimateEntity extends Entity {
   static const SUPPORT_AUX_HEAT = 2048;
   static const SUPPORT_ON_OFF = 4096;
 
-  bool get supportTargetTemperature => ((attributes["supported_features"] &
+  bool get supportTargetTemperature => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_TEMPERATURE) ==
       ClimateEntity.SUPPORT_TARGET_TEMPERATURE);
-  bool get supportTargetTemperatureHigh => ((attributes["supported_features"] &
+  bool get supportTargetTemperatureHigh => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH) ==
       ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH);
-  bool get supportTargetTemperatureLow => ((attributes["supported_features"] &
+  bool get supportTargetTemperatureLow => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW) ==
       ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW);
-  bool get supportTargetHumidity => ((attributes["supported_features"] &
+  bool get supportTargetHumidity => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_HUMIDITY) ==
       ClimateEntity.SUPPORT_TARGET_HUMIDITY);
-  bool get supportTargetHumidityHigh => ((attributes["supported_features"] &
+  bool get supportTargetHumidityHigh => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH) ==
       ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH);
-  bool get supportTargetHumidityLow => ((attributes["supported_features"] &
+  bool get supportTargetHumidityLow => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW) ==
       ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW);
   bool get supportFanMode =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_FAN_MODE) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_FAN_MODE) ==
           ClimateEntity.SUPPORT_FAN_MODE);
-  bool get supportOperationMode => ((attributes["supported_features"] &
+  bool get supportOperationMode => ((supportedFeatures &
   ClimateEntity.SUPPORT_OPERATION_MODE) ==
       ClimateEntity.SUPPORT_OPERATION_MODE);
   bool get supportHoldMode =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_HOLD_MODE) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_HOLD_MODE) ==
           ClimateEntity.SUPPORT_HOLD_MODE);
   bool get supportSwingMode =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_SWING_MODE) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_SWING_MODE) ==
           ClimateEntity.SUPPORT_SWING_MODE);
   bool get supportAwayMode =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_AWAY_MODE) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_AWAY_MODE) ==
           ClimateEntity.SUPPORT_AWAY_MODE);
   bool get supportAuxHeat =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_AUX_HEAT) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_AUX_HEAT) ==
           ClimateEntity.SUPPORT_AUX_HEAT);
   bool get supportOnOff =>
-      ((attributes["supported_features"] & ClimateEntity.SUPPORT_ON_OFF) ==
+      ((supportedFeatures & ClimateEntity.SUPPORT_ON_OFF) ==
           ClimateEntity.SUPPORT_ON_OFF);
 
   List<String> get operationList => attributes["operation_list"] != null

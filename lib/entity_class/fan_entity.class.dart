@@ -8,13 +8,13 @@ class FanEntity extends Entity {
 
   FanEntity(Map rawData) : super(rawData);
 
-  bool get supportSetSpeed => ((attributes["supported_features"] &
+  bool get supportSetSpeed => ((supportedFeatures &
   FanEntity.SUPPORT_SET_SPEED) ==
       FanEntity.SUPPORT_SET_SPEED);
-  bool get supportOscillate => ((attributes["supported_features"] &
+  bool get supportOscillate => ((supportedFeatures &
   FanEntity.SUPPORT_OSCILLATE) ==
       FanEntity.SUPPORT_OSCILLATE);
-  bool get supportDirection => ((attributes["supported_features"] &
+  bool get supportDirection => ((supportedFeatures &
   FanEntity.SUPPORT_DIRECTION) ==
       FanEntity.SUPPORT_DIRECTION);
 

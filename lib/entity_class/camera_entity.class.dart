@@ -6,7 +6,7 @@ class CameraEntity extends Entity {
 
   CameraEntity(Map rawData) : super(rawData);
 
-  bool get supportOnOff => ((attributes["supported_features"] &
+  bool get supportOnOff => ((supportedFeatures &
   CameraEntity.SUPPORT_ON_OFF) ==
       CameraEntity.SUPPORT_ON_OFF);
 
