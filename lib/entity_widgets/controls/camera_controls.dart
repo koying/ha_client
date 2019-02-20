@@ -34,18 +34,27 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
       cameraState = "Starting...";
     });
     Logger.d("[Received] <== ${response.headers}");
+    String frameBoundary = response.headers['content-type'].split('boundary=')[1];
+    final int frameBoundarySize = frameBoundary.length;
     List<int> primaryBuffer=[];
-    final int imageSizeStart = 59;
+    int imageSizeStart = 59;
     int imageSizeEnd = 0;
     int imageStart = 0;
     int imageSize = 0;
     String strBuffer = "";
+    String contentType = "";
     streamCompleter = Completer();
     response.stream.transform(
         StreamTransformer.fromHandlers(
           handleData: (data, sink) {
             primaryBuffer.addAll(data);
-            if (primaryBuffer.length >= 66) {
+            imageStart = 0;
+            imageSizeEnd = 0;
+            if (primaryBuffer.length >= imageSizeStart + 10) {
+              contentType = utf8.decode(
+                  primaryBuffer.sublist(frameBoundarySize+16, imageSizeStart + 10), allowMalformed: true).split("\r\n")[0];
+              Logger.d("$contentType");
+              imageSizeStart = frameBoundarySize + 16 + contentType.length + 18;
               for (int i = imageSizeStart; i < primaryBuffer.length - 4; i++) {
                 strBuffer = utf8.decode(
                     primaryBuffer.sublist(i, i + 4), allowMalformed: true);
@@ -55,13 +64,18 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
                   break;
                 }
               }
-              imageSize = int.tryParse(utf8.decode(
-                  primaryBuffer.sublist(imageSizeStart, imageSizeEnd),
-                  allowMalformed: true));
-              if (imageSize != null && primaryBuffer.length >= imageStart + imageSize + 2) {
-                sink.add(
-                    primaryBuffer.sublist(imageStart, imageStart + imageSize));
-                primaryBuffer.removeRange(0, imageStart + imageSize + 2);
+              if (imageSizeEnd > 0) {
+                imageSize = int.tryParse(utf8.decode(
+                    primaryBuffer.sublist(imageSizeStart, imageSizeEnd),
+                    allowMalformed: true));
+                Logger.d("content-length: $imageSize");
+                if (imageSize != null &&
+                    primaryBuffer.length >= imageStart + imageSize + 2) {
+                  sink.add(
+                      primaryBuffer.sublist(
+                          imageStart, imageStart + imageSize));
+                  primaryBuffer.removeRange(0, imageStart + imageSize + 2);
+                }
               }
             }
             if (timeToStop) {
