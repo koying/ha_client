@@ -93,7 +93,7 @@ part 'ui_widgets/card_header_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.4.2";
+const appVersion = "0.4.3";
 
 String homeAssistantWebHost;
 
