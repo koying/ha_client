@@ -19,7 +19,6 @@ dependencies:
   charts_flutter: any
   flutter_markdown: any
   flutter_svg: ^0.10.3
-  webview_flutter: any
 
 dev_dependencies:
   flutter_test:

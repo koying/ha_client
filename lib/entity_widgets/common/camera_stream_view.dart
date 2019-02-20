@@ -144,12 +144,10 @@ class _CameraStreamViewState extends State<CameraStreamView> {
       );
     } else {
       if (useSVG) {
-        Logger.d("Camera with SVG source");
         return Column(
           children: <Widget>[
             SvgPicture.memory(
               Uint8List.fromList(binaryImage),
-              height: 200.0,
               placeholderBuilder: (BuildContext context) =>
               new Container(
                   padding: const EdgeInsets.all(20.0),
