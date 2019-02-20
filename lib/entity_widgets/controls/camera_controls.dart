@@ -15,7 +15,7 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   @override
   void initState() {
     super.initState();
-    _getData();
+    _connect();
   }
 
   http.Client client;
@@ -25,7 +25,8 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   bool timeToStop = false;
   Completer streamCompleter;
 
-  void _getData() async {
+  void _connect() async {
+    timeToStop = false;
     client = new http.Client(); // create a client to make api calls
     http.Request request = new http.Request("GET", Uri.parse(widget.url));  // create get request
     Logger.d("[Sending] ==> ${widget.url}");
@@ -53,7 +54,7 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
             if (primaryBuffer.length >= imageSizeStart + 10) {
               contentType = utf8.decode(
                   primaryBuffer.sublist(frameBoundarySize+16, imageSizeStart + 10), allowMalformed: true).split("\r\n")[0];
-              Logger.d("$contentType");
+              //Logger.d("$contentType");
               imageSizeStart = frameBoundarySize + 16 + contentType.length + 18;
               for (int i = imageSizeStart; i < primaryBuffer.length - 4; i++) {
                 strBuffer = utf8.decode(
@@ -68,7 +69,7 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
                 imageSize = int.tryParse(utf8.decode(
                     primaryBuffer.sublist(imageSizeStart, imageSizeEnd),
                     allowMalformed: true));
-                Logger.d("content-length: $imageSize");
+                //Logger.d("content-length: $imageSize");
                 if (imageSize != null &&
                     primaryBuffer.length >= imageStart + imageSize + 2) {
                   sink.add(
@@ -87,14 +88,40 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
             Logger.e("Error parsing MJPEG stream: $error");
           },
           handleDone: (sink) {
+            Logger.d("Camera stream finished. Reconnecting...");
             sink?.close();
+            streamCompleter?.complete();
+            _reconnect();
           },
         )
     ).listen((d) {
-      setState(() {
-        binaryImage = d;
-      });
+      if (!timeToStop) {
+        setState(() {
+          binaryImage = d;
+        });
+      }
     });
+  }
+
+  void _reconnect() {
+    disconnect().then((_){
+      _connect();
+    });
+  }
+
+  Future disconnect() {
+    Completer disconF = Completer();
+    timeToStop = true;
+    if (streamCompleter != null && !streamCompleter.isCompleted) {
+      streamCompleter.future.then((_) {
+        client?.close();
+        disconF.complete();
+      });
+    } else {
+      client?.close();
+      disconF.complete();
+    }
+    return disconF.future;
   }
 
   @override
@@ -116,14 +143,7 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
 
   @override
   void dispose() {
+    disconnect();
     super.dispose();
-    timeToStop = true;
-    if (streamCompleter != null && !streamCompleter.isCompleted) {
-      streamCompleter.future.then((_) {
-        client?.close();
-      });
-    } else {
-      client?.close();
-    }
   }
 }
