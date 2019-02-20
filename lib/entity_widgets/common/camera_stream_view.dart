@@ -20,10 +20,10 @@ class _CameraStreamViewState extends State<CameraStreamView> {
   http.Client client;
   http.StreamedResponse response;
   List<int> binaryImage = [];
-  String cameraState = "Connecting...";
   bool timeToStop = false;
   Completer streamCompleter;
   bool started = false;
+  bool useSVG = false;
 
   void _connect() async {
     started = true;
@@ -31,11 +31,8 @@ class _CameraStreamViewState extends State<CameraStreamView> {
     String streamUrl = '$homeAssistantWebHost/api/camera_proxy_stream/${_entity.entityId}?token=${_entity.attributes['access_token']}';
     client = new http.Client(); // create a client to make api calls
     http.Request request = new http.Request("GET", Uri.parse(streamUrl));  // create get request
-    Logger.d("[Sending] ==> ${streamUrl}");
+    Logger.d("[Sending] ==> $streamUrl");
     response = await client.send(request);
-    setState(() {
-      cameraState = "Starting...";
-    });
     Logger.d("[Received] <== ${response.headers}");
     String frameBoundary = response.headers['content-type'].split('boundary=')[1];
     final int frameBoundarySize = frameBoundary.length;
@@ -56,7 +53,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
             if (primaryBuffer.length >= imageSizeStart + 10) {
               contentType = utf8.decode(
                   primaryBuffer.sublist(frameBoundarySize+16, imageSizeStart + 10), allowMalformed: true).split("\r\n")[0];
-              //Logger.d("$contentType");
+              useSVG = contentType == "image/svg+xml";
               imageSizeStart = frameBoundarySize + 16 + contentType.length + 18;
               for (int i = imageSizeStart; i < primaryBuffer.length - 4; i++) {
                 strBuffer = utf8.decode(
@@ -139,15 +136,36 @@ class _CameraStreamViewState extends State<CameraStreamView> {
     if (binaryImage.isEmpty) {
       return Column(
         children: <Widget>[
-          Text("$cameraState")
+          Container(
+              padding: const EdgeInsets.all(20.0),
+              child: const CircularProgressIndicator()
+          )
         ],
       );
     } else {
-      return Column(
-        children: <Widget>[
-          Image.memory(Uint8List.fromList(binaryImage), gaplessPlayback: true),
-        ],
-      );
+      if (useSVG) {
+        Logger.d("Camera with SVG source");
+        return Column(
+          children: <Widget>[
+            SvgPicture.memory(
+              Uint8List.fromList(binaryImage),
+              height: 200.0,
+              placeholderBuilder: (BuildContext context) =>
+              new Container(
+                  padding: const EdgeInsets.all(20.0),
+                  child: const CircularProgressIndicator()
+              ),
+            )
+          ],
+        );
+      } else {
+        return Column(
+          children: <Widget>[
+            Image.memory(
+                Uint8List.fromList(binaryImage), gaplessPlayback: true),
+          ],
+        );
+      }
     }
   }
 
