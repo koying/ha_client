@@ -12,8 +12,6 @@ class CameraEntity extends Entity {
 
   @override
   Widget _buildAdditionalControlsForPage(BuildContext context) {
-    return CameraControlsWidget(
-      url: '$homeAssistantWebHost/api/camera_proxy_stream/$entityId?token=${this.attributes['access_token']}',
-    );
+    return CameraStreamView();
   }
 }

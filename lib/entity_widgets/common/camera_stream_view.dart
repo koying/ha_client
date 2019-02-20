@@ -1,22 +1,21 @@
 part of '../../main.dart';
 
-class CameraControlsWidget extends StatefulWidget {
+class CameraStreamView extends StatefulWidget {
 
-  final String url;
-
-  CameraControlsWidget({Key key, @required this.url}) : super(key: key);
+  CameraStreamView({Key key}) : super(key: key);
 
   @override
-  _CameraControlsWidgetState createState() => _CameraControlsWidgetState();
+  _CameraStreamViewState createState() => _CameraStreamViewState();
 }
 
-class _CameraControlsWidgetState extends State<CameraControlsWidget> {
+class _CameraStreamViewState extends State<CameraStreamView> {
 
   @override
   void initState() {
     super.initState();
-    _connect();
   }
+
+  CameraEntity _entity;
 
   http.Client client;
   http.StreamedResponse response;
@@ -24,12 +23,15 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
   String cameraState = "Connecting...";
   bool timeToStop = false;
   Completer streamCompleter;
+  bool started = false;
 
   void _connect() async {
+    started = true;
     timeToStop = false;
+    String streamUrl = '$homeAssistantWebHost/api/camera_proxy_stream/${_entity.entityId}?token=${_entity.attributes['access_token']}';
     client = new http.Client(); // create a client to make api calls
-    http.Request request = new http.Request("GET", Uri.parse(widget.url));  // create get request
-    Logger.d("[Sending] ==> ${widget.url}");
+    http.Request request = new http.Request("GET", Uri.parse(streamUrl));  // create get request
+    Logger.d("[Sending] ==> ${streamUrl}");
     response = await client.send(request);
     setState(() {
       cameraState = "Starting...";
@@ -126,6 +128,14 @@ class _CameraControlsWidgetState extends State<CameraControlsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (!started) {
+      _entity = EntityModel
+          .of(context)
+          .entityWrapper
+          .entity;
+      _connect();
+    }
+
     if (binaryImage.isEmpty) {
       return Column(
         children: <Widget>[
