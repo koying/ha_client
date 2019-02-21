@@ -149,7 +149,7 @@ class CardWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             EntityIcon(
-              iconSize: 50.0,
+              size: 50.0,
             ),
             Container(
               width: 26.0,

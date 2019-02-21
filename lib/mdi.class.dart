@@ -1,7 +1,7 @@
 part of 'main.dart';
 
 class MaterialDesignIcons {
-  static Map _defaultIconsByDomains = {
+  static final Map defaultIconsByDomains = {
     "light": "mdi:lightbulb",
     "switch": "mdi:flash",
     "binary_sensor": "mdi:checkbox-blank-circle-outline",
@@ -34,7 +34,7 @@ class MaterialDesignIcons {
     "alarm_control_panel" : "mdi:bell"
   };
 
-  static Map _defaultIconsByDeviceClass = {
+  static final Map defaultIconsByDeviceClass = {
     //"binary_sensor.battery": "mdi:", //TODO
     "binary_sensor.cold.on": "mdi:snowflake",
     "binary_sensor.cold.off": "mdi:thermometer",
@@ -92,7 +92,7 @@ class MaterialDesignIcons {
     "cover.window.closing": "mdi:window-open",
     "cover.window.opening": "mdi:window-open",
   };
-  static Map _iconsDataMap = {
+  static final Map iconsDataMap = {
     "mdi:access-point": 0xf002,
     "mdi:access-point-network": 0xf003,
     "mdi:account": 0xf004,
@@ -2890,7 +2890,7 @@ class MaterialDesignIcons {
     "mdi:blank": 0xf68c
   };
 
-  static Widget createIconWidgetFromEntityData(EntityWrapper data, double size, Color color) {
+  /*static Widget createIconWidgetFromEntityData(EntityWrapper data, double size, Color color) {
     if (data == null) {
       return null;
     }
@@ -2921,7 +2921,7 @@ class MaterialDesignIcons {
         color: color,
       );
     }
-  }
+  }*/
 
   static IconData createIconDataFromIconCode(int code) {
     return IconData(code, fontFamily: 'Material Design Icons');
@@ -2932,10 +2932,10 @@ class MaterialDesignIcons {
   }
 
   static int getIconCodeByIconName(String name) {
-    return _iconsDataMap[name] ?? 0;
+    return iconsDataMap[name] ?? 0;
   }
 
-  static int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
+  /*static int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
     String domain = entityId.split(".")[0];
     String iconNameByDomain = _defaultIconsByDomains["$domain.$state"] ?? _defaultIconsByDomains["$domain"];
     String iconNameByDeviceClass;
@@ -2948,6 +2948,6 @@ class MaterialDesignIcons {
     } else {
       return 0;
     }
-  }
+  }*/
 
 }

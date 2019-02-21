@@ -27,14 +27,20 @@ class BadgeWidget extends StatelessWidget {
       case "media_player":
       case "binary_sensor":
         {
-          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entityWrapper, iconSize, Colors.black);
+          badgeIcon = EntityIcon(
+            padding: EdgeInsets.all(0.0),
+            size: iconSize,
+            color: Colors.black
+          );
           break;
         }
       case "device_tracker":
         {
-          badgeIcon = MaterialDesignIcons.createIconWidgetFromEntityData(
-              entityModel.entityWrapper, iconSize, Colors.black);
+          badgeIcon = EntityIcon(
+              padding: EdgeInsets.all(0.0),
+              size: iconSize,
+              color: Colors.black
+          );
           onBadgeTextValue = entityModel.entityWrapper.entity.state;
           break;
         }

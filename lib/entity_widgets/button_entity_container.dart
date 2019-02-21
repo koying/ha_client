@@ -22,7 +22,7 @@ class ButtonEntityContainer extends StatelessWidget {
               fit: BoxFit.fitHeight,
               child: EntityIcon(
                 padding: EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 2.0),
-                iconSize: Sizes.iconSize,
+                size: Sizes.iconSize,
               )
             ),
           ),
