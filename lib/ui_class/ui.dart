@@ -8,8 +8,9 @@ class HomeAssistantUI {
     views = [];
   }
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, TabController tabController) {
     return TabBarView(
+      controller: tabController,
       children: _buildViews(context)
     );
   }

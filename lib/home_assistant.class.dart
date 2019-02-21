@@ -559,8 +559,8 @@ class HomeAssistant {
     }
   }
 
-  Widget buildViews(BuildContext context, bool lovelace) {
-    return ui.build(context);
+  Widget buildViews(BuildContext context, bool lovelace, TabController tabController) {
+    return ui.build(context, tabController);
   }
 
   Future<List> getHistory(String entityId) async {

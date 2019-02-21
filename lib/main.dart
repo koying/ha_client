@@ -146,7 +146,7 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => new _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
+class _MainPageState extends State<MainPage> with WidgetsBindingObserver, TickerProviderStateMixin {
   HomeAssistant _homeAssistant;
   //Map _instanceConfig;
   String _webSocketApiEndpoint;
@@ -255,6 +255,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
     _showInfoBottomBar(progress: true,);
     await _homeAssistant.fetch().then((result) {
       _hideBottomBar();
+      _viewsTabController = TabController(vsync: this, length: _homeAssistant.ui?.views?.length ?? 0);
     }).catchError((e) {
       _setErrorState(e);
     });
@@ -557,6 +558,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
               },
             ),
             bottom: empty ? null : TabBar(
+              controller: _viewsTabController,
               tabs: buildUIViewTabs(),
               isScrollable: true,
             ),
@@ -578,9 +580,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
       )
           :
-      _homeAssistant.buildViews(context, _useLovelaceUI),
+      _homeAssistant.buildViews(context, _useLovelaceUI, _viewsTabController),
     );
   }
+
+  TabController _viewsTabController;
 
   @override
   Widget build(BuildContext context) {
@@ -647,10 +651,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
         drawer: _buildAppDrawer(),
         primary: false,
         bottomNavigationBar: bottomBar,
-        body: DefaultTabController(
-          length: _homeAssistant.ui?.views?.length ?? 0,
-          child: _buildScaffoldBody(false),
-        ),
+        body: _buildScaffoldBody(false),
       );
     }
   }
@@ -658,6 +659,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _viewsTabController.dispose();
     if (_stateSubscription != null) _stateSubscription.cancel();
     if (_settingsSubscription != null) _settingsSubscription.cancel();
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
