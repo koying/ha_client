@@ -32,6 +32,7 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
   List _history;
   bool _needToUpdateHistory;
   DateTime _historyLastUpdated;
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -47,16 +48,20 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     if (_historyLastUpdated == null || now.difference(_historyLastUpdated).inSeconds > 30) {
       _historyLastUpdated = now;
       ha.getHistory(entityId).then((history){
-        setState(() {
-          _history = history.isNotEmpty ? history[0] : [];
-          _needToUpdateHistory = false;
-        });
+        if (!_disposed) {
+          setState(() {
+            _history = history.isNotEmpty ? history[0] : [];
+            _needToUpdateHistory = false;
+          });
+        }
       }).catchError((e) {
         Logger.e("Error loading $entityId history: $e");
-        setState(() {
-          _history = [];
-          _needToUpdateHistory = false;
-        });
+        if (!_disposed) {
+          setState(() {
+            _history = [];
+            _needToUpdateHistory = false;
+          });
+        }
       });
     }
   }
@@ -129,6 +134,12 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
       }
     }
 
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 
 }
