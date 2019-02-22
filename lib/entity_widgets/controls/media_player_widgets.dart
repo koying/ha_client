@@ -95,7 +95,7 @@ class MediaPlayerWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Icon(
-            MaterialDesignIcons.createIconDataFromIconName("mdi:movie"),
+            MaterialDesignIcons.getIconDataFromIconName("mdi:movie"),
             size: 150.0,
             color: EntityColor.stateColor("$state"),
           )
@@ -227,7 +227,7 @@ class MediaPlayerPlaybackControls extends StatelessWidget {
     if (showMenu) {
       result.add(
           IconButton(
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
+              icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
                   "mdi:dots-vertical")),
               onPressed: () => eventBus.fire(new ShowEntityPageEvent(entity))
           )
@@ -322,11 +322,11 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             IconButton(
-                icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:plus")),
+                icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:plus")),
                 onPressed: () => _setVolumeUp(entity.entityId)
             ),
             IconButton(
-                icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:minus")),
+                icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:minus")),
                 onPressed: () => _setVolumeDown(entity.entityId)
             )
           ],

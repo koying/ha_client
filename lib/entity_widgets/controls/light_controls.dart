@@ -10,6 +10,7 @@ class LightControlsWidget extends StatefulWidget {
 class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   int _tmpBrightness;
+  int _tmpWhiteValue;
   int _tmpColorTemp = 0;
   HSVColor _tmpColor = HSVColor.fromAHSV(1.0, 30.0, 0.0, 1.0);
   bool _changedHere = false;
@@ -17,6 +18,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   void _resetState(LightEntity entity) {
     _tmpBrightness = entity.brightness ?? 0;
+    _tmpWhiteValue = entity.whiteValue ?? 0;
     _tmpColorTemp = entity.colorTemp ?? entity.minMireds?.toInt();
     _tmpColor = entity.color ?? _tmpColor;
     _tmpEffect = entity.effect;
@@ -35,6 +37,17 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
             entity.domain, "turn_off", entity.entityId,
             null));
       }
+    });
+  }
+
+  void _setWhiteValue(LightEntity entity, double value) {
+    setState(() {
+      _tmpWhiteValue = value.round();
+      _changedHere = true;
+      eventBus.fire(new ServiceCallEvent(
+            entity.domain, "turn_on", entity.entityId,
+            {"white_value": _tmpWhiteValue}));
+
     });
   }
 
@@ -84,6 +97,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         _buildBrightnessControl(entity),
+        _buildWhiteValueControl(entity),
         _buildColorTempControl(entity),
         _buildColorControl(entity),
         _buildEffectControl(entity)
@@ -106,6 +120,27 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
         value: _tmpBrightness == null ? 0.0 : _tmpBrightness.toDouble(),
         leading: Icon(Icons.brightness_5),
         title: "Brightness",
+      );
+    } else {
+      return Container(width: 0.0, height: 0.0);
+    }
+  }
+
+  Widget _buildWhiteValueControl(LightEntity entity) {
+    if ((entity.supportWhiteValue) && (_tmpWhiteValue != null)) {
+      return UniversalSlider(
+        onChanged: (value) {
+          setState(() {
+            _changedHere = true;
+            _tmpWhiteValue = value.round();
+          });
+        },
+        min: 0.0,
+        max: 255.0,
+        onChangeEnd: (value) => _setWhiteValue(entity, value),
+        value: _tmpWhiteValue == null ? 0.0 : _tmpWhiteValue.toDouble(),
+        leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:file-word-box")),
+        title: "White",
       );
     } else {
       return Container(width: 0.0, height: 0.0);

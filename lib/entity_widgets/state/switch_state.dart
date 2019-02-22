@@ -71,13 +71,13 @@ class _SwitchStateWidgetState extends State<SwitchStateWidget> {
           children: <Widget>[
             IconButton(
               onPressed: () => _setNewState(false, entity),
-              icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:flash-off")),
+              icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:flash-off")),
               color: newState == EntityState.on ? Colors.black : Colors.blue,
               iconSize: Sizes.iconSize,
             ),
             IconButton(
                 onPressed: () => _setNewState(true, entity),
-                icon: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:flash")),
+                icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:flash")),
                 color: newState == EntityState.on ? Colors.blue : Colors.black,
                 iconSize: Sizes.iconSize
             )

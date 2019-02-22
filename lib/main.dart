@@ -359,7 +359,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           },
         ),
         new ListTile(
-          leading: Icon(MaterialDesignIcons.createIconDataFromIconName("mdi:github-circle")),
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:github-circle")),
           title: Text("Report an issue"),
           onTap: () {
             Navigator.of(context).pop();
@@ -530,7 +530,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             title: Text(_homeAssistant != null ? _homeAssistant.locationName : ""),
             actions: <Widget>[
               IconButton(
-                icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
+                icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
                     "mdi:dots-vertical"), color: Colors.white,),
                 onPressed: () {
                   showMenu(
@@ -572,7 +572,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                MaterialDesignIcons.createIconDataFromIconName("mdi:home-assistant"),
+                MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant"),
                 size: 100.0,
                 color: Colors.blue,
               ),

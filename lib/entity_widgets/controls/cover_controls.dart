@@ -157,7 +157,7 @@ class CoverTiltControlsWidget extends StatelessWidget {
     if (entity.supportOpenTilt) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName(
+            MaterialDesignIcons.getIconDataFromIconName(
                 "mdi:arrow-top-right"),
             size: Sizes.iconSize,
           ),
@@ -170,7 +170,7 @@ class CoverTiltControlsWidget extends StatelessWidget {
     if (entity.supportStopTilt) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
+            MaterialDesignIcons.getIconDataFromIconName("mdi:stop"),
             size: Sizes.iconSize,
           ),
           onPressed: () => _stop(entity)));
@@ -182,7 +182,7 @@ class CoverTiltControlsWidget extends StatelessWidget {
     if (entity.supportCloseTilt) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName(
+            MaterialDesignIcons.getIconDataFromIconName(
                 "mdi:arrow-bottom-left"),
             size: Sizes.iconSize,
           ),

@@ -24,7 +24,7 @@ class CoverStateWidget extends StatelessWidget {
     if (entity.supportOpen) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-up"),
+            MaterialDesignIcons.getIconDataFromIconName("mdi:arrow-up"),
             size: Sizes.iconSize,
           ),
           onPressed: entity.canBeOpened ? () => _open(entity) : null));
@@ -36,7 +36,7 @@ class CoverStateWidget extends StatelessWidget {
     if (entity.supportStop) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName("mdi:stop"),
+            MaterialDesignIcons.getIconDataFromIconName("mdi:stop"),
             size: Sizes.iconSize,
           ),
           onPressed: () => _stop(entity)));
@@ -48,7 +48,7 @@ class CoverStateWidget extends StatelessWidget {
     if (entity.supportClose) {
       buttons.add(IconButton(
           icon: Icon(
-            MaterialDesignIcons.createIconDataFromIconName("mdi:arrow-down"),
+            MaterialDesignIcons.getIconDataFromIconName("mdi:arrow-down"),
             size: Sizes.iconSize,
           ),
           onPressed: entity.canBeClosed ? () => _close(entity) : null));

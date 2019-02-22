@@ -2923,11 +2923,11 @@ class MaterialDesignIcons {
     }
   }*/
 
-  static IconData createIconDataFromIconCode(int code) {
+  static IconData getIconDataFromIconCode(int code) {
     return IconData(code, fontFamily: 'Material Design Icons');
   }
 
-  static IconData createIconDataFromIconName(String name) {
+  static IconData getIconDataFromIconName(String name) {
     return IconData(getIconCodeByIconName(name), fontFamily: 'Material Design Icons');
   }
 

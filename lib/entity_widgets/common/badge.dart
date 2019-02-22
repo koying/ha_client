@@ -14,11 +14,11 @@ class BadgeWidget extends StatelessWidget {
         {
           badgeIcon = entityModel.entityWrapper.entity.state == "below_horizon"
               ? Icon(
-            MaterialDesignIcons.createIconDataFromIconCode(0xf0dc),
+            MaterialDesignIcons.getIconDataFromIconCode(0xf0dc),
             size: iconSize,
           )
               : Icon(
-            MaterialDesignIcons.createIconDataFromIconCode(0xf5a8),
+            MaterialDesignIcons.getIconDataFromIconCode(0xf5a8),
             size: iconSize,
           );
           break;

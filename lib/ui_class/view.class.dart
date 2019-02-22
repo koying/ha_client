@@ -77,7 +77,7 @@ class HAView {
           Tab(
               icon:
               Icon(
-                MaterialDesignIcons.createIconDataFromIconName(
+                MaterialDesignIcons.getIconDataFromIconName(
                     iconName ?? "mdi:home-assistant"),
                 size: 24.0,
               )
@@ -92,7 +92,7 @@ class HAView {
       if (linkedEntity.icon != null && linkedEntity.icon.length > 0) {
         return Tab(
           icon: Icon(
-              MaterialDesignIcons.createIconDataFromIconName(
+              MaterialDesignIcons.getIconDataFromIconName(
                   linkedEntity.icon),
               size: 24.0,
             )

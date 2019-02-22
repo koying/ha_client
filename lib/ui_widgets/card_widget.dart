@@ -156,7 +156,7 @@ class CardWidget extends StatelessWidget {
               child: IconButton(
                   padding: EdgeInsets.all(0.0),
                   alignment: Alignment.centerRight,
-                  icon: Icon(MaterialDesignIcons.createIconDataFromIconName(
+                  icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
                       "mdi:dots-vertical")),
                   onPressed: () => eventBus.fire(new ShowEntityPageEvent(card.linkedEntityWrapper.entity))
               )
