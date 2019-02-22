@@ -45,11 +45,14 @@ class LightEntity extends Entity {
 
   HSVColor _getColor() {
     List hs = attributes["hs_color"];
+    List rgb = attributes["rgb_color"];
     try {
-      if ((hs != null) && (hs.length > 0)) {
+      if (hs != null && hs.isNotEmpty) {
         double sat = hs[1]/100;
         String ssat = sat.toStringAsFixed(2);
         return HSVColor.fromAHSV(1.0, hs[0], double.parse(ssat), 1.0);
+      } else if (rgb != null && rgb.isNotEmpty) {
+        return HSVColor.fromColor(Color.fromARGB(255, rgb[0], rgb[1], rgb[2]));
       } else {
         return null;
       }
