@@ -307,11 +307,11 @@ class _MediaPlayerControlsState extends State<MediaPlayerControls> {
     if (entity.state != EntityState.off && entity.state != EntityState.unknown && entity.state != EntityState.unavailable) {
       Widget muteWidget;
       Widget volumeStepWidget;
-      if (entity.supportVolumeMute) {
+      if (entity.supportVolumeMute  || entity.attributes["is_volume_muted"] != null) {
         bool isMuted = entity.attributes["is_volume_muted"] ?? false;
         muteWidget =
             IconButton(
-                icon: Icon(isMuted ? Icons.volume_off : Icons.volume_up),
+                icon: Icon(isMuted ? Icons.volume_up : Icons.volume_off),
                 onPressed: () => _setVolumeMute(!isMuted, entity.entityId)
             );
       } else {
