@@ -161,6 +161,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
   bool _useLovelaceUI;
+  int _previousViewCount;
 
   @override
   void initState() {
@@ -255,7 +256,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showInfoBottomBar(progress: true,);
     await _homeAssistant.fetch().then((result) {
       _hideBottomBar();
-      _viewsTabController = TabController(vsync: this, length: _homeAssistant.ui?.views?.length ?? 0);
+      int currentViewCount = _homeAssistant.ui?.views?.length ?? 0;
+      if (_previousViewCount != currentViewCount) {
+        Logger.d("Views count changed ($_previousViewCount->$currentViewCount). Creating new tabs controller.");
+        _viewsTabController = TabController(vsync: this, length: currentViewCount);
+        _previousViewCount = currentViewCount;
+      }
     }).catchError((e) {
       _setErrorState(e);
     });
