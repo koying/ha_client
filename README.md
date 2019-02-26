@@ -1,4 +1,4 @@
-(![flutter](https://somegeeky.website/assets/badges/flutter_badge_v3.svg))[https://somegeeky.website/badges/flutter] (![dart](https://somegeeky.website/assets/badges/dart_badge_v3.svg))[https://somegeeky.website/badges/dart]
+[![flutter](https://somegeeky.website/assets/badges/flutter_badge_v3.svg)](https://somegeeky.website/badges/flutter) [![dart](https://somegeeky.website/assets/badges/dart_badge_v3.svg)](https://somegeeky.website/badges/dart)
 # HA Client
 ## Native Android client for Home Assistant
 ### With Lovelace UI support
