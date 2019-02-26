@@ -3,8 +3,6 @@
 ## Native Android client for Home Assistant
 ### With Lovelace UI support
 
-Home Assistant Android client on Dart with Flutter.
-
 Visit [homemade.systems](http://ha-client.homemade.systems/) for more info.
 
 Join [Google Group](https://groups.google.com/d/forum/ha-client-alpha-testing) to become an alpha tester
