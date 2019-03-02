@@ -649,7 +649,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         primary: false,
         drawer: _buildAppDrawer(),
         bottomNavigationBar: bottomBar,
-        body: _buildScaffoldBody(true)
+        body: HomeAssistantModel(
+          child: _buildScaffoldBody(true),
+          homeAssistant: _homeAssistant,
+        )
       );
     } else {
       return Scaffold(

@@ -9,12 +9,8 @@ class HomeAssistant {
   SendMessageQueue _messageQueue;
 
   int _currentMessageId = 0;
-  int _statesMessageId = 0;
-  int _servicesMessageId = 0;
   int _subscriptionMessageId = 0;
-  int _configMessageId = 0;
-  int _userInfoMessageId = 0;
-  int _lovelaceMessageId = 0;
+  Map<int, Completer> _messageResolver = {};
   EntityCollection entities;
   HomeAssistantUI ui;
   Map _instanceConfig = {};
@@ -23,12 +19,7 @@ class HomeAssistant {
   Map _rawLovelaceData;
 
   Completer _fetchCompleter;
-  Completer _statesCompleter;
-  Completer _servicesCompleter;
-  Completer _lovelaceCompleter;
-  Completer _configCompleter;
   Completer _connectionCompleter;
-  Completer _userInfoCompleter;
   Timer _connectionTimer;
   Timer _fetchTimer;
   bool autoReconnect = false;
@@ -211,7 +202,7 @@ class HomeAssistant {
   _handleMessage(String message) {
     var data = json.decode(message);
     if (data["type"] == "auth_required") {
-      _sendAuthMessageRaw('{"type": "auth","access_token": "$_password"}');
+      _sendAuthMessage('{"type": "auth","access_token": "$_password"}');
     } else if (data["type"] == "auth_ok") {
       _completeConnecting(null);
       _sendSubscribe();
@@ -219,17 +210,12 @@ class HomeAssistant {
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       Logger.d("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
-      if (data["id"] == _configMessageId) {
-        _parseConfig(data);
-      } else if (data["id"] == _statesMessageId) {
-        _parseEntities(data);
-      } else if (data["id"] == _lovelaceMessageId) {
-        _handleLovelace(data);
-      } else if (data["id"] == _servicesMessageId) {
-        _parseServices(data);
-      } else if (data["id"] == _userInfoMessageId) {
-        _parseUserInfo(data);
+      if (data["success"]) {
+        _messageResolver[data["id"]]?.complete(data);
+      } else {
+        _messageResolver[data["id"]]?.completeError(data["error"]["message"]);
       }
+      _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
         Logger.d("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
@@ -247,64 +233,48 @@ class HomeAssistant {
   void _sendSubscribe() {
     _incrementMessageId();
     _subscriptionMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}', false);
+    _send('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}', false);
   }
 
-  Future _getConfig() {
-    _configCompleter = new Completer();
-    _incrementMessageId();
-    _configMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_configMessageId, "type": "get_config"}', false);
-
-    return _configCompleter.future;
+  Future _getConfig() async {
+    await _sendInitialMessage("get_config").then((data) => _instanceConfig = Map.from(data["result"]));
   }
 
-  Future _getStates() {
-    _statesCompleter = new Completer();
-    _incrementMessageId();
-    _statesMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_statesMessageId, "type": "get_states"}', false);
-
-    return _statesCompleter.future;
+  Future _getStates() async {
+    await _sendInitialMessage("get_states").then((data) => entities.parse(data["result"]));
   }
 
-  Future _getLovelace() {
-    _lovelaceCompleter = new Completer();
-    _incrementMessageId();
-    _lovelaceMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_lovelaceMessageId, "type": "lovelace/config"}', false);
-
-    return _lovelaceCompleter.future;
+  Future _getLovelace() async {
+    await _sendInitialMessage("lovelace/config").then((data) => _rawLovelaceData = data["result"]);
   }
 
-  Future _getUserInfo() {
-    _userInfoCompleter = new Completer();
-    _incrementMessageId();
-    _userInfoMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_userInfoMessageId, "type": "auth/current_user"}', false);
-
-    return _userInfoCompleter.future;
+  Future _getUserInfo() async {
+    _userName = null;
+    await _sendInitialMessage("auth/current_user").then((data) => _userName = data["result"]["name"]);
   }
 
-  Future _getServices() {
-    _servicesCompleter = new Completer();
-    _incrementMessageId();
-    _servicesMessageId = _currentMessageId;
-    _sendMessageRaw('{"id": $_servicesMessageId, "type": "get_services"}', false);
-
-    return _servicesCompleter.future;
+  Future _getServices() async {
+    await _sendInitialMessage("get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
   }
 
   _incrementMessageId() {
     _currentMessageId += 1;
   }
 
-  void _sendAuthMessageRaw(String message) {
+  void _sendAuthMessage(String message) {
     Logger.d( "[Sending] ==> auth request");
     _hassioChannel.sink.add(message);
   }
 
-  _sendMessageRaw(String message, bool queued) {
+  Future _sendInitialMessage(String type) {
+    Completer _completer = Completer();
+    _incrementMessageId();
+    _messageResolver[_currentMessageId] = _completer;
+    _send('{"id": $_currentMessageId, "type": "$type"}', false);
+    return _completer.future;
+  }
+
+  _send(String message, bool queued) {
     var sendCompleter = Completer();
     if (queued) _messageQueue.add(message);
     _connection().then((r) {
@@ -359,7 +329,7 @@ class HomeAssistant {
       }
       message += '}';
     }
-    return _sendMessageRaw(message, true);
+    return _send(message, true);
   }
 
   void _handleEntityStateChange(Map eventData) {
@@ -369,39 +339,6 @@ class HomeAssistant {
       entityId: data["entity_id"],
       needToRebuildUI: entities.updateState(data)
     ));
-  }
-
-  void _parseConfig(Map data) {
-    if (data["success"] == true) {
-      _instanceConfig = Map.from(data["result"]);
-      _configCompleter.complete();
-    } else {
-      _configCompleter.completeError({"errorCode": 2, "errorMessage": data["error"]["message"]});
-    }
-  }
-
-  void _parseUserInfo(Map data) {
-    if (data["success"] == true) {
-      _userName = data["result"]["name"];
-    } else {
-      _userName = null;
-      Logger.w("There was an error getting current user: $data");
-    }
-    _userInfoCompleter.complete();
-  }
-
-  void _parseServices(response) {
-    _servicesCompleter.complete();
-  }
-
-  void _handleLovelace(response) {
-    if (response["success"] == true) {
-      _rawLovelaceData = response["result"];
-    } else {
-      Logger.e("There was an error getting Lovelace config: $response");
-      _rawLovelaceData = null;
-    }
-    _lovelaceCompleter.complete();
   }
 
   void _parseLovelace() {
@@ -512,15 +449,6 @@ class HomeAssistant {
       }
     });
     return result;
-  }
-
-  void _parseEntities(response) async {
-    if (response["success"] == false) {
-      _statesCompleter.completeError({"errorCode": 3, "errorMessage": response["error"]["message"]});
-      return;
-    }
-    entities.parse(response["result"]);
-    _statesCompleter.complete();
   }
 
   void _createUI() {
