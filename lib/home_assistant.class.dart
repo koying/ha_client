@@ -210,11 +210,7 @@ class HomeAssistant {
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       Logger.d("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
-      if (data["success"]) {
-        _messageResolver[data["id"]]?.complete(data);
-      } else {
-        _messageResolver[data["id"]]?.completeError(data["error"]["message"]);
-      }
+      _messageResolver[data["id"]]?.complete(data);
       _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
@@ -255,6 +251,30 @@ class HomeAssistant {
 
   Future _getServices() async {
     await _sendInitialMessage("get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
+  }
+
+  Future updateEntityThumbnail(Entity entity) async {
+    if (entity.thumbnailBase64 == null) {
+      _incrementMessageId();
+      _messageResolver[_currentMessageId] = Completer();
+      String type;
+      if (entity.domain == "camera") {
+        type = "camera_thumbnail";
+      } else if (entity.domain == "media_player") {
+        type = "media_player_thumbnail";
+      }
+      _send('{"id": $_currentMessageId, "type": "$type", "entity_id": "${entity.entityId}"}', false);
+      await _messageResolver[_currentMessageId].future.then((data){
+        if (data['success']) {
+          Logger.d("Got entity thumbnail for ${entity
+              .entityId}. Content-type: ${data['result']['content_type']}");
+          if (!data['result']['content_type'].contains('xml')) {
+            entity.thumbnailBase64 = data['result']['content'];
+          }
+        }
+      });
+    }
+
   }
 
   _incrementMessageId() {

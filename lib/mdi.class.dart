@@ -22,6 +22,7 @@ class MaterialDesignIcons {
     "cover.closed": "mdi:window-closed",
     "cover.closing": "mdi:window-open",
     "cover.opening": "mdi:window-open",
+    "camera": "mdi:cctv",
     "lock.locked": "mdi:lock",
     "lock.unlocked": "mdi:lock-open",
     "fan": "mdi:fan",

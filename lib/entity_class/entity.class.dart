@@ -67,6 +67,7 @@ class Entity {
   String state;
   String displayState;
   DateTime _lastUpdated;
+  String thumbnailBase64;
 
   List<Entity> childEntities = [];
   List<String> attributesToShow = ["all"];

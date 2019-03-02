@@ -649,10 +649,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         primary: false,
         drawer: _buildAppDrawer(),
         bottomNavigationBar: bottomBar,
-        body: HomeAssistantModel(
-          child: _buildScaffoldBody(true),
-          homeAssistant: _homeAssistant,
-        )
+        body: _buildScaffoldBody(true)
       );
     } else {
       return Scaffold(
@@ -660,7 +657,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         drawer: _buildAppDrawer(),
         primary: false,
         bottomNavigationBar: bottomBar,
-        body: _buildScaffoldBody(false),
+        body: HomeAssistantModel(
+          child: _buildScaffoldBody(false),
+          homeAssistant: _homeAssistant
+        ),
       );
     }
   }
