@@ -1,19 +1,13 @@
 part of '../main.dart';
 
-class EntityIcon extends StatefulWidget {
+class EntityIcon extends StatelessWidget {
 
   final EdgeInsetsGeometry padding;
   final double size;
   final Color color;
 
-  EntityIcon({Key key, this.padding: const EdgeInsets.fromLTRB(
-      Sizes.leftWidgetPadding, 0.0, 12.0, 0.0), this.size: Sizes.iconSize, this.color}) : super(key: key);
-
-  @override
-  _EntityIconState createState() => _EntityIconState();
-}
-
-class _EntityIconState extends State<EntityIcon> {
+  const EntityIcon({Key key, this.color, this.size: Sizes.iconSize, this.padding: const EdgeInsets.fromLTRB(
+      Sizes.leftWidgetPadding, 0.0, 12.0, 0.0)}) : super(key: key);
 
   int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
     String domain = entityId.split(".")[0];
@@ -30,24 +24,13 @@ class _EntityIconState extends State<EntityIcon> {
     }
   }
 
-  Widget buildIcon(HomeAssistantModel homeAssistantModel, EntityWrapper data, Color color) {
+  Widget buildIcon(EntityWrapper data, Color color) {
     if (data == null) {
-      return Container(width: widget.size, height: widget.size,);
+      return null;
     }
-    if ((data.entity.domain == "camera" || data.entity.domain == "media_player") && data.entity.thumbnailBase64 == null) {
-      homeAssistantModel.homeAssistant.updateEntityThumbnail(data.entity);
-    }
-    if (data.entity.thumbnailBase64 != null) {
+    if (data.entity.entityPicture != null) {
       return CircleAvatar(
-        radius: widget.size/2,
-        backgroundColor: Colors.white,
-        backgroundImage: MemoryImage(
-          Base64Codec().decode(data.entity.thumbnailBase64),
-        )
-      );
-    } else if (data.entity.entityPicture != null && data.entity.domain != "camera" && data.entity.domain != "media_player") {
-      return CircleAvatar(
-        radius: widget.size/2,
+        radius: size/2,
         backgroundColor: Colors.white,
         backgroundImage: CachedNetworkImageProvider(
           "$homeAssistantWebHost${data.entity.entityPicture}",
@@ -64,7 +47,7 @@ class _EntityIconState extends State<EntityIcon> {
       }
       return Icon(
         IconData(iconCode, fontFamily: 'Material Design Icons'),
-        size: widget.size,
+        size: size,
         color: color,
       );
     }
@@ -73,13 +56,11 @@ class _EntityIconState extends State<EntityIcon> {
   @override
   Widget build(BuildContext context) {
     final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
-    final HomeAssistantModel homeAssistantModel = HomeAssistantModel.of(context);
     return Padding(
-      padding: widget.padding,
+      padding: padding,
       child: buildIcon(
-          homeAssistantModel,
           entityWrapper,
-          widget.color ?? EntityColor.stateColor(entityWrapper.entity.state)
+          color ?? EntityColor.stateColor(entityWrapper.entity.state)
       ),
     );
   }

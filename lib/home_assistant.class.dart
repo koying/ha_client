@@ -253,30 +253,6 @@ class HomeAssistant {
     await _sendInitialMessage("get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
   }
 
-  Future updateEntityThumbnail(Entity entity) async {
-    if (entity.thumbnailBase64 == null) {
-      _incrementMessageId();
-      _messageResolver[_currentMessageId] = Completer();
-      String type;
-      if (entity.domain == "camera") {
-        type = "camera_thumbnail";
-      } else if (entity.domain == "media_player") {
-        type = "media_player_thumbnail";
-      }
-      _send('{"id": $_currentMessageId, "type": "$type", "entity_id": "${entity.entityId}"}', false);
-      await _messageResolver[_currentMessageId].future.then((data){
-        if (data['success']) {
-          Logger.d("Got entity thumbnail for ${entity
-              .entityId}. Content-type: ${data['result']['content_type']}");
-          if (!data['result']['content_type'].contains('xml')) {
-            entity.thumbnailBase64 = data['result']['content'];
-          }
-        }
-      });
-    }
-
-  }
-
   _incrementMessageId() {
     _currentMessageId += 1;
   }
