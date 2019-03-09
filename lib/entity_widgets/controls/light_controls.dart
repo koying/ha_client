@@ -180,21 +180,6 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
     }
   }
 
-  void _showColorPicker(LightEntity entity) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: EdgeInsets.all(0.0),
-          contentPadding: EdgeInsets.all(0.0),
-          content: LightColorPicker(
-            color: _tmpColor,
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildEffectControl(LightEntity entity) {
     if ((entity.supportEffect) && (entity.effectList != null)) {
       return ModeSelectorWidget(

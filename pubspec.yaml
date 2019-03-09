@@ -59,7 +59,7 @@ flutter:
   fonts:
     - family: "Material Design Icons"
       fonts:
-        - asset: fonts/materialdesignicons-webfont.ttf
+        - asset: fonts/materialdesignicons-webfont-3-5-95.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:
