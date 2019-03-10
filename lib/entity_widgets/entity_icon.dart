@@ -6,8 +6,7 @@ class EntityIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const EntityIcon({Key key, this.color, this.size: Sizes.iconSize, this.padding: const EdgeInsets.fromLTRB(
-      Sizes.leftWidgetPadding, 0.0, 12.0, 0.0)}) : super(key: key);
+  const EntityIcon({Key key, this.color, this.size: Sizes.iconSize, this.padding: const EdgeInsets.all(0.0)}) : super(key: key);
 
   int getDefaultIconByEntityId(String entityId, String deviceClass, String state) {
     String domain = entityId.split(".")[0];
@@ -29,8 +28,22 @@ class EntityIcon extends StatelessWidget {
       return null;
     }
     if (data.entity.entityPicture != null) {
+      return Container(
+        height: size+12,
+        width: size+12,
+        decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              fit:BoxFit.cover,
+              image: CachedNetworkImageProvider(
+                "$homeAssistantWebHost${data.entity.entityPicture}",
+              ),
+            )
+        ),
+      );
       return CircleAvatar(
-        radius: size/2,
+        radius: size/2+0,
+
         backgroundColor: Colors.white,
         backgroundImage: CachedNetworkImageProvider(
           "$homeAssistantWebHost${data.entity.entityPicture}",
@@ -45,10 +58,13 @@ class EntityIcon extends StatelessWidget {
         iconCode = getDefaultIconByEntityId(data.entity.entityId,
             data.entity.deviceClass, data.entity.state); //
       }
-      return Icon(
-        IconData(iconCode, fontFamily: 'Material Design Icons'),
-        size: size,
-        color: color,
+      return Padding(
+          padding: EdgeInsets.fromLTRB(6.0, 6.0, 6.0, 6.0),
+          child: Icon(
+          IconData(iconCode, fontFamily: 'Material Design Icons'),
+          size: size,
+          color: color,
+        )
       );
     }
   }

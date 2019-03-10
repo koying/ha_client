@@ -30,7 +30,9 @@ class DefaultEntityContainer extends StatelessWidget {
           Flexible(
             fit: FlexFit.tight,
             flex: 3,
-            child: EntityName(),
+            child: EntityName(
+              padding: EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+            ),
           ),
           state
         ],

@@ -103,7 +103,7 @@ class CardWidget extends StatelessWidget {
       if (!entity.entity.isHidden) {
         body.add(
             Padding(
-              padding: EdgeInsets.fromLTRB(0.0, Sizes.rowPadding, 0.0, Sizes.rowPadding),
+              padding: EdgeInsets.fromLTRB(10.0, 4.0, 0.0, 4.0),
               child: EntityModel(
                   entityWrapper: entity,
                   handleTap: true,
