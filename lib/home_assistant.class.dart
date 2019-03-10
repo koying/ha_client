@@ -15,6 +15,7 @@ class HomeAssistant {
   HomeAssistantUI ui;
   Map _instanceConfig = {};
   String _userName;
+  HSVColor savedColor;
 
   Map _rawLovelaceData;
 

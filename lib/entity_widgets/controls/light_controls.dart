@@ -171,9 +171,42 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildColorControl(LightEntity entity) {
     if (entity.supportColor) {
-      return LightColorPicker(
-        color: _tmpColor,
-        onColorSelected: (color) => _setColor(entity, color),
+      HSVColor savedColor = HomeAssistantModel.of(context)?.homeAssistant?.savedColor;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          LightColorPicker(
+            color: _tmpColor,
+            onColorSelected: (color) => _setColor(entity, color),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 0.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  color: _tmpColor.toColor(),
+                  child: Text('Copy color'),
+                  onPressed: _tmpColor == null ? null : () {
+                    setState(() {
+                      HomeAssistantModel
+                          .of(context)
+                          .homeAssistant
+                          .savedColor = _tmpColor;
+                    });
+                  },
+                ),
+                FlatButton(
+                  color: savedColor.toColor(),
+                  child: Text('Paste color'),
+                  onPressed: savedColor == null ? null : () {
+                    _setColor(entity, savedColor);
+                  },
+                )
+              ],
+            )
+          )
+        ],
       );
     } else {
       return Container(width: 0.0, height: 0.0);
