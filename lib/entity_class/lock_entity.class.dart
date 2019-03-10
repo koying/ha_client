@@ -7,6 +7,15 @@ class LockEntity extends Entity {
 
   @override
   Widget _buildStatePart(BuildContext context) {
-    return LockStateWidget();
+    return LockStateWidget(
+      assumedState: false,
+    );
+  }
+
+  @override
+  Widget _buildStatePartForPage(BuildContext context) {
+    return LockStateWidget(
+      assumedState: true,
+    );
   }
 }
