@@ -67,6 +67,7 @@ class Entity {
   String state;
   String displayState;
   DateTime _lastUpdated;
+  bool missed = false;
 
   List<Entity> childEntities = [];
   List<String> attributesToShow = ["all"];
@@ -95,6 +96,12 @@ class Entity {
 
   Entity(Map rawData) {
     update(rawData);
+  }
+
+  Entity.missed(String entityId) {
+    missed = true;
+    attributes = {"hidden": false};
+    this.entityId = entityId;
   }
 
   void update(Map rawData) {

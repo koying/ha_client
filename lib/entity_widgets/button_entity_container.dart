@@ -9,27 +9,30 @@ class ButtonEntityContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
-
-    return InkWell(
-      onTap: () => entityWrapper.handleTap(),
-      onLongPress: () => entityWrapper.handleHold(),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          FractionallySizedBox(
-            widthFactor: 0.4,
-            child: FittedBox(
-              fit: BoxFit.fitHeight,
-              child: EntityIcon(
-                padding: EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 2.0),
-                size: Sizes.iconSize,
-              )
+    if (entityWrapper.entity.missed) {
+      return MissedEntityWidget();
+    } else {
+      return InkWell(
+        onTap: () => entityWrapper.handleTap(),
+        onLongPress: () => entityWrapper.handleHold(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            FractionallySizedBox(
+              widthFactor: 0.4,
+              child: FittedBox(
+                  fit: BoxFit.fitHeight,
+                  child: EntityIcon(
+                    padding: EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 2.0),
+                    size: Sizes.iconSize,
+                  )
+              ),
             ),
-          ),
-          _buildName()
-        ],
-      ),
-    );
+            _buildName()
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildName() {

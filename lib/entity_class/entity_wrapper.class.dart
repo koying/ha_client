@@ -14,10 +14,12 @@ class EntityWrapper {
     String displayName,
     this.uiAction
   }) {
-    this.icon = icon ?? entity.icon;
-    this.displayName = displayName ?? entity.displayName;
-    if (this.uiAction == null) {
-      this.uiAction = EntityUIAction();
+    if (!entity.missed) {
+      this.icon = icon ?? entity.icon;
+      this.displayName = displayName ?? entity.displayName;
+      if (uiAction == null) {
+        uiAction = EntityUIAction();
+      }
     }
   }
 

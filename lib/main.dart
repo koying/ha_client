@@ -40,6 +40,7 @@ part 'entity_class/alarm_control_panel.class.dart';
 part 'entity_widgets/common/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
+part 'entity_widgets/missed_entity.dart';
 part 'entity_widgets/glance_entity_container.dart';
 part 'entity_widgets/button_entity_container.dart';
 part 'entity_widgets/common/entity_attributes_list.dart';

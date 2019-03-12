@@ -22,6 +22,9 @@ class GlanceEntityContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
+    if (entityWrapper.entity.missed) {
+      return MissedEntityWidget();
+    }
     List<Widget> result = [];
     if (!nameInTheBottom) {
       if (showName) {

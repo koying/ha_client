@@ -11,8 +11,17 @@ class CardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if ((card.linkedEntityWrapper!= null) && (card.linkedEntityWrapper.entity.isHidden)) {
-      return Container(width: 0.0, height: 0.0,);
+    if (card.linkedEntityWrapper!= null) {
+      if (card.linkedEntityWrapper.entity.isHidden) {
+        return Container(width: 0.0, height: 0.0,);
+      }
+      if (card.linkedEntityWrapper.entity.missed) {
+        return EntityModel(
+          entityWrapper: card.linkedEntityWrapper,
+          child: MissedEntityWidget(),
+          handleTap: false,
+        );
+      }
     }
 
     switch (card.type) {
@@ -133,18 +142,15 @@ class CardWidget extends StatelessWidget {
   }
 
   Widget _buildAlarmPanelCard(BuildContext context) {
-    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
-      return Container(width: 0, height: 0,);
-    } else {
-      List<Widget> body = [];
-      body.add(CardHeaderWidget(
-        name: card.name ?? "",
-        subtitle: Text("${card.linkedEntityWrapper.entity.displayState}",
-          style: TextStyle(
+    List<Widget> body = [];
+    body.add(CardHeaderWidget(
+      name: card.name ?? "",
+      subtitle: Text("${card.linkedEntityWrapper.entity.displayState}",
+        style: TextStyle(
             color: Colors.grey
-          ),
         ),
-        trailing: Row(
+      ),
+      trailing: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -152,36 +158,35 @@ class CardWidget extends StatelessWidget {
               size: 50.0,
             ),
             Container(
-              width: 26.0,
-              child: IconButton(
-                  padding: EdgeInsets.all(0.0),
-                  alignment: Alignment.centerRight,
-                  icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
-                      "mdi:dots-vertical")),
-                  onPressed: () => eventBus.fire(new ShowEntityPageEvent(card.linkedEntityWrapper.entity))
-              )
+                width: 26.0,
+                child: IconButton(
+                    padding: EdgeInsets.all(0.0),
+                    alignment: Alignment.centerRight,
+                    icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
+                        "mdi:dots-vertical")),
+                    onPressed: () => eventBus.fire(new ShowEntityPageEvent(card.linkedEntityWrapper.entity))
+                )
             )
           ]
-        ),
-      ));
-      body.add(
+      ),
+    ));
+    body.add(
         AlarmControlPanelControlsWidget(
           extended: true,
           states: card.states,
         )
-      );
-      return Card(
+    );
+    return Card(
         child: EntityModel(
-          entityWrapper: card.linkedEntityWrapper,
-          handleTap: null,
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: body
-          )
+            entityWrapper: card.linkedEntityWrapper,
+            handleTap: null,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: body
+            )
         )
-      );
-    }
+    );
   }
 
   Widget _buildGlanceCard(BuildContext context) {
@@ -227,33 +232,25 @@ class CardWidget extends StatelessWidget {
   }
 
   Widget _buildMediaControlsCard(BuildContext context) {
-    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
-      return Container(width: 0, height: 0,);
-    } else {
-      return Card(
-          child: EntityModel(
-              entityWrapper: card.linkedEntityWrapper,
-              handleTap: null,
-              child: MediaPlayerWidget()
-          )
-      );
-    }
+    return Card(
+        child: EntityModel(
+            entityWrapper: card.linkedEntityWrapper,
+            handleTap: null,
+            child: MediaPlayerWidget()
+        )
+    );
   }
 
   Widget _buildEntityButtonCard(BuildContext context) {
-    if (card.linkedEntityWrapper == null || card.linkedEntityWrapper.entity == null) {
-      return Container(width: 0, height: 0,);
-    } else {
-      card.linkedEntityWrapper.displayName = card.name?.toUpperCase() ??
-          card.linkedEntityWrapper.displayName.toUpperCase();
-      return Card(
-          child: EntityModel(
-              entityWrapper: card.linkedEntityWrapper,
-              child: ButtonEntityContainer(),
-              handleTap: true
-          )
-      );
-    }
+    card.linkedEntityWrapper.displayName = card.name?.toUpperCase() ??
+        card.linkedEntityWrapper.displayName.toUpperCase();
+    return Card(
+        child: EntityModel(
+            entityWrapper: card.linkedEntityWrapper,
+            child: ButtonEntityContainer(),
+            handleTap: true
+        )
+    );
   }
 
   Widget _buildUnsupportedCard(BuildContext context) {

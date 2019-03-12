@@ -401,6 +401,8 @@ class HomeAssistant {
           if (rawEntity is String) {
             if (entities.isExist(rawEntity)) {
               card.entities.add(EntityWrapper(entity: entities.get(rawEntity)));
+            } else {
+              card.entities.add(EntityWrapper(entity: Entity.missed(rawEntity)));
             }
           } else {
             if (entities.isExist(rawEntity["entity"])) {
@@ -413,6 +415,8 @@ class HomeAssistant {
                       uiAction: EntityUIAction(rawEntityData: rawEntity)
                   )
               );
+            } else {
+              card.entities.add(EntityWrapper(entity: Entity.missed(rawEntity["entity"])));
             }
           }
         });
@@ -427,6 +431,8 @@ class HomeAssistant {
                   displayName: rawCard["name"],
                   uiAction: EntityUIAction(rawEntityData: rawCard)
               );
+            } else {
+              card.linkedEntityWrapper = EntityWrapper(entity: Entity.missed(en));
             }
           } else {
             if (entities.isExist(en["entity"])) {
@@ -437,6 +443,8 @@ class HomeAssistant {
                   displayName: en["name"],
                   uiAction: EntityUIAction(rawEntityData: rawCard)
               );
+            } else {
+              card.linkedEntityWrapper = EntityWrapper(entity: Entity.missed(en["entity"]));
             }
           }
         }
