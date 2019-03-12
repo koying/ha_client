@@ -14,7 +14,7 @@ class EntityWrapper {
     String displayName,
     this.uiAction
   }) {
-    if (!entity.missed) {
+    if (entity.statelessType == StatelessEntityType.NONE || entity.statelessType == StatelessEntityType.CALL_SERVICE || entity.statelessType == StatelessEntityType.WEBLINK) {
       this.icon = icon ?? entity.icon;
       this.displayName = displayName ?? entity.displayName;
       if (uiAction == null) {
@@ -51,6 +51,16 @@ class EntityWrapper {
         break;
       }
 
+      case EntityUIAction.navigate: {
+        if (uiAction.tapService.startsWith("/")) {
+          //TODO handle local urls
+          Logger.w("Local urls is not supported yet");
+        } else {
+          HAUtils.launchURL(uiAction.tapService);
+        }
+        break;
+      }
+
       default: {
         break;
       }
@@ -78,6 +88,16 @@ class EntityWrapper {
         case EntityUIAction.moreInfo: {
           eventBus.fire(
               new ShowEntityPageEvent(entity));
+          break;
+        }
+
+        case EntityUIAction.navigate: {
+          if (uiAction.holdService.startsWith("/")) {
+            //TODO handle local urls
+            Logger.w("Local urls is not supported yet");
+          } else {
+            HAUtils.launchURL(uiAction.holdService);
+          }
           break;
         }
 

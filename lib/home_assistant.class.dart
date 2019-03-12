@@ -405,7 +405,47 @@ class HomeAssistant {
               card.entities.add(EntityWrapper(entity: Entity.missed(rawEntity)));
             }
           } else {
-            if (entities.isExist(rawEntity["entity"])) {
+            if (rawEntity["type"] == "divider") {
+              card.entities.add(EntityWrapper(entity: Entity.divider()));
+            } else if (rawEntity["type"] == "section") {
+              card.entities.add(EntityWrapper(entity: Entity.section(rawEntity["label"] ?? "")));
+            } else if (rawEntity["type"] == "call-service") {
+              Map uiActionData = {
+                "tap_action": {
+                  "action": EntityUIAction.callService,
+                  "service": rawEntity["service"],
+                  "service_data": rawEntity["service_data"]
+                },
+                "hold_action": EntityUIAction.none
+              };
+              card.entities.add(EntityWrapper(
+                  entity: Entity.callService(
+                    icon: rawEntity["icon"],
+                    name: rawEntity["name"],
+                    service: rawEntity["service"],
+                    actionName: rawEntity["action_name"]
+                  ),
+                uiAction: EntityUIAction(rawEntityData: uiActionData)
+              )
+              );
+            } else if (rawEntity["type"] == "weblink") {
+              Map uiActionData = {
+                "tap_action": {
+                  "action": EntityUIAction.navigate,
+                  "service": rawEntity["url"]
+                },
+                "hold_action": EntityUIAction.none
+              };
+              card.entities.add(EntityWrapper(
+                  entity: Entity.weblink(
+                      icon: rawEntity["icon"],
+                      name: rawEntity["name"],
+                      url: rawEntity["url"]
+                  ),
+                  uiAction: EntityUIAction(rawEntityData: uiActionData)
+              )
+              );
+            } else if (entities.isExist(rawEntity["entity"])) {
               Entity e = entities.get(rawEntity["entity"]);
               card.entities.add(
                   EntityWrapper(

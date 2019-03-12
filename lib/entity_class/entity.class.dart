@@ -1,5 +1,14 @@
 part of '../main.dart';
 
+class StatelessEntityType {
+  static const NONE = 0;
+  static const MISSED = 1;
+  static const DIVIDER = 2;
+  static const SECTION = 3;
+  static const CALL_SERVICE = 4;
+  static const WEBLINK = 5;
+}
+
 class Entity {
 
   static List badgeDomains = [
@@ -67,7 +76,7 @@ class Entity {
   String state;
   String displayState;
   DateTime _lastUpdated;
-  bool missed = false;
+  int statelessType = 0;
 
   List<Entity> childEntities = [];
   List<String> attributesToShow = ["all"];
@@ -99,9 +108,32 @@ class Entity {
   }
 
   Entity.missed(String entityId) {
-    missed = true;
+    statelessType = StatelessEntityType.MISSED;
     attributes = {"hidden": false};
     this.entityId = entityId;
+  }
+
+  Entity.divider() {
+    statelessType = StatelessEntityType.DIVIDER;
+    attributes = {"hidden": false};
+  }
+
+  Entity.section(String label) {
+    statelessType = StatelessEntityType.SECTION;
+    attributes = {"hidden": false, "friendly_name": "$label"};
+  }
+
+  Entity.callService({String icon, String name, String service, String actionName}) {
+    statelessType = StatelessEntityType.CALL_SERVICE;
+    entityId = service;
+    displayState = actionName?.toUpperCase() ?? "RUN";
+    attributes = {"hidden": false, "friendly_name": "$name", "icon": "$icon"};
+  }
+
+  Entity.weblink({String url, String name, String icon}) {
+    statelessType = StatelessEntityType.WEBLINK;
+    entityId = "custom.custom"; //TODO wtf??
+    attributes = {"hidden": false, "friendly_name": "${name ?? url}", "icon": "${icon ?? 'mdi:link'}"};
   }
 
   void update(Map rawData) {

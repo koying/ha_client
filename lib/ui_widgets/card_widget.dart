@@ -15,7 +15,7 @@ class CardWidget extends StatelessWidget {
       if (card.linkedEntityWrapper.entity.isHidden) {
         return Container(width: 0.0, height: 0.0,);
       }
-      if (card.linkedEntityWrapper.entity.missed) {
+      if (card.linkedEntityWrapper.entity.statelessType == StatelessEntityType.MISSED) {
         return EntityModel(
           entityWrapper: card.linkedEntityWrapper,
           child: MissedEntityWidget(),
