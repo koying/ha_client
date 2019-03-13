@@ -9,7 +9,7 @@ class ButtonEntity extends Entity {
       entityId: entityId,
       serviceDomain: domain,
       serviceName: 'turn_on',
-      text: "EXECUTE",
+      text: domain == "scene" ? "ACTIVATE" : "EXECUTE",
     );
   }
 }
