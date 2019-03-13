@@ -2,6 +2,8 @@ part of '../main.dart';
 
 class EntityColor {
 
+  static const defaultStateColor = Color.fromRGBO(68, 115, 158, 1.0);
+
   static const badgeColors = {
     "default": Color.fromRGBO(223, 76, 30, 1.0),
     "binary_sensor": Color.fromRGBO(3, 155, 229, 1.0)
@@ -15,11 +17,11 @@ class EntityColor {
     "above_horizon": Colors.amber,
     EntityState.home:  Colors.amber,
     EntityState.open:  Colors.amber,
-    EntityState.off: Color.fromRGBO(68, 115, 158, 1.0),
-    EntityState.closed: Color.fromRGBO(68, 115, 158, 1.0),
-    "below_horizon": Color.fromRGBO(68, 115, 158, 1.0),
-    "default": Color.fromRGBO(68, 115, 158, 1.0),
-    EntityState.idle: Color.fromRGBO(68, 115, 158, 1.0),
+    EntityState.off: defaultStateColor,
+    EntityState.closed: defaultStateColor,
+    "below_horizon": defaultStateColor,
+    "default": defaultStateColor,
+    EntityState.idle: defaultStateColor,
     "heat": Colors.redAccent,
     "cool": Colors.lightBlue,
     EntityState.unavailable: Colors.black26,

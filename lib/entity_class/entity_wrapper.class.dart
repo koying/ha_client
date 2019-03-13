@@ -4,6 +4,7 @@ class EntityWrapper {
 
   String displayName;
   String icon;
+  String entityPicture;
   EntityUIAction uiAction;
   Entity entity;
 
@@ -16,6 +17,9 @@ class EntityWrapper {
   }) {
     if (entity.statelessType == StatelessEntityType.NONE || entity.statelessType == StatelessEntityType.CALL_SERVICE || entity.statelessType == StatelessEntityType.WEBLINK) {
       this.icon = icon ?? entity.icon;
+      if (icon == null) {
+        entityPicture = entity.entityPicture;
+      }
       this.displayName = displayName ?? entity.displayName;
       if (uiAction == null) {
         uiAction = EntityUIAction();

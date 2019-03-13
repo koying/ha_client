@@ -27,7 +27,7 @@ class EntityIcon extends StatelessWidget {
     if (data == null) {
       return null;
     }
-    if (data.entity.entityPicture != null) {
+    if (data.entityPicture != null) {
       return Container(
         height: size+12,
         width: size+12,
@@ -36,7 +36,7 @@ class EntityIcon extends StatelessWidget {
             image: DecorationImage(
               fit:BoxFit.cover,
               image: CachedNetworkImageProvider(
-                "${data.entity.entityPicture}"
+                "${data.entityPicture}"
               ),
             )
         ),
