@@ -34,7 +34,8 @@ class MaterialDesignIcons {
     "alarm_control_panel.armed_night" : "mdi:bell-sleep",
     "alarm_control_panel.armed_custom_bypass" : "mdi:bell",
     "alarm_control_panel.triggered" : "mdi:bell-ring",
-    "alarm_control_panel" : "mdi:bell"
+    "alarm_control_panel" : "mdi:bell",
+    "updater": "mdi:cloud-upload"
   };
 
   static final Map defaultIconsByDeviceClass = {
