@@ -81,7 +81,7 @@ class MediaPlayerWidget extends StatelessWidget {
           children: <Widget>[
             Flexible(
               child: Image(
-                image: CachedNetworkImageProvider("$homeAssistantWebHost${entity.entityPicture}"),
+                image: CachedNetworkImageProvider("${entity.entityPicture}"),
                 height: 240.0,
                 //width: 320.0,
                 fit: BoxFit.contain,

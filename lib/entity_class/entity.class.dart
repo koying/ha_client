@@ -95,13 +95,26 @@ class Entity {
   bool get isBadge => Entity.badgeDomains.contains(domain);
   String get icon => attributes["icon"] ?? "";
   bool get isOn => state == EntityState.on;
-  String get entityPicture => attributes["entity_picture"];
+  String get entityPicture => _getEntityPictureUrl();
   String get unitOfMeasurement => attributes["unit_of_measurement"] ?? "";
   List get childEntityIds => attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
   bool get isHidden => attributes["hidden"] ?? false;
   double get doubleState => double.tryParse(state) ?? 0.0;
   int get supportedFeatures => attributes["supported_features"] ?? 0;
+
+  String _getEntityPictureUrl() {
+    String result = attributes["entity_picture"];
+    if (result == null) return result;
+    if (!result.startsWith("http")) {
+      if (result.startsWith("/")) {
+        result = "$homeAssistantWebHost$result";
+      } else {
+        result = "$homeAssistantWebHost/$result";
+      }
+    }
+    return result;
+  }
 
   Entity(Map rawData) {
     update(rawData);

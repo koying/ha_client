@@ -36,17 +36,9 @@ class EntityIcon extends StatelessWidget {
             image: DecorationImage(
               fit:BoxFit.cover,
               image: CachedNetworkImageProvider(
-                "$homeAssistantWebHost${data.entity.entityPicture}",
+                "${data.entity.entityPicture}",
               ),
             )
-        ),
-      );
-      return CircleAvatar(
-        radius: size/2+0,
-
-        backgroundColor: Colors.white,
-        backgroundImage: CachedNetworkImageProvider(
-          "$homeAssistantWebHost${data.entity.entityPicture}",
         ),
       );
     } else {
