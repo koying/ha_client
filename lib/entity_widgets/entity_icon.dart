@@ -36,29 +36,28 @@ class EntityIcon extends StatelessWidget {
             image: DecorationImage(
               fit:BoxFit.cover,
               image: CachedNetworkImageProvider(
-                "${data.entity.entityPicture}",
+                "${data.entity.entityPicture}"
               ),
             )
         ),
       );
+    }
+    String iconName = data.icon;
+    int iconCode = 0;
+    if (iconName.length > 0) {
+      iconCode = MaterialDesignIcons.getIconCodeByIconName(iconName);
     } else {
-      String iconName = data.icon;
-      int iconCode = 0;
-      if (iconName.length > 0) {
-        iconCode = MaterialDesignIcons.getIconCodeByIconName(iconName);
-      } else {
-        iconCode = getDefaultIconByEntityId(data.entity.entityId,
-            data.entity.deviceClass, data.entity.state); //
-      }
-      return Padding(
-          padding: EdgeInsets.fromLTRB(6.0, 6.0, 6.0, 6.0),
-          child: Icon(
+      iconCode = getDefaultIconByEntityId(data.entity.entityId,
+          data.entity.deviceClass, data.entity.state); //
+    }
+    return Padding(
+        padding: EdgeInsets.fromLTRB(6.0, 6.0, 6.0, 6.0),
+        child: Icon(
           IconData(iconCode, fontFamily: 'Material Design Icons'),
           size: size,
           color: color,
         )
-      );
-    }
+    );
   }
 
   @override

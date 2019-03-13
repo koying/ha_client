@@ -79,7 +79,6 @@ class Entity {
   int statelessType = 0;
 
   List<Entity> childEntities = [];
-  List<String> attributesToShow = ["all"];
   String deviceClass;
   EntityHistoryConfig historyConfig = EntityHistoryConfig(
     chartType: EntityHistoryWidgetType.simple

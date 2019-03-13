@@ -7,20 +7,9 @@ class EntityAttributesList extends StatelessWidget {
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
     List<Widget> attrs = [];
-    if ((entityModel.entityWrapper.entity.attributesToShow == null) ||
-        (entityModel.entityWrapper.entity.attributesToShow.contains("all"))) {
-      entityModel.entityWrapper.entity.attributes.forEach((name, value) {
-        attrs.add(_buildSingleAttribute("$name", "$value"));
-      });
-    } else {
-      entityModel.entityWrapper.entity.attributesToShow.forEach((String attr) {
-        String attrValue = entityModel.entityWrapper.entity.getAttribute("$attr");
-        if (attrValue != null) {
-          attrs.add(
-              _buildSingleAttribute("$attr", "$attrValue"));
-        }
-      });
-    }
+    entityModel.entityWrapper.entity.attributes.forEach((name, value) {
+      attrs.add(_buildSingleAttribute("$name", "${value ?? '-'}"));
+    });
     return Padding(
       padding: EdgeInsets.only(bottom: Sizes.rowPadding),
       child: Column(
@@ -49,7 +38,7 @@ class EntityAttributesList extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(
                 0.0, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0),
             child: Text(
-              "$value",
+              "${value}",
               textAlign: TextAlign.right,
             ),
           ),
