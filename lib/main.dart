@@ -100,7 +100,7 @@ part 'ui_widgets/config_panel_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.4.5";
+const appVersion = "0.5.0";
 
 String homeAssistantWebHost;
 
