@@ -8,7 +8,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart' as urlLauncher;
 import 'package:flutter/services.dart';
 import 'package:date_format/date_format.dart';
 import 'package:http/http.dart' as http;
@@ -16,6 +16,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
