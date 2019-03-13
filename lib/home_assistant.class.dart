@@ -262,7 +262,6 @@ class HomeAssistant {
     await _sendInitialMessage("get_panels").then((data) {
       if (data["success"]) {
         data["result"].forEach((k,v) {
-          if (k != "lovelace" && !v["component_name"].startsWith("dev-") && v["component_name"]!="profile" && v["component_name"]!="states" && v["component_name"]!="kiosk") {
             String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
             panels.add(Panel(
                 id: k,
@@ -273,7 +272,6 @@ class HomeAssistant {
                 icon: v["icon"]
             )
             );
-          }
         });
       }
     });

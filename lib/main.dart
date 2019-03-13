@@ -305,15 +305,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
-  void _showPanelPage(Panel panel) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PanelPage(title: "${panel.title}", panel: panel),
-        )
-    );
-  }
-
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
 
@@ -362,15 +353,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     } else {
       if (_homeAssistant != null && _homeAssistant.panels.isNotEmpty) {
         _homeAssistant.panels.forEach((Panel panel) {
-          menuItems.add(
-              new ListTile(
-                leading: Icon(MaterialDesignIcons.getIconDataFromIconName(panel.icon)),
-                title: Text("${panel.title}(${panel.urlPath})"),
-                onTap: () =>_showPanelPage(panel)
-              )
-          );
+          if (!panel.isHidden) {
+            menuItems.add(
+                new ListTile(
+                    leading: Icon(MaterialDesignIcons.getIconDataFromIconName(panel.icon)),
+                    title: Text("${panel.title}"),
+                    onTap: () => panel.handleOpen(context)
+                )
+            );
+          }
         });
-        menuItems.add(Divider());
+        menuItems.addAll([
+          new ListTile(
+            leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
+            title: Text("Open Web UI"),
+            onTap: null,
+          ),
+          Divider()
+        ]);
       }
       menuItems.addAll([
         new ListTile(
