@@ -14,6 +14,12 @@ class SimpleEntityState extends StatelessWidget {
     final entityModel = EntityModel.of(context);
     String state = entityModel.entityWrapper.entity.displayState ?? "";
     state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
+    TextStyle textStyle =  TextStyle(
+      fontSize: Sizes.stateFontSize,
+    );
+    if (entityModel.entityWrapper.entity.statelessType == StatelessEntityType.CALL_SERVICE) {
+      textStyle = textStyle.apply(color: Colors.blue);
+    }
     while (state.contains("  ")){
       state = state.replaceAll("  ", " ");
     }
@@ -25,9 +31,7 @@ class SimpleEntityState extends StatelessWidget {
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
         softWrap: true,
-        style: new TextStyle(
-          fontSize: Sizes.stateFontSize,
-        )
+        style: textStyle
       )
     );
     if (expanded) {

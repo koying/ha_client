@@ -14,6 +14,10 @@ class EntityName extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EntityWrapper entityWrapper = EntityModel.of(context).entityWrapper;
+    TextStyle textStyle = TextStyle(fontSize: fontSize);
+    if (entityWrapper.entity.statelessType == StatelessEntityType.WEBLINK) {
+      textStyle = textStyle.apply(color: Colors.blue, decoration: TextDecoration.underline);
+    }
     return Padding(
       padding: padding,
       child: Text(
@@ -21,7 +25,7 @@ class EntityName extends StatelessWidget {
         overflow: textOverflow,
         softWrap: wordsWrap,
         maxLines: maxLines,
-        style: TextStyle(fontSize: fontSize),
+        style: textStyle,
         textAlign: textAlign,
       ),
     );
