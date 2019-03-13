@@ -22,7 +22,7 @@ class Panel {
     if (icon == null || !icon.startsWith("mdi:")) {
       icon = Panel.iconsByComponent[type];
     }
-    isHidden = (type != "iframe");
+    isHidden = (type != "iframe" && type != "config");
   }
 
   void handleOpen(BuildContext context) {

@@ -367,7 +367,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: null,
+            onTap: () => HAUtils.launchURL(homeAssistantWebHost),
           ),
           Divider()
         ]);
