@@ -28,6 +28,7 @@ class EntityState {
   static const unavailable = 'unavailable';
   static const ok = 'ok';
   static const problem = 'problem';
+  static const active = 'active';
 }
 
 class EntityUIAction {

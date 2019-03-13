@@ -6,14 +6,20 @@ class SimpleEntityState extends StatelessWidget {
   final TextAlign textAlign;
   final EdgeInsetsGeometry padding;
   final int maxLines;
+  final String customValue;
 
-  const SimpleEntityState({Key key, this.maxLines: 10, this.expanded: true, this.textAlign: TextAlign.right, this.padding: const EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0)}) : super(key: key);
+  const SimpleEntityState({Key key, this.maxLines: 10, this.expanded: true, this.textAlign: TextAlign.right, this.padding: const EdgeInsets.fromLTRB(0.0, 0.0, Sizes.rightWidgetPadding, 0.0), this.customValue}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final entityModel = EntityModel.of(context);
-    String state = entityModel.entityWrapper.entity.displayState ?? "";
-    state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
+    String state;
+    if (customValue == null) {
+      state = entityModel.entityWrapper.entity.displayState ?? "";
+      state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
+    } else {
+      state = customValue;
+    }
     TextStyle textStyle =  TextStyle(
       fontSize: Sizes.stateFontSize,
     );

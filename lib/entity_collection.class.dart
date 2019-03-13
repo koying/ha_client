@@ -92,6 +92,9 @@ class EntityCollection {
       case "alarm_control_panel": {
         return AlarmControlPanelEntity(rawEntityData);
       }
+      case "timer": {
+        return TimerEntity(rawEntityData);
+      }
       default: {
         return Entity(rawEntityData);
       }

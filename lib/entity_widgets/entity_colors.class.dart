@@ -10,7 +10,7 @@ class EntityColor {
   static const _stateColors = {
     EntityState.on: Colors.amber,
     "auto": Colors.amber,
-    EntityState.idle: Colors.amber,
+    EntityState.active: Colors.amber,
     EntityState.playing: Colors.amber,
     "above_horizon": Colors.amber,
     EntityState.home:  Colors.amber,
@@ -19,6 +19,7 @@ class EntityColor {
     EntityState.closed: Color.fromRGBO(68, 115, 158, 1.0),
     "below_horizon": Color.fromRGBO(68, 115, 158, 1.0),
     "default": Color.fromRGBO(68, 115, 158, 1.0),
+    EntityState.idle: Color.fromRGBO(68, 115, 158, 1.0),
     "heat": Colors.redAccent,
     "cool": Colors.lightBlue,
     EntityState.unavailable: Colors.black26,
