@@ -19,6 +19,8 @@ class HomeAssistant {
 
   Map _rawLovelaceData;
 
+  List<Panel> panels = [];
+
   Completer _fetchCompleter;
   Completer _connectionCompleter;
   Timer _connectionTimer;
@@ -159,6 +161,7 @@ class HomeAssistant {
     futures.add(_getConfig());
     futures.add(_getServices());
     futures.add(_getUserInfo());
+    futures.add(_getPanels());
     try {
       await Future.wait(futures);
       _createUI();
@@ -252,6 +255,28 @@ class HomeAssistant {
 
   Future _getServices() async {
     await _sendInitialMessage("get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
+  }
+
+  Future _getPanels() async {
+    panels.clear();
+    await _sendInitialMessage("get_panels").then((data) {
+      if (data["success"]) {
+        data["result"].forEach((k,v) {
+          if (k != "lovelace" && !v["component_name"].startsWith("dev-") && v["component_name"]!="profile" && v["component_name"]!="states" && v["component_name"]!="kiosk") {
+            String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
+            panels.add(Panel(
+                id: k,
+                type: v["component_name"],
+                title: title,
+                urlPath: v["url_path"],
+                config: v["config"],
+                icon: v["icon"]
+            )
+            );
+          }
+        });
+      }
+    });
   }
 
   _incrementMessageId() {

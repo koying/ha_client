@@ -1,12 +1,10 @@
-part of 'main.dart';
+part of '../main.dart';
 
-class ConfigurationPage extends StatefulWidget {
-  ConfigurationPage({Key key, this.title}) : super(key: key);
-
-  final String title;
+class ConfigPanelWidget extends StatefulWidget {
+  ConfigPanelWidget({Key key}) : super(key: key);
 
   @override
-  _ConfigurationPageState createState() => new _ConfigurationPageState();
+  _ConfigPanelWidgetState createState() => new _ConfigPanelWidgetState();
 }
 
 class ConfigurationItem {
@@ -17,7 +15,7 @@ class ConfigurationItem {
   final Widget body;
 }
 
-class _ConfigurationPageState extends State<ConfigurationPage> {
+class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
 
   List<ConfigurationItem> _items;
 
@@ -64,37 +62,29 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
   @override
   Widget build(BuildContext context) {
 
-    return new Scaffold(
-      appBar: new AppBar(
-        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
-          Navigator.pop(context);
-        }),
-        title: new Text(widget.title),
-      ),
-      body: ListView(
-        children: [
-          new ExpansionPanelList(
-            expansionCallback: (int index, bool isExpanded) {
-              setState(() {
-                _items[index].isExpanded = !_items[index].isExpanded;
-              });
-            },
-            children: _items.map((ConfigurationItem item) {
-              return new ExpansionPanel(
-                headerBuilder: (BuildContext context, bool isExpanded) {
-                  return CardHeaderWidget(
-                    name: item.header,
-                  );
-                },
-                isExpanded: item.isExpanded,
-                body: new Container(
-                  child: item.body,
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+    return ListView(
+      children: [
+        new ExpansionPanelList(
+          expansionCallback: (int index, bool isExpanded) {
+            setState(() {
+              _items[index].isExpanded = !_items[index].isExpanded;
+            });
+          },
+          children: _items.map((ConfigurationItem item) {
+            return new ExpansionPanel(
+              headerBuilder: (BuildContext context, bool isExpanded) {
+                return CardHeaderWidget(
+                  name: item.header,
+                );
+              },
+              isExpanded: item.isExpanded,
+              body: new Container(
+                child: item.body,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

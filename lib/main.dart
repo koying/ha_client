@@ -77,7 +77,7 @@ part 'entity_widgets/controls/media_player_widgets.dart';
 part 'entity_widgets/controls/fan_controls.dart';
 part 'entity_widgets/controls/alarm_control_panel_controls.dart';
 part 'settings.page.dart';
-part 'configuration.page.dart';
+part 'panel.page.dart';
 part 'home_assistant.class.dart';
 part 'log.page.dart';
 part 'entity.page.dart';
@@ -88,9 +88,11 @@ part 'ui_class/ui.dart';
 part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
 part 'ui_class/sizes_class.dart';
+part 'ui_class/panel_class.dart';
 part 'ui_widgets/view.dart';
 part 'ui_widgets/card_widget.dart';
 part 'ui_widgets/card_header_widget.dart';
+part 'ui_widgets/config_panel_widget.dart';
 
 
 EventBus eventBus = new EventBus();
@@ -131,7 +133,7 @@ class HAClientApp extends StatelessWidget {
       routes: {
         "/": (context) => MainPage(title: 'HA Client'),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
-        "/configuration": (context) => ConfigurationPage(title: "Configuration"),
+        "/configuration": (context) => PanelPage(title: "Configuration"),
         "/log-view": (context) => LogViewPage(title: "Log")
       },
     );
@@ -302,6 +304,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
+  void _showPanelPage(Panel panel) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PanelPage(title: "${panel.title}", panel: panel),
+        )
+    );
+  }
+
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
 
@@ -348,15 +359,19 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         Divider(),
       ]);
     } else {
+      if (_homeAssistant != null && _homeAssistant.panels.isNotEmpty) {
+        _homeAssistant.panels.forEach((Panel panel) {
+          menuItems.add(
+              new ListTile(
+                leading: Icon(MaterialDesignIcons.getIconDataFromIconName(panel.icon)),
+                title: Text("${panel.title}(${panel.urlPath})"),
+                onTap: () =>_showPanelPage(panel)
+              )
+          );
+        });
+        menuItems.add(Divider());
+      }
       menuItems.addAll([
-        new ListTile(
-          leading: Icon(Icons.settings),
-          title: Text("Configuration"),
-          onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/configuration');
-          },
-        ),
         new ListTile(
           leading: Icon(Icons.insert_drive_file),
           title: Text("Log"),
