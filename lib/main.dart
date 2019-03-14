@@ -392,6 +392,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           },
         ),
         Divider(),
+        new ListTile(
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:github-circle")),
+          title: Text("Join Discord server"),
+          onTap: () {
+            Navigator.of(context).pop();
+            HAUtils.launchURL("https://discord.gg/AUzEvwn");
+          },
+        ),
         new AboutListTile(
           aboutBoxChildren: <Widget>[
             GestureDetector(
