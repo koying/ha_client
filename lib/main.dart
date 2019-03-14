@@ -100,7 +100,7 @@ part 'ui_widgets/config_panel_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.5.0";
+const appVersion = "0.5.1";
 
 String homeAssistantWebHost;
 
@@ -393,7 +393,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
         Divider(),
         new ListTile(
-          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:github-circle")),
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:discord")),
           title: Text("Join Discord server"),
           onTap: () {
             Navigator.of(context).pop();
