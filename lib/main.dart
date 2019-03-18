@@ -17,6 +17,7 @@ import 'package:progress_indicators/progress_indicators.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -168,6 +169,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   bool _accountMenuExpanded = false;
   bool _useLovelaceUI;
   int _previousViewCount;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
@@ -186,6 +188,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         });
       }
     });
+
     _initialLoad();
   }
 
@@ -254,6 +257,21 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         _showErrorBottomBar(message: event.text, errorCode: event.errorCode);
       });
     }
+
+    /*_firebaseMessaging.getToken().then((String token) {
+      _homeAssistant.sendHTTPRequest('{"token": "$token"}');
+    });
+    _firebaseMessaging.configure(
+        onLaunch: (data) {
+          Logger.d("Notification [onLaunch]: $data");
+        },
+        onMessage: (data) {
+          Logger.d("Notification [onMessage]: $data");
+        },
+        onResume: (data) {
+          Logger.d("Notification [onResume]: $data");
+        }
+    );*/
   }
 
   _refreshData() async {

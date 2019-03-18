@@ -578,6 +578,22 @@ class HomeAssistant {
       return [];
     }
   }
+
+  Future sendHTTPRequest(String data) async {
+    String url = "$homeAssistantWebHost/api/notify.fcm-android";
+    Logger.d("[Sending] ==> $url");
+    http.Response response;
+    response = await http.post(
+      url,
+      headers: {
+        "authorization": "Bearer $_password",
+        "Content-Type": "application/json"
+      },
+      body: data
+    );
+    //var resData = json.decode(response.body);
+    Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
+  }
 }
 
 class SendMessageQueue {
