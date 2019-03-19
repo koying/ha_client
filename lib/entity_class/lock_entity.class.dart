@@ -1,7 +1,7 @@
 part of '../main.dart';
 
 class LockEntity extends Entity {
-  LockEntity(Map rawData) : super(rawData);
+  LockEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   bool get isLocked => state == "locked";
 

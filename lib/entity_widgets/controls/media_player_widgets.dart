@@ -73,7 +73,7 @@ class MediaPlayerWidget extends StatelessWidget {
 
   Widget _buildImage(MediaPlayerEntity entity) {
     String state = entity.state;
-    if (homeAssistantWebHost != null && entity.entityPicture != null && state != EntityState.off && state != EntityState.unavailable && state != EntityState.idle) {
+    if (entity.entityPicture != null && state != EntityState.off && state != EntityState.unavailable && state != EntityState.idle) {
       return Container(
         color: Colors.black,
         child: Row(

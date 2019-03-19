@@ -1,7 +1,7 @@
 part of '../main.dart';
 
 class TextEntity extends Entity {
-  TextEntity(Map rawData) : super(rawData);
+  TextEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   int get valueMinLength => attributes["min"] ?? -1;
   int get valueMaxLength => attributes["max"] ?? -1;

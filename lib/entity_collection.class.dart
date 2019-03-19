@@ -2,13 +2,15 @@ part of 'main.dart';
 
 class EntityCollection {
 
+  final homeAssistantWebHost;
+
   Map<String, Entity> _allEntities;
   //Map<String, Entity> views;
 
   bool get isEmpty => _allEntities.isEmpty;
   List<Entity> get viewEntities => _allEntities.values.where((entity) => entity.isView).toList();
 
-  EntityCollection() {
+  EntityCollection(this.homeAssistantWebHost) {
     _allEntities = {};
     //views = {};
   }
@@ -36,67 +38,67 @@ class EntityCollection {
   Entity _createEntityInstance(rawEntityData) {
     switch (rawEntityData["entity_id"].split(".")[0]) {
       case 'sun': {
-        return SunEntity(rawEntityData);
+        return SunEntity(rawEntityData, homeAssistantWebHost);
       }
       case "media_player": {
-        return MediaPlayerEntity(rawEntityData);
+        return MediaPlayerEntity(rawEntityData, homeAssistantWebHost);
       }
       case 'sensor': {
-        return SensorEntity(rawEntityData);
+        return SensorEntity(rawEntityData, homeAssistantWebHost);
       }
       case 'lock': {
-        return LockEntity(rawEntityData);
+        return LockEntity(rawEntityData, homeAssistantWebHost);
       }
       case "automation": {
-        return AutomationEntity(rawEntityData);
+        return AutomationEntity(rawEntityData, homeAssistantWebHost);
       }
 
       case "input_boolean":
       case "switch": {
-        return SwitchEntity(rawEntityData);
+        return SwitchEntity(rawEntityData, homeAssistantWebHost);
       }
       case "light": {
-        return LightEntity(rawEntityData);
+        return LightEntity(rawEntityData, homeAssistantWebHost);
       }
       case "group": {
-        return GroupEntity(rawEntityData);
+        return GroupEntity(rawEntityData, homeAssistantWebHost);
       }
       case "script":
       case "scene": {
-        return ButtonEntity(rawEntityData);
+        return ButtonEntity(rawEntityData, homeAssistantWebHost);
       }
       case "input_datetime": {
-        return DateTimeEntity(rawEntityData);
+        return DateTimeEntity(rawEntityData, homeAssistantWebHost);
       }
       case "input_select": {
-        return SelectEntity(rawEntityData);
+        return SelectEntity(rawEntityData, homeAssistantWebHost);
       }
       case "input_number": {
-        return SliderEntity(rawEntityData);
+        return SliderEntity(rawEntityData, homeAssistantWebHost);
       }
       case "input_text": {
-        return TextEntity(rawEntityData);
+        return TextEntity(rawEntityData, homeAssistantWebHost);
       }
       case "climate": {
-        return ClimateEntity(rawEntityData);
+        return ClimateEntity(rawEntityData, homeAssistantWebHost);
       }
       case "cover": {
-        return CoverEntity(rawEntityData);
+        return CoverEntity(rawEntityData, homeAssistantWebHost);
       }
       case "fan": {
-        return FanEntity(rawEntityData);
+        return FanEntity(rawEntityData, homeAssistantWebHost);
       }
       case "camera": {
-        return CameraEntity(rawEntityData);
+        return CameraEntity(rawEntityData, homeAssistantWebHost);
       }
       case "alarm_control_panel": {
-        return AlarmControlPanelEntity(rawEntityData);
+        return AlarmControlPanelEntity(rawEntityData, homeAssistantWebHost);
       }
       case "timer": {
-        return TimerEntity(rawEntityData);
+        return TimerEntity(rawEntityData, homeAssistantWebHost);
       }
       default: {
-        return Entity(rawEntityData);
+        return Entity(rawEntityData, homeAssistantWebHost);
       }
     }
   }
@@ -121,7 +123,7 @@ class EntityCollection {
   }
 
   void updateFromRaw(Map rawEntityData) {
-    get("${rawEntityData["entity_id"]}")?.update(rawEntityData);
+    get("${rawEntityData["entity_id"]}")?.update(rawEntityData, homeAssistantWebHost);
   }
 
   Entity get(String entityId) {

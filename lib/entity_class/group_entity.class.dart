@@ -1,11 +1,12 @@
 part of '../main.dart';
 
 class GroupEntity extends Entity {
-  GroupEntity(Map rawData) : super(rawData);
 
   final List<String> _domainsForSwitchableGroup = ["switch", "light", "automation", "input_boolean"];
   String mutualDomain;
   bool switchable = false;
+
+  GroupEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   @override
   Widget _buildStatePart(BuildContext context) {
@@ -19,8 +20,8 @@ class GroupEntity extends Entity {
   }
 
   @override
-  void update(Map rawData) {
-    super.update(rawData);
+  void update(Map rawData, String webHost) {
+    super.update(rawData, webHost);
     if (_isOneDomain()) {
       mutualDomain = attributes['entity_id'][0].split(".")[0];
       switchable = _domainsForSwitchableGroup.contains(mutualDomain);

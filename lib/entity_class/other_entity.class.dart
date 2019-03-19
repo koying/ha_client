@@ -1,7 +1,7 @@
 part of '../main.dart';
 
 class SunEntity extends Entity {
-  SunEntity(Map rawData) : super(rawData);
+  SunEntity(Map rawData, String webHost) : super(rawData, webHost);
 }
 
 class SensorEntity extends Entity {
@@ -12,6 +12,6 @@ class SensorEntity extends Entity {
       numericState: true
   );
 
-  SensorEntity(Map rawData) : super(rawData);
+  SensorEntity(Map rawData, String webHost) : super(rawData, webHost);
 
 }

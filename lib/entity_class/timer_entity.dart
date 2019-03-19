@@ -1,13 +1,13 @@
 part of '../main.dart';
 
 class TimerEntity extends Entity {
-  TimerEntity(Map rawData) : super(rawData);
+  TimerEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   Duration duration;
 
   @override
-  void update(Map rawData) {
-    super.update(rawData);
+  void update(Map rawData, String webHost) {
+    super.update(rawData, webHost);
     String durationSource = "${attributes["duration"]}";
     if (durationSource != null && durationSource.isNotEmpty) {
       try {

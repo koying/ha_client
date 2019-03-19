@@ -20,7 +20,7 @@ class MediaPlayerEntity extends Entity {
   static const SUPPORT_SHUFFLE_SET = 32768;
   static const SUPPORT_SELECT_SOUND_MODE = 65536;
 
-  MediaPlayerEntity(Map rawData) : super(rawData);
+  MediaPlayerEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   bool get supportPause => ((supportedFeatures &
   MediaPlayerEntity.SUPPORT_PAUSE) ==

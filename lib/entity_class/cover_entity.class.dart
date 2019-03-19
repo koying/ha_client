@@ -11,6 +11,8 @@ class CoverEntity extends Entity {
   static const SUPPORT_STOP_TILT = 64;
   static const SUPPORT_SET_TILT_POSITION = 128;
 
+  CoverEntity(Map rawData, String webHost) : super(rawData, webHost);
+
   bool get supportOpen => ((supportedFeatures &
   CoverEntity.SUPPORT_OPEN) ==
       CoverEntity.SUPPORT_OPEN);
@@ -44,8 +46,6 @@ class CoverEntity extends Entity {
   bool get canBeClosed => ((state != EntityState.closing) && (state != EntityState.closed));
   bool get canTiltBeOpened => currentTiltPosition < 100;
   bool get canTiltBeClosed => currentTiltPosition > 0;
-
-  CoverEntity(Map rawData) : super(rawData);
 
   @override
   Widget _buildStatePart(BuildContext context) {

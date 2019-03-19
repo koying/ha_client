@@ -36,7 +36,8 @@ class Panel {
           )
       );
     } else {
-      String url = "$homeAssistantWebHost/$urlPath";
+      HomeAssistantModel haModel = HomeAssistantModel.of(context);
+      String url = "${haModel.homeAssistant.httpAPIEndpoint}/$urlPath";
       Logger.d("Launching custom tab with $url");
       HAUtils.launchURLInCustomTab(context, url);
     }

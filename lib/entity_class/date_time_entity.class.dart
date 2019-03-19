@@ -1,6 +1,8 @@
 part of '../main.dart';
 
 class DateTimeEntity extends Entity {
+  DateTimeEntity(Map rawData, String webHost) : super(rawData, webHost);
+
   bool get hasDate => attributes["has_date"] ?? false;
   bool get hasTime => attributes["has_time"] ?? false;
   int get year => attributes["year"] ?? 1970;
@@ -11,8 +13,6 @@ class DateTimeEntity extends Entity {
   int get second => attributes["second"] ?? 0;
   String get formattedState => _getFormattedState();
   DateTime get dateTimeState => _getDateTimeState();
-
-  DateTimeEntity(Map rawData) : super(rawData);
 
   @override
   Widget _buildStatePart(BuildContext context) {

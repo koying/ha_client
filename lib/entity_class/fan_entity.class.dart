@@ -6,7 +6,7 @@ class FanEntity extends Entity {
   static const SUPPORT_OSCILLATE = 2;
   static const SUPPORT_DIRECTION = 4;
 
-  FanEntity(Map rawData) : super(rawData);
+  FanEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   bool get supportSetSpeed => ((supportedFeatures &
   FanEntity.SUPPORT_SET_SPEED) ==

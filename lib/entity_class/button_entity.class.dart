@@ -1,7 +1,8 @@
 part of '../main.dart';
 
 class ButtonEntity extends Entity {
-  ButtonEntity(Map rawData) : super(rawData);
+  ButtonEntity(Map rawData, String webHost) : super(rawData, webHost);
+
 
   @override
   Widget _buildStatePart(BuildContext context) {

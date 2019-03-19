@@ -16,6 +16,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
   }
 
   CameraEntity _entity;
+  String _webHost;
 
   http.Client client;
   http.StreamedResponse response;
@@ -28,7 +29,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
   void _connect() async {
     started = true;
     timeToStop = false;
-    String streamUrl = '$homeAssistantWebHost/api/camera_proxy_stream/${_entity.entityId}?token=${_entity.attributes['access_token']}';
+    String streamUrl = '$_webHost/api/camera_proxy_stream/${_entity.entityId}?token=${_entity.attributes['access_token']}';
     client = new http.Client(); // create a client to make api calls
     http.Request request = new http.Request("GET", Uri.parse(streamUrl));  // create get request
     Logger.d("[Sending] ==> $streamUrl");
@@ -130,6 +131,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
           .of(context)
           .entityWrapper
           .entity;
+      _webHost = HomeAssistantModel.of(context).homeAssistant.httpAPIEndpoint;
       _connect();
     }
 

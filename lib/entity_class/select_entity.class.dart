@@ -5,7 +5,7 @@ class SelectEntity extends Entity {
       ? (attributes["options"] as List).cast<String>()
       : [];
 
-  SelectEntity(Map rawData) : super(rawData);
+  SelectEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   @override
   Widget _buildStatePart(BuildContext context) {

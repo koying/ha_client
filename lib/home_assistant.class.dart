@@ -2,8 +2,10 @@ part of 'main.dart';
 
 class HomeAssistant {
   String _webSocketAPIEndpoint;
+  String httpAPIEndpoint;
   String _password;
   bool _useLovelace = false;
+  bool isSettingsLoaded = false;
 
   IOWebSocketChannel _hassioChannel;
   SendMessageQueue _messageQueue;
@@ -15,6 +17,7 @@ class HomeAssistant {
   HomeAssistantUI ui;
   Map _instanceConfig = {};
   String _userName;
+  String hostname;
   HSVColor savedColor;
 
   Map _rawLovelaceData;
@@ -45,8 +48,25 @@ class HomeAssistant {
   //int get viewsCount => entities.views.length ?? 0;
 
   HomeAssistant() {
-    entities = EntityCollection();
     _messageQueue = SendMessageQueue(messageExpirationTime);
+  }
+
+  Future loadConnectionSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String domain = prefs.getString('hassio-domain');
+    String port = prefs.getString('hassio-port');
+    hostname = "$domain:$port";
+    _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
+    httpAPIEndpoint = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
+    _password = prefs.getString('hassio-password');
+    _useLovelace = prefs.getBool('use-lovelace') ?? true;
+    if ((domain == null) || (port == null) || (_password == null) ||
+        (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
+      throw("Check connection settings");
+    } else {
+      isSettingsLoaded = true;
+      entities = EntityCollection(httpAPIEndpoint);
+    }
   }
 
   void updateSettings(String url, String password, bool useLovelace) {
@@ -555,7 +575,7 @@ class HomeAssistant {
     }
   }
 
-  Widget buildViews(BuildContext context, bool lovelace, TabController tabController) {
+  Widget buildViews(BuildContext context, TabController tabController) {
     return ui.build(context, tabController);
   }
 
@@ -563,7 +583,7 @@ class HomeAssistant {
     DateTime now = DateTime.now();
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    String url = "$homeAssistantWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
+    String url = "$httpAPIEndpoint/api/history/period/$startTime?&filter_entity_id=$entityId";
     Logger.d("[Sending] ==> $url");
     http.Response historyResponse;
     historyResponse = await http.get(url, headers: {
@@ -580,7 +600,7 @@ class HomeAssistant {
   }
 
   Future sendHTTPRequest(String data) async {
-    String url = "$homeAssistantWebHost/api/notify.fcm-android";
+    String url = "$httpAPIEndpoint/api/notify.fcm-android";
     Logger.d("[Sending] ==> $url");
     http.Response response;
     response = await http.post(

@@ -23,6 +23,8 @@ class ClimateEntity extends Entity {
   static const SUPPORT_AUX_HEAT = 2048;
   static const SUPPORT_ON_OFF = 4096;
 
+  ClimateEntity(Map rawData, String webHost) : super(rawData, webHost);
+
   bool get supportTargetTemperature => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_TEMPERATURE) ==
       ClimateEntity.SUPPORT_TARGET_TEMPERATURE);
@@ -88,11 +90,9 @@ class ClimateEntity extends Entity {
   bool get isOff => state == EntityState.off;
   bool get auxHeat => attributes['aux_heat'] == "on";
 
-  ClimateEntity(Map rawData) : super(rawData);
-
   @override
-  void update(Map rawData) {
-    super.update(rawData);
+  void update(Map rawData, String webHost) {
+    super.update(rawData, webHost);
     if (supportTargetTemperature) {
       historyConfig.numericAttributesToShow.add("temperature");
     }

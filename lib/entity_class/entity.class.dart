@@ -73,6 +73,7 @@ class Entity {
   Map attributes;
   String domain;
   String entityId;
+  String entityPicture;
   String state;
   String displayState;
   DateTime _lastUpdated;
@@ -94,7 +95,6 @@ class Entity {
   bool get isBadge => Entity.badgeDomains.contains(domain);
   String get icon => attributes["icon"] ?? "";
   bool get isOn => state == EntityState.on;
-  String get entityPicture => _getEntityPictureUrl();
   String get unitOfMeasurement => attributes["unit_of_measurement"] ?? "";
   List get childEntityIds => attributes["entity_id"] ?? [];
   String get lastUpdated => _getLastUpdatedFormatted();
@@ -102,21 +102,21 @@ class Entity {
   double get doubleState => double.tryParse(state) ?? 0.0;
   int get supportedFeatures => attributes["supported_features"] ?? 0;
 
-  String _getEntityPictureUrl() {
+  String _getEntityPictureUrl(String webHost) {
     String result = attributes["entity_picture"];
     if (result == null) return result;
     if (!result.startsWith("http")) {
       if (result.startsWith("/")) {
-        result = "$homeAssistantWebHost$result";
+        result = "$webHost$result";
       } else {
-        result = "$homeAssistantWebHost/$result";
+        result = "$webHost/$result";
       }
     }
     return result;
   }
 
-  Entity(Map rawData) {
-    update(rawData);
+  Entity(Map rawData, String webHost) {
+    update(rawData, webHost);
   }
 
   Entity.missed(String entityId) {
@@ -148,7 +148,7 @@ class Entity {
     attributes = {"hidden": false, "friendly_name": "${name ?? url}", "icon": "${icon ?? 'mdi:link'}"};
   }
 
-  void update(Map rawData) {
+  void update(Map rawData, String webHost) {
     attributes = rawData["attributes"] ?? {};
     domain = rawData["entity_id"].split(".")[0];
     entityId = rawData["entity_id"];
@@ -156,6 +156,7 @@ class Entity {
     state = rawData["state"];
     displayState = Entity.StateByDeviceClass["$deviceClass.$state"] ?? state;
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
+    entityPicture = _getEntityPictureUrl(webHost);
   }
 
   double _getDoubleAttributeValue(String attributeName) {

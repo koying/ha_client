@@ -42,7 +42,7 @@ class LightEntity extends Entity {
   bool get isAdditionalControls => ((supportedFeatures != null) && (supportedFeatures != 0));
   List<String> get effectList => getStringListAttributeValue("effect_list");
 
-  LightEntity(Map rawData) : super(rawData);
+  LightEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   HSVColor _getColor() {
     List hs = attributes["hs_color"];

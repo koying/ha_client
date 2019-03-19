@@ -1,7 +1,7 @@
 part of '../main.dart';
 
 class SliderEntity extends Entity {
-  SliderEntity(Map rawData) : super(rawData);
+  SliderEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   double get minValue => _getDoubleAttributeValue("min") ?? 0.0;
   double get maxValue =>_getDoubleAttributeValue("max") ?? 100.0;

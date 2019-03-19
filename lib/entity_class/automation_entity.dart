@@ -1,7 +1,8 @@
 part of '../main.dart';
 
 class AutomationEntity extends Entity {
-  AutomationEntity(Map rawData) : super(rawData);
+  AutomationEntity(Map rawData, String webHost) : super(rawData, webHost);
+
 
   @override
   Widget _buildStatePart(BuildContext context) {

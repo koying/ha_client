@@ -18,6 +18,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -103,7 +104,7 @@ EventBus eventBus = new EventBus();
 const String appName = "HA Client";
 const appVersion = "0.5.2";
 
-String homeAssistantWebHost;
+//String homeAssistantWebHost;
 
 void main() {
   FlutterError.onError = (errorDetails) {
@@ -156,29 +157,28 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver, TickerProviderStateMixin {
   HomeAssistant _homeAssistant;
   //Map _instanceConfig;
-  String _webSocketApiEndpoint;
-  String _password;
+  //String _webSocketApiEndpoint;
+  //String _password;
   //int _uiViewsCount = 0;
-  String _instanceHost;
+  //String _instanceHost;
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _showErrorSubscription;
-  bool _settingsLoaded = false;
+  //bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
-  bool _useLovelaceUI;
+  //bool _useLovelaceUI;
   int _previousViewCount;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
     super.initState();
-    _settingsLoaded = false;
-    WidgetsBinding.instance.addObserver(this);
-
     Logger.d("<!!!> Creating new HomeAssistant instance");
     _homeAssistant = HomeAssistant();
+    //_settingsLoaded = false;
+    WidgetsBinding.instance.addObserver(this);
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
@@ -193,7 +193,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _initialLoad() {
-    _loadConnectionSettings().then((_){
+    _homeAssistant.loadConnectionSettings().then((_){
       _subscribe();
       _refreshData();
     }, onError: (_) {
@@ -203,13 +203,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    Logger.d("$state");
-    if (state == AppLifecycleState.resumed && _settingsLoaded) {
+    //Logger.d("$state");
+    if (state == AppLifecycleState.resumed && _homeAssistant.isSettingsLoaded) {
       _refreshData();
     }
   }
 
-  _loadConnectionSettings() async {
+  /*_loadConnectionSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String domain = prefs.getString('hassio-domain');
     String port = prefs.getString('hassio-port');
@@ -224,7 +224,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     } else {
       _settingsLoaded = true;
     }
-  }
+  }*/
 
   _subscribe() {
     if (_stateSubscription == null) {
@@ -258,7 +258,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       });
     }
 
-    /*_firebaseMessaging.getToken().then((String token) {
+    _firebaseMessaging.getToken().then((String token) {
+      //Logger.d("FCM token: $token");
       _homeAssistant.sendHTTPRequest('{"token": "$token"}');
     });
     _firebaseMessaging.configure(
@@ -271,11 +272,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         onResume: (data) {
           Logger.d("Notification [onResume]: $data");
         }
-    );*/
+    );
   }
 
   _refreshData() async {
-    _homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
+    //_homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
     await _homeAssistant.fetch().then((result) {
@@ -342,7 +343,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     menuItems.add(
         UserAccountsDrawerHeader(
           accountName: Text(_homeAssistant.userName),
-          accountEmail: Text(_instanceHost ?? "Not configured"),
+          accountEmail: Text(_homeAssistant.hostname ?? "Not configured"),
           onDetailsPressed: () {
             setState(() {
               _accountMenuExpanded = !_accountMenuExpanded;
@@ -387,7 +388,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(homeAssistantWebHost),
+            onTap: () => HAUtils.launchURL(_homeAssistant.httpAPIEndpoint),
           ),
           Divider()
         ]);
@@ -631,7 +632,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
       )
           :
-      _homeAssistant.buildViews(context, _useLovelaceUI, _viewsTabController),
+      _homeAssistant.buildViews(context, _viewsTabController),
     );
   }
 
