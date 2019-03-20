@@ -169,6 +169,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _serviceCallSubscription;
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _showErrorSubscription;
+  StreamSubscription _startAuthSubscription;
+  StreamSubscription _reloadUISubscription;
   //bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
   //bool _useLovelaceUI;
@@ -239,6 +241,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         }
       });
     }
+    if (_reloadUISubscription == null) {
+      _reloadUISubscription = eventBus.on<ReloadUIEvent>().listen((event){
+        _refreshData();
+      });
+    }
     if (_serviceCallSubscription == null) {
       _serviceCallSubscription =
           eventBus.on<ServiceCallEvent>().listen((event) {
@@ -260,9 +267,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       });
     }
 
-    _firebaseMessaging.getToken().then((String token) {
+    if (_startAuthSubscription == null) {
+      _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WebviewScaffold(
+                url: "${event.oauthUrl}",
+                appBar: new AppBar(
+                  title: new Text("Login"),
+                ),
+              ),
+            )
+        );
+      });
+    }
+
+    /*_firebaseMessaging.getToken().then((String token) {
       //Logger.d("FCM token: $token");
-      widget.homeAssistant.sendHTTPRequest('{"token": "$token"}');
+      widget.homeAssistant.sendHTTPPost(
+          endPoint: '/api/notify.fcm-android',
+          jsonData:  '{"token": "$token"}'
+      );
     });
     _firebaseMessaging.configure(
         onLaunch: (data) {
@@ -274,13 +300,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         onResume: (data) {
           Logger.d("Notification [onResume]: $data");
         }
-    );
+    );*/
   }
 
   _refreshData() async {
     //widget.homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
+    Logger.d("Calling fetch()");
     await widget.homeAssistant.fetch().then((result) {
       _hideBottomBar();
       int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
@@ -390,7 +417,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(widget.homeAssistant.httpAPIEndpoint),
+            onTap: () => HAUtils.launchURL(widget.homeAssistant.httpWebHost),
           ),
           Divider()
         ]);
@@ -715,14 +742,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   @override
   void dispose() {
+    final flutterWebviewPlugin = new FlutterWebviewPlugin();
+    flutterWebviewPlugin.dispose();
     WidgetsBinding.instance.removeObserver(this);
-    _viewsTabController.dispose();
-    if (_stateSubscription != null) _stateSubscription.cancel();
-    if (_settingsSubscription != null) _settingsSubscription.cancel();
-    if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
-    if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
-    if (_showErrorSubscription != null) _showErrorSubscription.cancel();
-    widget.homeAssistant.disconnect();
+    _viewsTabController?.dispose();
+    _stateSubscription?.cancel();
+    _settingsSubscription?.cancel();
+    _serviceCallSubscription?.cancel();
+    _showEntityPageSubscription?.cancel();
+    _showErrorSubscription?.cancel();
+    _startAuthSubscription?.cancel();
+    _reloadUISubscription?.cancel();
+    widget.homeAssistant?.disconnect();
     super.dispose();
   }
 }

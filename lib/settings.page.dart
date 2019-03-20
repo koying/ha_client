@@ -1,10 +1,9 @@
 part of 'main.dart';
 
 class ConnectionSettingsPage extends StatefulWidget {
-  ConnectionSettingsPage({Key key, this.title, this.homeAssistant}) : super(key: key);
+  ConnectionSettingsPage({Key key, this.title}) : super(key: key);
 
   final String title;
-  final HomeAssistant homeAssistant;
 
   @override
   _ConnectionSettingsPageState createState() => new _ConnectionSettingsPageState();
@@ -23,20 +22,12 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   bool _newUseLovelace = true;
 
   String oauthUrl;
-  final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
-    flutterWebviewPlugin.onUrlChanged.listen((String url) {
-      Logger.d("Launched url: $url");
-      if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
-        String authCode = url.split("=")[1];
-        Logger.d("Auth code: $authCode");
-        flutterWebviewPlugin.close();
-      }
-    });
+
   }
 
   _loadSettings() async {
@@ -79,22 +70,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Widget webViewButton = RaisedButton(
-      color: Colors.blue[200],
-        onPressed: () {
-          oauthUrl = "${ _newSocketProtocol == "wss" ? "https" : "http"}://$_newHassioDomain:${_newHassioPort ?? ''}/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
-          Logger.d("OAuth url: $oauthUrl");
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => WebviewScaffold(
-                  url: oauthUrl,
-                  appBar: new AppBar(
-                    title: new Text("Login"),
-                  )
-              )
-          ));
-        },
-        child: Text("Login with Home Assistant")
-    );
     return new Scaffold(
       appBar: new AppBar(
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: (){
@@ -177,7 +152,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
             "Try ports 80 and 443 if default is not working and you don't know why.",
             style: TextStyle(color: Colors.grey),
           ),
-          webViewButton,
           new TextField(
             decoration: InputDecoration(
                 labelText: "Access token"

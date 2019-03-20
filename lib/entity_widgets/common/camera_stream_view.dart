@@ -131,7 +131,7 @@ class _CameraStreamViewState extends State<CameraStreamView> {
           .of(context)
           .entityWrapper
           .entity;
-      _webHost = HomeAssistantModel.of(context).homeAssistant.httpAPIEndpoint;
+      _webHost = HomeAssistantModel.of(context).homeAssistant.httpWebHost;
       _connect();
     }
 

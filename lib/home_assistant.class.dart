@@ -2,8 +2,10 @@ part of 'main.dart';
 
 class HomeAssistant {
   String _webSocketAPIEndpoint;
-  String httpAPIEndpoint;
-  String _password;
+  String httpWebHost;
+  //String _password;
+  String _token;
+  String _tempToken;
   bool _useLovelace = false;
   bool isSettingsLoaded = false;
 
@@ -57,15 +59,16 @@ class HomeAssistant {
     String port = prefs.getString('hassio-port');
     hostname = "$domain:$port";
     _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
-    httpAPIEndpoint = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    _password = prefs.getString('hassio-password');
+    httpWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
+    //_password = prefs.getString('hassio-password');
+    _token = prefs.getString('hassio-token');
     _useLovelace = prefs.getBool('use-lovelace') ?? true;
-    if ((domain == null) || (port == null) || (_password == null) ||
-        (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
+    if ((domain == null) || (port == null) ||
+        (domain.length == 0) || (port.length == 0)) {
       throw("Check connection settings");
     } else {
       isSettingsLoaded = true;
-      entities = EntityCollection(httpAPIEndpoint);
+      entities = EntityCollection(httpWebHost);
     }
   }
 
@@ -80,6 +83,7 @@ class HomeAssistant {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       Logger.w("Previous fetch is not complited");
     } else {
+      Logger.d("Fetching...");
       _fetchCompleter = new Completer();
       _fetchTimer = Timer(fetchTimeout, () {
         Logger.e( "Data fetching timeout");
@@ -178,6 +182,9 @@ class HomeAssistant {
     if (_useLovelace) {
       futures.add(_getLovelace());
     }
+    if (_token == null && _tempToken != null) {
+      futures.add(_getLongLivedToken());
+    }
     futures.add(_getConfig());
     futures.add(_getServices());
     futures.add(_getUserInfo());
@@ -226,14 +233,18 @@ class HomeAssistant {
   _handleMessage(String message) {
     var data = json.decode(message);
     if (data["type"] == "auth_required") {
-      _sendAuthMessage('{"type": "auth","access_token": "$_password"}');
+      Logger.d("[Received] <== ${data.toString()}");
+      _sendAuth();
     } else if (data["type"] == "auth_ok") {
+      Logger.d("[Received] <== ${data.toString()}");
       _completeConnecting(null);
       _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
+      Logger.d("[Received] <== ${data.toString()}");
+      //TODO remove token and login again
       _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
-      Logger.d("[Received] <== id:${data["id"]}, ${data['success'] ? 'success' : 'error'}");
+      Logger.d("[Received] <== ${data.toString()}");
       _messageResolver[data["id"]]?.complete(data);
       _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
@@ -246,40 +257,56 @@ class HomeAssistant {
         Logger.e("Event is null: $message");
       }
     } else {
-      Logger.w("Unknown message type: $message");
+      Logger.d("[Received] <== ${data.toString()}");
     }
   }
 
   void _sendSubscribe() {
     _incrementMessageId();
     _subscriptionMessageId = _currentMessageId;
-    _send('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}', false);
+    _rawSend('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}', false);
   }
 
   Future _getConfig() async {
-    await _sendInitialMessage("get_config").then((data) => _instanceConfig = Map.from(data["result"]));
+    await _sendSocketMessage(type: "get_config").then((data) => _instanceConfig = Map.from(data["result"]));
   }
 
   Future _getStates() async {
-    await _sendInitialMessage("get_states").then((data) => entities.parse(data["result"]));
+    await _sendSocketMessage(type: "get_states").then((data) => entities.parse(data["result"]));
+  }
+
+  Future _getLongLivedToken() async {
+    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client 3", "client_icon": null, "lifespan": 365}).then((data) {
+      if (data['success']) {
+        Logger.d("Got long-lived token: ${data['result']}");
+        _token = data['result'];
+        //TODO save token
+      } else {
+        Logger.e("Error getting long-lived token: ${data['error'].toString()}");
+        //TODO DO DO something here
+      }
+    }).catchError((e) {
+      Logger.e("Error getting long-lived token: ${e.toString()}");
+      //TODO DO DO something here
+    });
   }
 
   Future _getLovelace() async {
-    await _sendInitialMessage("lovelace/config").then((data) => _rawLovelaceData = data["result"]);
+    await _sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data["result"]);
   }
 
   Future _getUserInfo() async {
     _userName = null;
-    await _sendInitialMessage("auth/current_user").then((data) => _userName = data["result"]["name"]);
+    await _sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["result"]["name"]);
   }
 
   Future _getServices() async {
-    await _sendInitialMessage("get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
+    await _sendSocketMessage(type: "get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
   }
 
   Future _getPanels() async {
     panels.clear();
-    await _sendInitialMessage("get_panels").then((data) {
+    await _sendSocketMessage(type: "get_panels").then((data) {
       if (data["success"]) {
         data["result"].forEach((k,v) {
             String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
@@ -301,22 +328,73 @@ class HomeAssistant {
     _currentMessageId += 1;
   }
 
-  void _sendAuthMessage(String message) {
-    Logger.d( "[Sending] ==> auth request");
-    _hassioChannel.sink.add(message);
+  void _sendAuth() {
+    if (_token != null) {
+      Logger.d( "Long leaved token exist");
+      Logger.d( "[Sending] ==> auth request");
+      _hassioChannel.sink.add('{"type": "auth","access_token": "$_token"}');
+    } else if (_tempToken == null) {
+      Logger.d( "No long leaved token. Need to authenticate.");
+      final flutterWebviewPlugin = new FlutterWebviewPlugin();
+      flutterWebviewPlugin.onUrlChanged.listen((String url) {
+        Logger.d("Launched url: $url");
+        if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
+          String authCode = url.split("=")[1];
+          Logger.d("We have auth code. Getting temporary access token...");
+          sendHTTPPost(
+            endPoint: "/auth/token",
+            contentType: "application/x-www-form-urlencoded",
+            includeAuthHeader: false,
+            data: "grant_type=authorization_code&code=$authCode&client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}"
+          ).then((response) {
+            Logger.d("Gottemp token");
+            _tempToken = json.decode(response)['access_token'];
+            Logger.d("Closing webview...");
+            flutterWebviewPlugin.close();
+            Logger.d("Firing event to reload UI");
+            eventBus.fire(ReloadUIEvent());
+          }).catchError((e) {
+            //TODO DO DO something here
+            Logger.e("Error getting temp token: ${e.toString()}");
+          });
+        }
+      });
+      disconnect().then((_){
+        //TODO create special error code to show "Login" in message
+        _completeConnecting({"errorCode": 6, "errorMessage": "Not authenticated"});
+      });
+      String oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
+      Logger.d("OAuth url: $oauthUrl");
+      eventBus.fire(StartAuthEvent(oauthUrl));
+    } else if (_tempToken != null) {
+      Logger.d("We have temp token. Login...");
+      _hassioChannel.sink.add('{"type": "auth","access_token": "$_tempToken"}');
+    } else {
+      Logger.e("General login error");
+      //TODO DO DO something here
+    }
   }
 
-  Future _sendInitialMessage(String type) {
+  Future _sendSocketMessage({String type, Map additionalData, bool noId: false}) {
     Completer _completer = Completer();
-    _incrementMessageId();
+    Map dataObject = {"type": "$type"};
+    if (!noId) {
+      _incrementMessageId();
+      dataObject["id"] = _currentMessageId;
+    }
+    if (additionalData != null) {
+      dataObject.addAll(additionalData);
+    }
     _messageResolver[_currentMessageId] = _completer;
-    _send('{"id": $_currentMessageId, "type": "$type"}', false);
+    _rawSend(json.encode(dataObject), false);
     return _completer.future;
   }
 
-  _send(String message, bool queued) {
+  _rawSend(String message, bool queued) {
     var sendCompleter = Completer();
-    if (queued) _messageQueue.add(message);
+    if (queued) {
+      _messageQueue.add(message);
+    }
     _connection().then((r) {
       _messageQueue.getActualMessages().forEach((message){
         Logger.d( "[Sending queued] ==> $message");
@@ -369,7 +447,7 @@ class HomeAssistant {
       }
       message += '}';
     }
-    return _send(message, true);
+    return _rawSend(message, true);
   }
 
   void _handleEntityStateChange(Map eventData) {
@@ -583,11 +661,11 @@ class HomeAssistant {
     DateTime now = DateTime.now();
     //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
     String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    String url = "$httpAPIEndpoint/api/history/period/$startTime?&filter_entity_id=$entityId";
+    String url = "$httpWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
     Logger.d("[Sending] ==> $url");
     http.Response historyResponse;
     historyResponse = await http.get(url, headers: {
-        "authorization": "Bearer $_password",
+        "authorization": "Bearer $_token",
         "Content-Type": "application/json"
     });
     var history = json.decode(historyResponse.body);
@@ -599,20 +677,33 @@ class HomeAssistant {
     }
   }
 
-  Future sendHTTPRequest(String data) async {
-    String url = "$httpAPIEndpoint/api/notify.fcm-android";
+  Future sendHTTPPost({String endPoint, String data, String contentType: "application/json", bool includeAuthHeader: true}) async {
+    Completer completer = Completer();
+    String url = "$httpWebHost$endPoint";
     Logger.d("[Sending] ==> $url");
-    http.Response response;
-    response = await http.post(
+    Map<String, String> headers = {};
+    if (contentType != null) {
+      headers["Content-Type"] = contentType;
+    }
+    if (includeAuthHeader) {
+      headers["authorization"] = "Bearer $_token";
+    }
+    http.post(
       url,
-      headers: {
-        "authorization": "Bearer $_password",
-        "Content-Type": "application/json"
-      },
+      headers: headers,
       body: data
-    );
-    //var resData = json.decode(response.body);
-    Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
+    ).then((response) {
+      Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
+      if (response.statusCode == 200) {
+        completer.complete(response.body);
+      } else {
+        completer.completeError({"code": response.statusCode, "message": "${response.body}"});
+      }
+    }).catchError((e) {
+      completer.completeError(e);
+    });
+
+    return completer.future;
   }
 }
 

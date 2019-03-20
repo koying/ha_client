@@ -109,6 +109,16 @@ class RefreshDataFinishedEvent {
   RefreshDataFinishedEvent();
 }
 
+class ReloadUIEvent {
+  ReloadUIEvent();
+}
+
+class StartAuthEvent {
+  String oauthUrl;
+
+  StartAuthEvent(this.oauthUrl);
+}
+
 class ServiceCallEvent {
   String domain;
   String service;
