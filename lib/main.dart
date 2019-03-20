@@ -164,7 +164,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showErrorSubscription;
   StreamSubscription _startAuthSubscription;
   StreamSubscription _reloadUISubscription;
-  bool _accountMenuExpanded = false;
   int _previousViewCount;
   //final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
@@ -353,11 +352,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         UserAccountsDrawerHeader(
           accountName: Text(widget.homeAssistant.userName),
           accountEmail: Text(widget.homeAssistant.hostname ?? "Not configured"),
-          onDetailsPressed: () {
+          /*onDetailsPressed: () {
             setState(() {
               _accountMenuExpanded = !_accountMenuExpanded;
             });
-          },
+          },*/
           currentAccountPicture: CircleAvatar(
             child: Text(
               widget.homeAssistant.userAvatarText,
@@ -368,19 +367,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           ),
         )
     );
-    if (_accountMenuExpanded) {
-      menuItems.addAll([
-        ListTile(
-          leading: Icon(Icons.settings),
-          title: Text("Settings"),
-          onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/connection-settings', arguments: {"homeAssistant", widget.homeAssistant});
-          },
-        ),
-        Divider(),
-      ]);
-    } else {
       if (widget.homeAssistant != null && widget.homeAssistant.panels.isNotEmpty) {
         widget.homeAssistant.panels.forEach((Panel panel) {
           if (!panel.isHidden) {
@@ -403,6 +389,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ]);
       }
       menuItems.addAll([
+        ListTile(
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:login-variant")),
+          title: Text("Connection settings"),
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/connection-settings', arguments: {"homeAssistant", widget.homeAssistant});
+          },
+        ),
+        ListTile(
+          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:logout-variant")),
+          title: Text("Logout"),
+          onTap: () {
+            widget.homeAssistant.logout().then((_) {
+              widget.homeAssistant.disconnect().then((__) => _refreshData());
+            });
+          },
+        ),
+        Divider(),
         new ListTile(
           leading: Icon(Icons.insert_drive_file),
           title: Text("Log"),
@@ -448,7 +452,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           applicationVersion: appVersion
         )
       ]);
-    }
     return new Drawer(
       child: ListView(
         children: menuItems,
@@ -632,9 +635,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
               icon: Icon(Icons.menu),
               onPressed: () {
                 _scaffoldKey.currentState.openDrawer();
-                setState(() {
-                  _accountMenuExpanded = false;
-                });
               },
             ),
             bottom: empty ? null : TabBar(

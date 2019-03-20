@@ -35,6 +35,10 @@ class EntityCollection {
     });
   }
 
+  void clear() {
+    _allEntities.clear();
+  }
+
   Entity _createEntityInstance(rawEntityData) {
     switch (rawEntityData["entity_id"].split(".")[0]) {
       case 'sun': {

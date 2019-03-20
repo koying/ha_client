@@ -242,7 +242,7 @@ class HomeAssistant {
       _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
       Logger.d("[Received] <== ${data.toString()}");
-      _logout();
+      logout();
       _completeConnecting({"errorCode": 62, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       Logger.d("[Received] <== id: ${data['id']}, success: ${data['success']}");
@@ -262,10 +262,11 @@ class HomeAssistant {
     }
   }
 
-  void _logout() {
+  Future logout() async {
     _token = null;
     _tempToken = null;
-    SharedPreferences.getInstance().then((prefs) => prefs.remove("hassio-token"));
+    //TODO proper clear
+    await SharedPreferences.getInstance().then((prefs) => prefs.remove("hassio-token"));
   }
 
   void _sendSubscribe() {
@@ -283,19 +284,19 @@ class HomeAssistant {
   }
 
   Future _getLongLivedToken() async {
-    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app", "lifespan": 365}).then((data) {
+    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app ${DateTime.now().millisecondsSinceEpoch}", "lifespan": 365}).then((data) {
       if (data['success']) {
         Logger.d("Got long-lived token: ${data['result']}");
         _token = data['result'];
         _tempToken = null;
         SharedPreferences.getInstance().then((prefs) => prefs.setString("hassio-token", _token));
       } else {
-        _logout();
+        logout();
         Logger.e("Error getting long-lived token: ${data['error'].toString()}");
       }
     }).catchError((e) {
       Logger.e("Error getting long-lived token: ${e.toString()}");
-      _logout();
+      logout();
     });
   }
 
@@ -361,7 +362,7 @@ class HomeAssistant {
             Logger.d("Firing event to reload UI");
             eventBus.fire(ReloadUIEvent());
           }).catchError((e) {
-            _logout();
+            logout();
             disconnect();
             flutterWebviewPlugin.close();
             _completeFetching({"errorCode": 61, "errorMessage": "Error getting temp token"});
@@ -377,7 +378,7 @@ class HomeAssistant {
       _hassioChannel.sink.add('{"type": "auth","access_token": "$_tempToken"}');
     } else {
       Logger.e("General login error");
-      _logout();
+      logout();
       disconnect();
       _completeFetching({"errorCode": 61, "errorMessage": "General login error"});
     }
