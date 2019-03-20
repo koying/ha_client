@@ -126,6 +126,8 @@ void main() {
 }
 
 class HAClientApp extends StatelessWidget {
+
+  final HomeAssistant homeAssistant = HomeAssistant();
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -136,7 +138,7 @@ class HAClientApp extends StatelessWidget {
       ),
       initialRoute: "/",
       routes: {
-        "/": (context) => MainPage(title: 'HA Client'),
+        "/": (context) => MainPage(title: 'HA Client', homeAssistant: homeAssistant,),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
         "/configuration": (context) => PanelPage(title: "Configuration"),
         "/log-view": (context) => LogViewPage(title: "Log")
@@ -146,16 +148,17 @@ class HAClientApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title}) : super(key: key);
+  MainPage({Key key, this.title, this.homeAssistant}) : super(key: key);
 
   final String title;
+  final HomeAssistant homeAssistant;
 
   @override
   _MainPageState createState() => new _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver, TickerProviderStateMixin {
-  HomeAssistant _homeAssistant;
+  //HomeAssistant _homeAssistant;
   //Map _instanceConfig;
   //String _webSocketApiEndpoint;
   //String _password;
@@ -175,15 +178,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   @override
   void initState() {
     super.initState();
-    Logger.d("<!!!> Creating new HomeAssistant instance");
-    _homeAssistant = HomeAssistant();
+    //widget.homeAssistant = HomeAssistant();
     //_settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        _homeAssistant.disconnect().then((_){
+        widget.homeAssistant.disconnect().then((_){
           _initialLoad();
         });
       }
@@ -193,7 +195,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _initialLoad() {
-    _homeAssistant.loadConnectionSettings().then((_){
+    widget.homeAssistant.loadConnectionSettings().then((_){
       _subscribe();
       _refreshData();
     }, onError: (_) {
@@ -204,7 +206,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     //Logger.d("$state");
-    if (state == AppLifecycleState.resumed && _homeAssistant.isSettingsLoaded) {
+    if (state == AppLifecycleState.resumed && widget.homeAssistant.isSettingsLoaded) {
       _refreshData();
     }
   }
@@ -260,7 +262,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     _firebaseMessaging.getToken().then((String token) {
       //Logger.d("FCM token: $token");
-      _homeAssistant.sendHTTPRequest('{"token": "$token"}');
+      widget.homeAssistant.sendHTTPRequest('{"token": "$token"}');
     });
     _firebaseMessaging.configure(
         onLaunch: (data) {
@@ -276,12 +278,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   _refreshData() async {
-    //_homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
+    //widget.homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
-    await _homeAssistant.fetch().then((result) {
+    await widget.homeAssistant.fetch().then((result) {
       _hideBottomBar();
-      int currentViewCount = _homeAssistant.ui?.views?.length ?? 0;
+      int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
       if (_previousViewCount != currentViewCount) {
         Logger.d("Views count changed ($_previousViewCount->$currentViewCount). Creating new tabs controller.");
         _viewsTabController = TabController(vsync: this, length: currentViewCount);
@@ -314,14 +316,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       message: "Calling $domain.$service",
       duration: Duration(seconds: 3)
     );
-    _homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
+    widget.homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
   }
 
   void _showEntityPage(String entityId) {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EntityViewPage(entityId: entityId, homeAssistant: _homeAssistant),
+          builder: (context) => EntityViewPage(entityId: entityId, homeAssistant: widget.homeAssistant),
         )
     );
   }
@@ -329,8 +331,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   List<Tab> buildUIViewTabs() {
     List<Tab> result = [];
 
-      if (_homeAssistant.ui.views.isNotEmpty) {
-        _homeAssistant.ui.views.forEach((HAView view) {
+      if (widget.homeAssistant.ui.views.isNotEmpty) {
+        widget.homeAssistant.ui.views.forEach((HAView view) {
           result.add(view.buildTab());
         });
       }
@@ -342,8 +344,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     List<Widget> menuItems = [];
     menuItems.add(
         UserAccountsDrawerHeader(
-          accountName: Text(_homeAssistant.userName),
-          accountEmail: Text(_homeAssistant.hostname ?? "Not configured"),
+          accountName: Text(widget.homeAssistant.userName),
+          accountEmail: Text(widget.homeAssistant.hostname ?? "Not configured"),
           onDetailsPressed: () {
             setState(() {
               _accountMenuExpanded = !_accountMenuExpanded;
@@ -351,7 +353,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           },
           currentAccountPicture: CircleAvatar(
             child: Text(
-              _homeAssistant.userAvatarText,
+              widget.homeAssistant.userAvatarText,
               style: TextStyle(
                   fontSize: 32.0
               ),
@@ -366,14 +368,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           title: Text("Settings"),
           onTap: () {
             Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/connection-settings');
+            Navigator.of(context).pushNamed('/connection-settings', arguments: {"homeAssistant", widget.homeAssistant});
           },
         ),
         Divider(),
       ]);
     } else {
-      if (_homeAssistant != null && _homeAssistant.panels.isNotEmpty) {
-        _homeAssistant.panels.forEach((Panel panel) {
+      if (widget.homeAssistant != null && widget.homeAssistant.panels.isNotEmpty) {
+        widget.homeAssistant.panels.forEach((Panel panel) {
           if (!panel.isHidden) {
             menuItems.add(
                 new ListTile(
@@ -388,7 +390,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(_homeAssistant.httpAPIEndpoint),
+            onTap: () => HAUtils.launchURL(widget.homeAssistant.httpAPIEndpoint),
           ),
           Divider()
         ]);
@@ -579,7 +581,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             floating: true,
             pinned: true,
             primary: true,
-            title: Text(_homeAssistant != null ? _homeAssistant.locationName : ""),
+            title: Text(widget.homeAssistant != null ? widget.homeAssistant.locationName : ""),
             actions: <Widget>[
               IconButton(
                 icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
@@ -632,7 +634,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
       )
           :
-      _homeAssistant.buildViews(context, _viewsTabController),
+      widget.homeAssistant.buildViews(context, _viewsTabController),
     );
   }
 
@@ -689,7 +691,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       }
     }
     // This method is rerun every time setState is called.
-    if (_homeAssistant.ui == null || _homeAssistant.ui.views == null) {
+    if (widget.homeAssistant.ui == null || widget.homeAssistant.ui.views == null) {
       return Scaffold(
         key: _scaffoldKey,
         primary: false,
@@ -705,7 +707,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         bottomNavigationBar: bottomBar,
         body: HomeAssistantModel(
           child: _buildScaffoldBody(false),
-          homeAssistant: _homeAssistant
+          homeAssistant: widget.homeAssistant
         ),
       );
     }
@@ -720,7 +722,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     if (_serviceCallSubscription != null) _serviceCallSubscription.cancel();
     if (_showEntityPageSubscription != null) _showEntityPageSubscription.cancel();
     if (_showErrorSubscription != null) _showErrorSubscription.cancel();
-    _homeAssistant.disconnect();
+    widget.homeAssistant.disconnect();
     super.dispose();
   }
 }

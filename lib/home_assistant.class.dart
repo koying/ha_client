@@ -69,12 +69,12 @@ class HomeAssistant {
     }
   }
 
-  void updateSettings(String url, String password, bool useLovelace) {
+  /*void updateSettings(String url, String password, bool useLovelace) {
     _webSocketAPIEndpoint = url;
     _password = password;
     _useLovelace = useLovelace;
     Logger.d( "Use lovelace is $_useLovelace");
-  }
+  }*/
 
   Future fetch() {
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {

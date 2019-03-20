@@ -1,9 +1,10 @@
 part of 'main.dart';
 
 class ConnectionSettingsPage extends StatefulWidget {
-  ConnectionSettingsPage({Key key, this.title}) : super(key: key);
+  ConnectionSettingsPage({Key key, this.title, this.homeAssistant}) : super(key: key);
 
   final String title;
+  final HomeAssistant homeAssistant;
 
   @override
   _ConnectionSettingsPageState createState() => new _ConnectionSettingsPageState();
