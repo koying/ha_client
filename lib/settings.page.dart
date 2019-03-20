@@ -14,8 +14,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   String _newHassioDomain = "";
   String _hassioPort = "";
   String _newHassioPort = "";
-  String _hassioPassword = "";
-  String _newHassioPassword = "";
   String _socketProtocol = "wss";
   String _newSocketProtocol = "wss";
   bool _useLovelace = true;
@@ -36,7 +34,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     setState(() {
       _hassioDomain = _newHassioDomain = prefs.getString("hassio-domain")?? "";
       _hassioPort = _newHassioPort = prefs.getString("hassio-port") ?? "";
-      _hassioPassword = _newHassioPassword = prefs.getString("hassio-password") ?? "";
       _socketProtocol = _newSocketProtocol = prefs.getString("hassio-protocol") ?? 'wss';
       try {
         _useLovelace = _newUseLovelace = prefs.getBool("use-lovelace") ?? true;
@@ -47,7 +44,7 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
   }
 
   bool _checkConfigChanged() {
-    return ((_newHassioPassword != _hassioPassword) ||
+    return (
       (_newHassioPort != _hassioPort) ||
       (_newHassioDomain != _hassioDomain) ||
       (_newSocketProtocol != _socketProtocol) ||
@@ -62,7 +59,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("hassio-domain", _newHassioDomain);
     prefs.setString("hassio-port", _newHassioPort);
-    prefs.setString("hassio-password", _newHassioPassword);
     prefs.setString("hassio-protocol", _newSocketProtocol);
     prefs.setString("hassio-res-protocol", _newSocketProtocol == "wss" ? "https" : "http");
     prefs.setBool("use-lovelace", _newUseLovelace);
@@ -151,21 +147,6 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
           new Text(
             "Try ports 80 and 443 if default is not working and you don't know why.",
             style: TextStyle(color: Colors.grey),
-          ),
-          new TextField(
-            decoration: InputDecoration(
-                labelText: "Access token"
-            ),
-            controller: new TextEditingController.fromValue(
-                new TextEditingValue(
-                    text: _newHassioPassword,
-                    selection:
-                    new TextSelection.collapsed(offset: _newHassioPassword.length)
-                )
-            ),
-            onChanged: (value) {
-              _newHassioPassword = value;
-            }
           ),
           Padding(
             padding: EdgeInsets.only(top: 20.0),

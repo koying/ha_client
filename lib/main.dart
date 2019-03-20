@@ -104,8 +104,6 @@ EventBus eventBus = new EventBus();
 const String appName = "HA Client";
 const appVersion = "0.5.2";
 
-//String homeAssistantWebHost;
-
 void main() {
   FlutterError.onError = (errorDetails) {
     Logger.e( "${errorDetails.exception}");
@@ -158,12 +156,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> with WidgetsBindingObserver, TickerProviderStateMixin {
-  //HomeAssistant _homeAssistant;
-  //Map _instanceConfig;
-  //String _webSocketApiEndpoint;
-  //String _password;
-  //int _uiViewsCount = 0;
-  //String _instanceHost;
+
   StreamSubscription _stateSubscription;
   StreamSubscription _settingsSubscription;
   StreamSubscription _serviceCallSubscription;
@@ -171,11 +164,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showErrorSubscription;
   StreamSubscription _startAuthSubscription;
   StreamSubscription _reloadUISubscription;
-  //bool _settingsLoaded = false;
   bool _accountMenuExpanded = false;
-  //bool _useLovelaceUI;
   int _previousViewCount;
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  //final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
@@ -212,23 +203,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       _refreshData();
     }
   }
-
-  /*_loadConnectionSettings() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String domain = prefs.getString('hassio-domain');
-    String port = prefs.getString('hassio-port');
-    _instanceHost = "$domain:$port";
-    _webSocketApiEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
-    homeAssistantWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    _password = prefs.getString('hassio-password');
-    _useLovelaceUI = prefs.getBool('use-lovelace') ?? true;
-    if ((domain == null) || (port == null) || (_password == null) ||
-        (domain.length == 0) || (port.length == 0) || (_password.length == 0)) {
-      throw("Check connection settings");
-    } else {
-      _settingsLoaded = true;
-    }
-  }*/
 
   _subscribe() {
     if (_stateSubscription == null) {
@@ -269,19 +243,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WebviewScaffold(
-                url: "${event.oauthUrl}",
-                appBar: new AppBar(
-                  title: new Text("Login"),
-                ),
-              ),
-            )
-        );
+        _showOAuth();
       });
     }
+
+
 
     /*_firebaseMessaging.getToken().then((String token) {
       //Logger.d("FCM token: $token");
@@ -301,6 +267,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           Logger.d("Notification [onResume]: $data");
         }
     );*/
+  }
+
+  void _showOAuth() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WebviewScaffold(
+            url: "${widget.homeAssistant.oauthUrl}",
+            appBar: new AppBar(
+              title: new Text("Login"),
+            ),
+          ),
+        )
+    );
   }
 
   _refreshData() async {
@@ -539,12 +519,31 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           break;
         }
 
-        case 6: {
+        case 60: {
           _bottomBarAction = FlatButton(
-              child: Text("Settings", style: textStyle),
+              child: Text("Login", style: textStyle),
             onPressed: () {
-              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              Navigator.pushNamed(context, '/connection-settings');
+              _refreshData();
+            },
+          );
+          break;
+        }
+
+        case 61: {
+          _bottomBarAction = FlatButton(
+            child: Text("Try again", style: textStyle),
+            onPressed: () {
+              _refreshData();
+            },
+          );
+          break;
+        }
+
+        case 62: {
+          _bottomBarAction = FlatButton(
+            child: Text("Login again", style: textStyle),
+            onPressed: () {
+              _refreshData();
             },
           );
           break;

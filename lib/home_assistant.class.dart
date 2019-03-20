@@ -3,6 +3,7 @@ part of 'main.dart';
 class HomeAssistant {
   String _webSocketAPIEndpoint;
   String httpWebHost;
+  String oauthUrl;
   //String _password;
   String _token;
   String _tempToken;
@@ -68,6 +69,7 @@ class HomeAssistant {
       throw("Check connection settings");
     } else {
       isSettingsLoaded = true;
+      oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
       entities = EntityCollection(httpWebHost);
     }
   }
@@ -85,6 +87,7 @@ class HomeAssistant {
     } else {
       Logger.d("Fetching...");
       _fetchCompleter = new Completer();
+      _fetchTimer?.cancel();
       _fetchTimer = Timer(fetchTimeout, () {
         Logger.e( "Data fetching timeout");
         disconnect().then((_) {
@@ -104,13 +107,12 @@ class HomeAssistant {
   }
 
   disconnect() async {
-    if ((_hassioChannel != null) && (_hassioChannel.closeCode == null) && (_hassioChannel.sink != null)) {
-      await _hassioChannel.sink.close().timeout(Duration(seconds: 3),
+    Logger.d( "Socket disconnecting...");
+    await _socketSubscription?.cancel();
+    await _hassioChannel?.sink?.close()?.timeout(Duration(seconds: 3),
         onTimeout: () => Logger.d( "Socket sink closed")
-      );
-      await _socketSubscription.cancel();
-      _hassioChannel = null;
-    }
+    );
+    _hassioChannel = null;
 
   }
 
@@ -119,6 +121,7 @@ class HomeAssistant {
       Logger.d("Previous connection is not complited");
     } else {
       if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
+        _connectionTimer?.cancel();
         _connectionCompleter = new Completer();
         autoReconnect = false;
         disconnect().then((_){
@@ -127,9 +130,7 @@ class HomeAssistant {
             Logger.e( "Socket connection timeout");
             _handleSocketError(null);
           });
-          if (_socketSubscription != null) {
-            _socketSubscription.cancel();
-          }
+          _socketSubscription?.cancel();
           _hassioChannel = IOWebSocketChannel.connect(
               _webSocketAPIEndpoint, pingInterval: Duration(seconds: 30));
           _socketSubscription = _hassioChannel.stream.listen(
@@ -199,7 +200,7 @@ class HomeAssistant {
   }
 
   void _completeFetching(error) {
-    _fetchTimer.cancel();
+    _fetchTimer?.cancel();
     _completeConnecting(error);
     if (!_fetchCompleter.isCompleted) {
       if (error != null) {
@@ -213,7 +214,7 @@ class HomeAssistant {
   }
 
   void _completeConnecting(error) {
-    _connectionTimer.cancel();
+    _connectionTimer?.cancel();
     if (!_connectionCompleter.isCompleted) {
       if (error != null) {
         _connectionCompleter.completeError(error);
@@ -241,10 +242,10 @@ class HomeAssistant {
       _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
       Logger.d("[Received] <== ${data.toString()}");
-      //TODO remove token and login again
-      _completeConnecting({"errorCode": 6, "errorMessage": "${data["message"]}"});
+      _logout();
+      _completeConnecting({"errorCode": 62, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
-      Logger.d("[Received] <== ${data.toString()}");
+      Logger.d("[Received] <== id: ${data['id']}, success: ${data['success']}");
       _messageResolver[data["id"]]?.complete(data);
       _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
@@ -259,6 +260,12 @@ class HomeAssistant {
     } else {
       Logger.d("[Received] <== ${data.toString()}");
     }
+  }
+
+  void _logout() {
+    _token = null;
+    _tempToken = null;
+    SharedPreferences.getInstance().then((prefs) => prefs.remove("hassio-token"));
   }
 
   void _sendSubscribe() {
@@ -276,18 +283,19 @@ class HomeAssistant {
   }
 
   Future _getLongLivedToken() async {
-    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client 3", "client_icon": null, "lifespan": 365}).then((data) {
+    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app", "lifespan": 365}).then((data) {
       if (data['success']) {
         Logger.d("Got long-lived token: ${data['result']}");
         _token = data['result'];
-        //TODO save token
+        _tempToken = null;
+        SharedPreferences.getInstance().then((prefs) => prefs.setString("hassio-token", _token));
       } else {
+        _logout();
         Logger.e("Error getting long-lived token: ${data['error'].toString()}");
-        //TODO DO DO something here
       }
     }).catchError((e) {
       Logger.e("Error getting long-lived token: ${e.toString()}");
-      //TODO DO DO something here
+      _logout();
     });
   }
 
@@ -337,7 +345,6 @@ class HomeAssistant {
       Logger.d( "No long leaved token. Need to authenticate.");
       final flutterWebviewPlugin = new FlutterWebviewPlugin();
       flutterWebviewPlugin.onUrlChanged.listen((String url) {
-        Logger.d("Launched url: $url");
         if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
           String authCode = url.split("=")[1];
           Logger.d("We have auth code. Getting temporary access token...");
@@ -354,25 +361,31 @@ class HomeAssistant {
             Logger.d("Firing event to reload UI");
             eventBus.fire(ReloadUIEvent());
           }).catchError((e) {
-            //TODO DO DO something here
+            _logout();
+            disconnect();
+            flutterWebviewPlugin.close();
+            _completeFetching({"errorCode": 61, "errorMessage": "Error getting temp token"});
             Logger.e("Error getting temp token: ${e.toString()}");
           });
         }
       });
-      disconnect().then((_){
-        //TODO create special error code to show "Login" in message
-        _completeConnecting({"errorCode": 6, "errorMessage": "Not authenticated"});
-      });
-      String oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
-      Logger.d("OAuth url: $oauthUrl");
-      eventBus.fire(StartAuthEvent(oauthUrl));
+      disconnect();
+      _completeFetching({"errorCode": 60, "errorMessage": "Not authenticated"});
+      _requestOAuth();
     } else if (_tempToken != null) {
       Logger.d("We have temp token. Login...");
       _hassioChannel.sink.add('{"type": "auth","access_token": "$_tempToken"}');
     } else {
       Logger.e("General login error");
-      //TODO DO DO something here
+      _logout();
+      disconnect();
+      _completeFetching({"errorCode": 61, "errorMessage": "General login error"});
     }
+  }
+
+  void _requestOAuth() {
+    Logger.d("OAuth url: $oauthUrl");
+    eventBus.fire(StartAuthEvent(oauthUrl));
   }
 
   Future _sendSocketMessage({String type, Map additionalData, bool noId: false}) {
