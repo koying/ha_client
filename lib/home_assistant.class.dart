@@ -64,8 +64,15 @@ class HomeAssistant {
     hostname = "$domain:$port";
     _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
     httpWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    //_password = prefs.getString('hassio-password');
     _token = prefs.getString('hassio-token');
+    final storage = new FlutterSecureStorage();
+    try {
+      _token = await storage.read(key: "hacl_llt");
+    } catch (e) {
+      Logger.e("Cannt read secure storage. Need to relogin.");
+      _token = null;
+      await storage.delete(key: "hacl_llt");
+    }
     _useLovelace = prefs.getBool('use-lovelace') ?? true;
     if ((domain == null) || (port == null) ||
         (domain.length == 0) || (port.length == 0)) {
@@ -269,7 +276,8 @@ class HomeAssistant {
     Logger.d("Logging out...");
     _token = null;
     _tempToken = null;
-    await SharedPreferences.getInstance().then((prefs) => prefs.remove("hassio-token"));
+    final storage = new FlutterSecureStorage();
+    await storage.delete(key: "hacl_llt");
     ui?.clear();
     entities?.clear();
   }
@@ -294,7 +302,8 @@ class HomeAssistant {
         Logger.d("Got long-lived token: ${data['result']}");
         _token = data['result'];
         _tempToken = null;
-        SharedPreferences.getInstance().then((prefs) => prefs.setString("hassio-token", _token));
+        final storage = new FlutterSecureStorage();
+        storage.write(key: "hacl_llt", value: _token);
       } else {
         logout();
         Logger.e("Error getting long-lived token: ${data['error'].toString()}");
