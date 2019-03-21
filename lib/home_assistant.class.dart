@@ -48,6 +48,9 @@ class HomeAssistant {
   }
   String get userName => _userName ?? locationName;
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
+  bool get isNoEntities => entities == null || entities.isEmpty;
+  bool get isNoViews => ui == null || ui.isEmpty;
+  bool get isAuthenticated => _token != null;
   //int get viewsCount => entities.views.length ?? 0;
 
   HomeAssistant() {
@@ -106,14 +109,14 @@ class HomeAssistant {
     return _fetchCompleter.future;
   }
 
-  disconnect() async {
+  Future disconnect() async {
     Logger.d( "Socket disconnecting...");
     await _socketSubscription?.cancel();
-    await _hassioChannel?.sink?.close()?.timeout(Duration(seconds: 3),
-        onTimeout: () => Logger.d( "Socket sink closed")
+    await _hassioChannel?.sink?.close()?.timeout(Duration(seconds: 4),
+        onTimeout: () => Logger.d( "Socket sink close timeout")
     );
     _hassioChannel = null;
-
+    Logger.d( "..Disconnected");
   }
 
   Future _connection() {
@@ -263,10 +266,12 @@ class HomeAssistant {
   }
 
   Future logout() async {
+    Logger.d("Logging out...");
     _token = null;
     _tempToken = null;
-    //TODO proper clear
     await SharedPreferences.getInstance().then((prefs) => prefs.remove("hassio-token"));
+    ui?.clear();
+    entities?.clear();
   }
 
   void _sendSubscribe() {

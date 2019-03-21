@@ -4,6 +4,8 @@ class HomeAssistantUI {
   List<HAView> views;
   String title;
 
+  bool get isEmpty => views == null || views.isEmpty;
+
   HomeAssistantUI() {
     views = [];
   }
@@ -23,6 +25,10 @@ class HomeAssistantUI {
       );
     });
     return result;
+  }
+
+  void clear() {
+    views.clear();
   }
 
 }

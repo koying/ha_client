@@ -367,7 +367,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           ),
         )
     );
-      if (widget.homeAssistant != null && widget.homeAssistant.panels.isNotEmpty) {
+      if (widget.homeAssistant.panels.isNotEmpty) {
         widget.homeAssistant.panels.forEach((Panel panel) {
           if (!panel.isHidden) {
             menuItems.add(
@@ -379,16 +379,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             );
           }
         });
-        menuItems.addAll([
+      }
+      if (widget.homeAssistant.isSettingsLoaded) {
+        menuItems.add(
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
             onTap: () => HAUtils.launchURL(widget.homeAssistant.httpWebHost),
-          ),
-          Divider()
-        ]);
+          )
+        );
       }
       menuItems.addAll([
+        Divider(),
         ListTile(
           leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:login-variant")),
           title: Text("Connection settings"),
@@ -396,16 +398,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             Navigator.of(context).pop();
             Navigator.of(context).pushNamed('/connection-settings', arguments: {"homeAssistant", widget.homeAssistant});
           },
-        ),
-        ListTile(
-          leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:logout-variant")),
-          title: Text("Logout"),
-          onTap: () {
-            widget.homeAssistant.logout().then((_) {
-              widget.homeAssistant.disconnect().then((__) => _refreshData());
-            });
-          },
-        ),
+        )
+      ]);
+      menuItems.addAll([
         Divider(),
         new ListTile(
           leading: Icon(Icons.insert_drive_file),
@@ -603,6 +598,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   Widget _buildScaffoldBody(bool empty) {
+    List<PopupMenuItem<String>> popupMenuItems = [];
+    if (widget.homeAssistant.isAuthenticated) {
+      popupMenuItems.addAll([
+          PopupMenuItem<String>(
+            child: new Text("Reload"),
+            value: "reload",
+          ),
+          PopupMenuItem<String>(
+            child: new Text("Logout"),
+            value: "logout",
+          )]);
+    } else {
+      popupMenuItems.addAll([
+        PopupMenuItem<String>(
+          child: new Text("Connect"),
+          value: "reload",
+        )]);
+    }
     return NestedScrollView(
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
@@ -610,7 +623,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             floating: true,
             pinned: true,
             primary: true,
-            title: Text(widget.homeAssistant != null ? widget.homeAssistant.locationName : ""),
+            title: Text(widget.homeAssistant.locationName ?? ""),
             actions: <Widget>[
               IconButton(
                 icon: Icon(MaterialDesignIcons.getIconDataFromIconName(
@@ -619,13 +632,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                   showMenu(
                     position: RelativeRect.fromLTRB(MediaQuery.of(context).size.width, 70.0, 0.0, 0.0),
                     context: context,
-                    items: [PopupMenuItem<String>(
-                      child: new Text("Reload"),
-                      value: "reload",
-                    )]
+                    items: popupMenuItems
                   ).then((String val) {
                     if (val == "reload") {
                       _refreshData();
+                    } else if (val == "logout") {
+                      widget.homeAssistant.disconnect().then((_) {
+                        widget.homeAssistant.logout().then((_) {
+                          setState(() {
+                            _refreshData();
+                          });
+                        });
+                      });
                     }
                   });
                 }
@@ -652,9 +670,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant"),
+                MaterialDesignIcons.getIconDataFromIconName("mdi:border-none-variant"),
                 size: 100.0,
-                color: Colors.blue,
+                color: Colors.black26,
               ),
             ]
         ),
@@ -717,7 +735,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       }
     }
     // This method is rerun every time setState is called.
-    if (widget.homeAssistant.ui == null || widget.homeAssistant.ui.views == null) {
+    if (widget.homeAssistant.isNoViews) {
       return Scaffold(
         key: _scaffoldKey,
         primary: false,
