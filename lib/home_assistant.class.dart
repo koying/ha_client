@@ -14,7 +14,6 @@ class HomeAssistant {
   SendMessageQueue _messageQueue;
 
   int _currentMessageId = 0;
-  int _subscriptionMessageId = 0;
   Map<int, Completer> _messageResolver = {};
   EntityCollection entities;
   HomeAssistantUI ui;
@@ -200,13 +199,16 @@ class HomeAssistant {
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
-    try {
-      await Future.wait(futures);
+    futures.add(
+        _sendSocketMessage(
+          type: "subscribe_events",
+          additionalData: {"event_type": "state_changed"},
+        )
+    );
+    await Future.wait(futures).then((_) {
       _createUI();
       _completeFetching(null);
-    } catch (error) {
-      _completeFetching(error);
-    }
+    }).catchError((e) => _completeFetching(e));
   }
 
   void _completeFetching(error) {
@@ -249,14 +251,17 @@ class HomeAssistant {
     } else if (data["type"] == "auth_ok") {
       Logger.d("[Received] <== ${data.toString()}");
       _completeConnecting(null);
-      _sendSubscribe();
     } else if (data["type"] == "auth_invalid") {
       Logger.d("[Received] <== ${data.toString()}");
       logout();
       _completeConnecting({"errorCode": 62, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
       Logger.d("[Received] <== id: ${data['id']}, success: ${data['success']}");
-      _messageResolver[data["id"]]?.complete(data);
+      if (data["success"]) {
+        _messageResolver[data["id"]]?.complete(data["result"]);
+      } else {
+        _messageResolver[data["id"]]?.completeError(data["error"]);
+      }
       _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
       if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
@@ -282,18 +287,19 @@ class HomeAssistant {
     entities?.clear();
   }
 
-  void _sendSubscribe() {
-    _incrementMessageId();
-    _subscriptionMessageId = _currentMessageId;
-    _rawSend('{"id": $_subscriptionMessageId, "type": "subscribe_events", "event_type": "state_changed"}', false);
-  }
-
   Future _getConfig() async {
-    await _sendSocketMessage(type: "get_config").then((data) => _instanceConfig = Map.from(data["result"]));
+    await _sendSocketMessage(type: "get_config").then((data) {
+      if (data["success"]) {
+        _instanceConfig = Map.from(data["result"]);
+      } else {
+        Logger.w("Couldn't get instance config: ${data["error"].toString()}");
+      }
+    });
   }
 
   Future _getStates() async {
-    await _sendSocketMessage(type: "get_states").then((data) => entities.parse(data["result"]));
+    //TODO last change here. Try run!!
+    return _sendSocketMessage(type: "get_states").then((data) => entities.parse(data));
   }
 
   Future _getLongLivedToken() async {
