@@ -307,7 +307,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       Logger.e(e.toString());
       Logger.e("${e.stackTrace}");
       _showErrorBottomBar(
-          message: "There was some error",
+          message: "Unknown error",
           errorCode: 13
       );
     } else {
@@ -528,6 +528,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           break;
         }
 
+        case 63:
         case 61: {
           _bottomBarAction = FlatButton(
             child: Text("Try again", style: textStyle),
@@ -583,17 +584,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       }
       setState(() {
         _bottomBarProgress = false;
-        _bottomBarText = "$message (code: $errorCode)";
+        _bottomBarText = "$message";
         _showBottomBar = true;
       });
-      /*_scaffoldKey.currentState.hideCurrentSnackBar();
-      _scaffoldKey.currentState.showSnackBar(
-        SnackBar(
-          content: Text("$message (code: $errorCode)"),
-          action: action,
-          duration: Duration(hours: 1),
-        )
-      );*/
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();

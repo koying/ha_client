@@ -91,6 +91,8 @@ class HomeAssistant {
   }*/
 
   Future fetch() {
+    //return _connection().then((_) => _getData());
+
     if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
       Logger.w("Previous fetch is not complited");
     } else {
@@ -208,7 +210,11 @@ class HomeAssistant {
     await Future.wait(futures).then((_) {
       _createUI();
       _completeFetching(null);
-    }).catchError((e) => _completeFetching(e));
+    }).catchError((e) {
+      disconnect().then((_) =>
+          _completeFetching(e)
+      );
+    });
   }
 
   void _completeFetching(error) {
@@ -256,11 +262,12 @@ class HomeAssistant {
       logout();
       _completeConnecting({"errorCode": 62, "errorMessage": "${data["message"]}"});
     } else if (data["type"] == "result") {
-      Logger.d("[Received] <== id: ${data['id']}, success: ${data['success']}");
       if (data["success"]) {
+        Logger.d("[Received] <== Request id ${data['id']} was successful");
         _messageResolver[data["id"]]?.complete(data["result"]);
       } else {
-        _messageResolver[data["id"]]?.completeError(data["error"]);
+        Logger.e("[Received] <== Error received on request id ${data['id']}: ${data['error']}");
+        _messageResolver[data["id"]]?.completeError(data['error']["message"]);
       }
       _messageResolver.remove(data["id"]);
     } else if (data["type"] == "event") {
@@ -288,69 +295,71 @@ class HomeAssistant {
   }
 
   Future _getConfig() async {
-    await _sendSocketMessage(type: "get_config").then((data) {
-      if (data["success"]) {
-        _instanceConfig = Map.from(data["result"]);
-      } else {
-        Logger.w("Couldn't get instance config: ${data["error"].toString()}");
-      }
+    return _sendSocketMessage(type: "get_config").then((data) {
+      _instanceConfig = Map.from(data);
+    }).catchError((e) {
+      throw {"errorCode": 1, "errorMessage": "Error getting config: $e"};
     });
   }
 
   Future _getStates() async {
-    //TODO last change here. Try run!!
-    return _sendSocketMessage(type: "get_states").then((data) => entities.parse(data));
+    return _sendSocketMessage(type: "get_states").then(
+            (data) => entities.parse(data)
+    ).catchError((e) {
+      throw {"errorCode": 1, "errorMessage": "Error getting states: $e"};
+    });
   }
 
   Future _getLongLivedToken() async {
-    await _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app ${DateTime.now().millisecondsSinceEpoch}", "lifespan": 365}).then((data) {
-      if (data['success']) {
-        Logger.d("Got long-lived token: ${data['result']}");
-        _token = data['result'];
-        _tempToken = null;
-        final storage = new FlutterSecureStorage();
-        storage.write(key: "hacl_llt", value: _token);
-      } else {
-        logout();
-        Logger.e("Error getting long-lived token: ${data['error'].toString()}");
-      }
+    return _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app ${DateTime.now().millisecondsSinceEpoch}", "lifespan": 365}).then((data) {
+      Logger.d("Got long-lived token.");
+      _token = data;
+      _tempToken = null;
+      final storage = new FlutterSecureStorage();
+      storage.write(key: "hacl_llt", value: _token);
     }).catchError((e) {
-      Logger.e("Error getting long-lived token: ${e.toString()}");
       logout();
+      throw {"errorCode": 63, "errorMessage": "Authentication error: $e"};
     });
   }
 
   Future _getLovelace() async {
-    await _sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data["result"]);
+    return _sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
+      throw {"errorCode": 1, "errorMessage": "Error getting lovelace config: $e"};
+    });
   }
 
   Future _getUserInfo() async {
     _userName = null;
-    await _sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["result"]["name"]);
+    return _sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
+      Logger.w("Can't get user info: ${e}");
+    });
   }
 
   Future _getServices() async {
-    await _sendSocketMessage(type: "get_services").then((data) => Logger.d("We actually don`t need the list of servcies for now"));
+    return _sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
+      Logger.w("Can't get services: ${e}");
+    });
   }
 
   Future _getPanels() async {
     panels.clear();
-    await _sendSocketMessage(type: "get_panels").then((data) {
-      if (data["success"]) {
-        data["result"].forEach((k,v) {
-            String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
-            panels.add(Panel(
-                id: k,
-                type: v["component_name"],
-                title: title,
-                urlPath: v["url_path"],
-                config: v["config"],
-                icon: v["icon"]
-            )
-            );
-        });
-      }
-    });
+    return _sendSocketMessage(type: "get_panels").then((data) {
+      data.forEach((k,v) {
+        String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
+        panels.add(Panel(
+            id: k,
+            type: v["component_name"],
+            title: title,
+            urlPath: v["url_path"],
+            config: v["config"],
+            icon: v["icon"]
+        )
+        );
+      });
+    }).catchError((e) {
+      throw {"errorCode": 1, "errorMessage": "Error getting panels list: $e"};
+    });;
   }
 
   _incrementMessageId() {
