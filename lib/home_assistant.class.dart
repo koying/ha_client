@@ -1,20 +1,15 @@
 part of 'main.dart';
 
 class HomeAssistant {
-  String _webSocketAPIEndpoint;
-  String httpWebHost;
-  String oauthUrl;
-  //String _password;
-  String _token;
-  String _tempToken;
+
+  final Connection connection = Connection();
+
   bool _useLovelace = false;
-  bool isSettingsLoaded = false;
+  //bool isSettingsLoaded = false;
 
-  IOWebSocketChannel _hassioChannel;
-  SendMessageQueue _messageQueue;
 
-  int _currentMessageId = 0;
-  Map<int, Completer> _messageResolver = {};
+
+
   EntityCollection entities;
   HomeAssistantUI ui;
   Map _instanceConfig = {};
@@ -26,17 +21,7 @@ class HomeAssistant {
 
   List<Panel> panels = [];
 
-  Completer _fetchCompleter;
-  Completer _connectionCompleter;
-  Timer _connectionTimer;
-  Timer _fetchTimer;
-  bool autoReconnect = false;
-
-  StreamSubscription _socketSubscription;
-
-  int messageExpirationTime = 30; //seconds
   Duration fetchTimeout = Duration(seconds: 30);
-  Duration connectTimeout = Duration(seconds: 15);
 
   String get locationName {
     if (_useLovelace) {
@@ -49,253 +34,65 @@ class HomeAssistant {
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
   bool get isNoEntities => entities == null || entities.isEmpty;
   bool get isNoViews => ui == null || ui.isEmpty;
-  bool get isAuthenticated => _token != null;
   //int get viewsCount => entities.views.length ?? 0;
 
-  HomeAssistant() {
-    _messageQueue = SendMessageQueue(messageExpirationTime);
+  HomeAssistant();
+
+  Completer _connectCompleter;
+
+  Future init() {
+    if (_connectCompleter != null && !_connectCompleter.isCompleted) {
+      Logger.w("Previous connection pending...");
+      return _connectCompleter.future;
+    }
+    Logger.d("init...");
+    _connectCompleter = Completer();
+    connection.init(_handleEntityStateChange).then((_) {
+      SharedPreferences.getInstance().then((prefs) {
+        if (entities == null) entities = EntityCollection(connection.httpWebHost);
+        _useLovelace = prefs.getBool('use-lovelace') ?? true;
+        _connectCompleter.complete();
+      }).catchError((e) => _connectCompleter.completeError(e));
+    }).catchError((e) => _connectCompleter.completeError(e));
+    return _connectCompleter.future;
   }
 
-  Future loadConnectionSettings() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String domain = prefs.getString('hassio-domain');
-    String port = prefs.getString('hassio-port');
-    hostname = "$domain:$port";
-    _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
-    httpWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    _token = prefs.getString('hassio-token');
-    final storage = new FlutterSecureStorage();
-    try {
-      _token = await storage.read(key: "hacl_llt");
-    } catch (e) {
-      Logger.e("Cannt read secure storage. Need to relogin.");
-      _token = null;
-      await storage.delete(key: "hacl_llt");
-    }
-    _useLovelace = prefs.getBool('use-lovelace') ?? true;
-    if ((domain == null) || (port == null) ||
-        (domain.length == 0) || (port.length == 0)) {
-      throw("Check connection settings");
-    } else {
-      isSettingsLoaded = true;
-      oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
-      entities = EntityCollection(httpWebHost);
-    }
-  }
-
-  /*void updateSettings(String url, String password, bool useLovelace) {
-    _webSocketAPIEndpoint = url;
-    _password = password;
-    _useLovelace = useLovelace;
-    Logger.d( "Use lovelace is $_useLovelace");
-  }*/
+  Completer _fetchCompleter;
 
   Future fetch() {
-    //return _connection().then((_) => _getData());
-
-    if ((_fetchCompleter != null) && (!_fetchCompleter.isCompleted)) {
-      Logger.w("Previous fetch is not complited");
-    } else {
-      Logger.d("Fetching...");
-      _fetchCompleter = new Completer();
-      _fetchTimer?.cancel();
-      _fetchTimer = Timer(fetchTimeout, () {
-        Logger.e( "Data fetching timeout");
-        disconnect().then((_) {
-          _completeFetching({
-            "errorCode": 9,
-            "errorMessage": "Couldn't get data from server"
-          });
-        });
-      });
-      _connection().then((r) {
-        _getData();
-      }).catchError((e) {
-        _completeFetching(e);
-      });
+    if (_fetchCompleter != null && !_fetchCompleter.isCompleted) {
+      Logger.w("Previous data fetch is not completed yet");
+      return _fetchCompleter.future;
     }
-    return _fetchCompleter.future;
-  }
-
-  Future disconnect() async {
-    Logger.d( "Socket disconnecting...");
-    await _socketSubscription?.cancel();
-    await _hassioChannel?.sink?.close()?.timeout(Duration(seconds: 4),
-        onTimeout: () => Logger.d( "Socket sink close timeout")
-    );
-    _hassioChannel = null;
-    Logger.d( "..Disconnected");
-  }
-
-  Future _connection() {
-    if ((_connectionCompleter != null) && (!_connectionCompleter.isCompleted)) {
-      Logger.d("Previous connection is not complited");
-    } else {
-      if ((_hassioChannel == null) || (_hassioChannel.closeCode != null)) {
-        _connectionTimer?.cancel();
-        _connectionCompleter = new Completer();
-        autoReconnect = false;
-        disconnect().then((_){
-          Logger.d( "Socket connecting...");
-          _connectionTimer = Timer(connectTimeout, () {
-            Logger.e( "Socket connection timeout");
-            _handleSocketError(null);
-          });
-          _socketSubscription?.cancel();
-          _hassioChannel = IOWebSocketChannel.connect(
-              _webSocketAPIEndpoint, pingInterval: Duration(seconds: 30));
-          _socketSubscription = _hassioChannel.stream.listen(
-                  (message) => _handleMessage(message),
-              cancelOnError: true,
-              onDone: () => _handleSocketClose(),
-              onError: (e) => _handleSocketError(e)
-          );
-        });
-      } else {
-        _completeConnecting(null);
-      }
-    }
-    return _connectionCompleter.future;
-  }
-
-  void _handleSocketClose() {
-    Logger.d("Socket disconnected. Automatic reconnect is $autoReconnect");
-    if (autoReconnect) {
-      _reconnect();
-    }
-  }
-
-  void _handleSocketError(e) {
-    Logger.e("Socket stream Error: $e");
-    Logger.d("Automatic reconnect is $autoReconnect");
-    if (autoReconnect) {
-      _reconnect();
-    } else {
-      disconnect().then((_) {
-        _completeConnecting({
-          "errorCode": 1,
-          "errorMessage": "Couldn't connect to Home Assistant. Check network connection or connection settings."
-        });
-      });
-    }
-  }
-
-  void _reconnect() {
-    disconnect().then((_) {
-      _connection().catchError((e){
-        _completeConnecting(e);
-      });
-    });
-  }
-
-  _getData() async {
+    _fetchCompleter = Completer();
     List<Future> futures = [];
     futures.add(_getStates());
     if (_useLovelace) {
       futures.add(_getLovelace());
     }
-    if (_token == null && _tempToken != null) {
-      futures.add(_getLongLivedToken());
-    }
     futures.add(_getConfig());
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
-    futures.add(
-        _sendSocketMessage(
-          type: "subscribe_events",
-          additionalData: {"event_type": "state_changed"},
-        )
-    );
-    await Future.wait(futures).then((_) {
+    Future.wait(futures).then((_) {
       _createUI();
-      _completeFetching(null);
+      _fetchCompleter.complete();
     }).catchError((e) {
-      disconnect().then((_) =>
-          _completeFetching(e)
-      );
+      _fetchCompleter.completeError(e);
     });
-  }
-
-  void _completeFetching(error) {
-    _fetchTimer?.cancel();
-    _completeConnecting(error);
-    if (!_fetchCompleter.isCompleted) {
-      if (error != null) {
-        _fetchCompleter.completeError(error);
-      } else {
-        autoReconnect = true;
-        Logger.d( "Fetch complete successful");
-        _fetchCompleter.complete();
-      }
-    }
-  }
-
-  void _completeConnecting(error) {
-    _connectionTimer?.cancel();
-    if (!_connectionCompleter.isCompleted) {
-      if (error != null) {
-        _connectionCompleter.completeError(error);
-      } else {
-        _connectionCompleter.complete();
-      }
-    } else if (error != null) {
-      if (error is Error) {
-        eventBus.fire(ShowErrorEvent(error.toString(), 12));
-      } else {
-        eventBus.fire(ShowErrorEvent(error["errorMessage"], error["errorCode"]));
-      }
-
-    }
-  }
-
-  _handleMessage(String message) {
-    var data = json.decode(message);
-    if (data["type"] == "auth_required") {
-      Logger.d("[Received] <== ${data.toString()}");
-      _sendAuth();
-    } else if (data["type"] == "auth_ok") {
-      Logger.d("[Received] <== ${data.toString()}");
-      _completeConnecting(null);
-    } else if (data["type"] == "auth_invalid") {
-      Logger.d("[Received] <== ${data.toString()}");
-      logout();
-      _completeConnecting({"errorCode": 62, "errorMessage": "${data["message"]}"});
-    } else if (data["type"] == "result") {
-      if (data["success"]) {
-        Logger.d("[Received] <== Request id ${data['id']} was successful");
-        _messageResolver[data["id"]]?.complete(data["result"]);
-      } else {
-        Logger.e("[Received] <== Error received on request id ${data['id']}: ${data['error']}");
-        _messageResolver[data["id"]]?.completeError(data['error']["message"]);
-      }
-      _messageResolver.remove(data["id"]);
-    } else if (data["type"] == "event") {
-      if ((data["event"] != null) && (data["event"]["event_type"] == "state_changed")) {
-        Logger.d("[Received] <== ${data['type']}.${data["event"]["event_type"]}: ${data["event"]["data"]["entity_id"]}");
-        _handleEntityStateChange(data["event"]["data"]);
-      } else if (data["event"] != null) {
-        Logger.w("Unhandled event type: ${data["event"]["event_type"]}");
-      } else {
-        Logger.e("Event is null: $message");
-      }
-    } else {
-      Logger.d("[Received] <== ${data.toString()}");
-    }
+    return _fetchCompleter.future;
   }
 
   Future logout() async {
     Logger.d("Logging out...");
-    _token = null;
-    _tempToken = null;
-    final storage = new FlutterSecureStorage();
-    await storage.delete(key: "hacl_llt");
-    ui?.clear();
-    entities?.clear();
+    await connection.logout().then((_) {
+      ui?.clear();
+      entities?.clear();
+    });
   }
 
   Future _getConfig() async {
-    return _sendSocketMessage(type: "get_config").then((data) {
+    await connection.sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting config: $e"};
@@ -303,48 +100,35 @@ class HomeAssistant {
   }
 
   Future _getStates() async {
-    return _sendSocketMessage(type: "get_states").then(
+    await connection.sendSocketMessage(type: "get_states").then(
             (data) => entities.parse(data)
     ).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting states: $e"};
     });
   }
 
-  Future _getLongLivedToken() async {
-    return _sendSocketMessage(type: "auth/long_lived_access_token", additionalData: {"client_name": "HA Client app ${DateTime.now().millisecondsSinceEpoch}", "lifespan": 365}).then((data) {
-      Logger.d("Got long-lived token.");
-      _token = data;
-      _tempToken = null;
-      final storage = new FlutterSecureStorage();
-      storage.write(key: "hacl_llt", value: _token);
-    }).catchError((e) {
-      logout();
-      throw {"errorCode": 63, "errorMessage": "Authentication error: $e"};
-    });
-  }
-
   Future _getLovelace() async {
-    return _sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
+    await connection.sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting lovelace config: $e"};
     });
   }
 
   Future _getUserInfo() async {
     _userName = null;
-    return _sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
+    await connection.sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
       Logger.w("Can't get user info: ${e}");
     });
   }
 
   Future _getServices() async {
-    return _sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
+    await connection.sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
       Logger.w("Can't get services: ${e}");
     });
   }
 
   Future _getPanels() async {
     panels.clear();
-    return _sendSocketMessage(type: "get_panels").then((data) {
+    await connection.sendSocketMessage(type: "get_panels").then((data) {
       data.forEach((k,v) {
         String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
         panels.add(Panel(
@@ -359,138 +143,7 @@ class HomeAssistant {
       });
     }).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting panels list: $e"};
-    });;
-  }
-
-  _incrementMessageId() {
-    _currentMessageId += 1;
-  }
-
-  void _sendAuth() {
-    if (_token != null) {
-      Logger.d( "Long leaved token exist");
-      Logger.d( "[Sending] ==> auth request");
-      _hassioChannel.sink.add('{"type": "auth","access_token": "$_token"}');
-    } else if (_tempToken == null) {
-      Logger.d( "No long leaved token. Need to authenticate.");
-      final flutterWebviewPlugin = new FlutterWebviewPlugin();
-      flutterWebviewPlugin.onUrlChanged.listen((String url) {
-        if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
-          String authCode = url.split("=")[1];
-          Logger.d("We have auth code. Getting temporary access token...");
-          sendHTTPPost(
-            endPoint: "/auth/token",
-            contentType: "application/x-www-form-urlencoded",
-            includeAuthHeader: false,
-            data: "grant_type=authorization_code&code=$authCode&client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}"
-          ).then((response) {
-            Logger.d("Gottemp token");
-            _tempToken = json.decode(response)['access_token'];
-            Logger.d("Closing webview...");
-            flutterWebviewPlugin.close();
-            Logger.d("Firing event to reload UI");
-            eventBus.fire(ReloadUIEvent());
-          }).catchError((e) {
-            logout();
-            disconnect();
-            flutterWebviewPlugin.close();
-            _completeFetching({"errorCode": 61, "errorMessage": "Error getting temp token"});
-            Logger.e("Error getting temp token: ${e.toString()}");
-          });
-        }
-      });
-      disconnect();
-      _completeFetching({"errorCode": 60, "errorMessage": "Not authenticated"});
-      _requestOAuth();
-    } else if (_tempToken != null) {
-      Logger.d("We have temp token. Login...");
-      _hassioChannel.sink.add('{"type": "auth","access_token": "$_tempToken"}');
-    } else {
-      Logger.e("General login error");
-      logout();
-      disconnect();
-      _completeFetching({"errorCode": 61, "errorMessage": "General login error"});
-    }
-  }
-
-  void _requestOAuth() {
-    Logger.d("OAuth url: $oauthUrl");
-    eventBus.fire(StartAuthEvent(oauthUrl));
-  }
-
-  Future _sendSocketMessage({String type, Map additionalData, bool noId: false}) {
-    Completer _completer = Completer();
-    Map dataObject = {"type": "$type"};
-    if (!noId) {
-      _incrementMessageId();
-      dataObject["id"] = _currentMessageId;
-    }
-    if (additionalData != null) {
-      dataObject.addAll(additionalData);
-    }
-    _messageResolver[_currentMessageId] = _completer;
-    _rawSend(json.encode(dataObject), false);
-    return _completer.future;
-  }
-
-  _rawSend(String message, bool queued) {
-    var sendCompleter = Completer();
-    if (queued) {
-      _messageQueue.add(message);
-    }
-    _connection().then((r) {
-      _messageQueue.getActualMessages().forEach((message){
-        Logger.d( "[Sending queued] ==> $message");
-        _hassioChannel.sink.add(message);
-      });
-      if (!queued) {
-        Logger.d( "[Sending] ==> $message");
-        _hassioChannel.sink.add(message);
-      }
-      sendCompleter.complete();
-    }).catchError((e){
-      sendCompleter.completeError(e);
     });
-    return sendCompleter.future;
-  }
-
-  Future callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
-    _incrementMessageId();
-    String message = "";
-    if (entityId != null) {
-      message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service", "service_data": {"entity_id": "$entityId"';
-      if (additionalParams != null) {
-        additionalParams.forEach((name, value) {
-          if ((value is double) || (value is int) || (value is List)) {
-            message += ', "$name" : $value';
-          } else {
-            message += ', "$name" : "$value"';
-          }
-        });
-      }
-      message += '}}';
-    } else {
-      message = '{"id": $_currentMessageId, "type": "call_service", "domain": "$domain", "service": "$service"';
-      if (additionalParams != null && additionalParams.isNotEmpty) {
-        message += ', "service_data": {';
-        bool first = true;
-        additionalParams.forEach((name, value) {
-          if (!first) {
-            message += ', ';
-          }
-          if ((value is double) || (value is int) || (value is List)) {
-            message += '"$name" : $value';
-          } else {
-            message += '"$name" : "$value"';
-          }
-          first = false;
-        });
-
-        message += '}';
-      }
-      message += '}';
-    }
-    return _rawSend(message, true);
   }
 
   void _handleEntityStateChange(Map eventData) {
@@ -699,57 +352,9 @@ class HomeAssistant {
   Widget buildViews(BuildContext context, TabController tabController) {
     return ui.build(context, tabController);
   }
-
-  Future<List> getHistory(String entityId) async {
-    DateTime now = DateTime.now();
-    //String endTime = formatDate(now, [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    String startTime = formatDate(now.subtract(Duration(hours: 24)), [yyyy, '-', mm, '-', dd, 'T', HH, ':', nn, ':', ss, z]);
-    String url = "$httpWebHost/api/history/period/$startTime?&filter_entity_id=$entityId";
-    Logger.d("[Sending] ==> $url");
-    http.Response historyResponse;
-    historyResponse = await http.get(url, headers: {
-        "authorization": "Bearer $_token",
-        "Content-Type": "application/json"
-    });
-    var history = json.decode(historyResponse.body);
-    if (history is List) {
-      Logger.d( "[Received] <== ${history.first.length} history recors");
-      return history;
-    } else {
-      return [];
-    }
-  }
-
-  Future sendHTTPPost({String endPoint, String data, String contentType: "application/json", bool includeAuthHeader: true}) async {
-    Completer completer = Completer();
-    String url = "$httpWebHost$endPoint";
-    Logger.d("[Sending] ==> $url");
-    Map<String, String> headers = {};
-    if (contentType != null) {
-      headers["Content-Type"] = contentType;
-    }
-    if (includeAuthHeader) {
-      headers["authorization"] = "Bearer $_token";
-    }
-    http.post(
-      url,
-      headers: headers,
-      body: data
-    ).then((response) {
-      Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
-      if (response.statusCode == 200) {
-        completer.complete(response.body);
-      } else {
-        completer.completeError({"code": response.statusCode, "message": "${response.body}"});
-      }
-    }).catchError((e) {
-      completer.completeError(e);
-    });
-
-    return completer.future;
-  }
 }
 
+/*
 class SendMessageQueue {
   int _messageTimeout;
   List<HAMessage> _queue = [];
@@ -788,4 +393,4 @@ class HAMessage {
   bool isExpired() {
     return DateTime.now().difference(_timeStamp).inSeconds > _messageTimeout;
   }
-}
+}*/

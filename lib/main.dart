@@ -90,6 +90,8 @@ part 'entity.page.dart';
 part 'utils.class.dart';
 part 'mdi.class.dart';
 part 'entity_collection.class.dart';
+part 'auth_manager.class.dart';
+part 'connection.class.dart';
 part 'ui_class/ui.dart';
 part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
@@ -178,9 +180,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        widget.homeAssistant.disconnect().then((_){
-          _initialLoad();
-        });
+        _reLoad();
       }
     });
 
@@ -188,19 +188,45 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _initialLoad() {
-    widget.homeAssistant.loadConnectionSettings().then((_){
-      _subscribe();
-      _refreshData();
-    }, onError: (_) {
-      _showErrorBottomBar(message: _, errorCode: 5);
+    _showInfoBottomBar(progress: true,);
+    _subscribe();
+    widget.homeAssistant.init().then((_){
+      _fetchData();
+    }, onError: (e) {
+      _setErrorState(e);
     });
+  }
+
+  void _reLoad() {
+    _hideBottomBar();
+    _showInfoBottomBar(progress: true,);
+    widget.homeAssistant.init().then((_){
+      _fetchData();
+    }, onError: (e) {
+      _setErrorState(e);
+    });
+  }
+
+  _fetchData() async {
+    await widget.homeAssistant.fetch().then((_) {
+      _hideBottomBar();
+      int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
+      if (_previousViewCount != currentViewCount) {
+        Logger.d("Views count changed ($_previousViewCount->$currentViewCount). Creating new tabs controller.");
+        _viewsTabController = TabController(vsync: this, length: currentViewCount);
+        _previousViewCount = currentViewCount;
+      }
+    }).catchError((e) {
+      _setErrorState(e);
+    });
+    eventBus.fire(RefreshDataFinishedEvent());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    //Logger.d("$state");
-    if (state == AppLifecycleState.resumed && widget.homeAssistant.isSettingsLoaded) {
-      _refreshData();
+    Logger.d("$state");
+    if (state == AppLifecycleState.resumed) {
+      _reLoad();
     }
   }
 
@@ -209,7 +235,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
         if (event.needToRebuildUI) {
           Logger.d("New entity. Need to rebuild UI");
-          _refreshData();
+          _reLoad();
         } else {
           setState(() {});
         }
@@ -217,7 +243,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
     if (_reloadUISubscription == null) {
       _reloadUISubscription = eventBus.on<ReloadUIEvent>().listen((event){
-        _refreshData();
+        _reLoad();
       });
     }
     if (_serviceCallSubscription == null) {
@@ -274,32 +300,17 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         context,
         MaterialPageRoute(
           builder: (context) => WebviewScaffold(
-            url: "${widget.homeAssistant.oauthUrl}",
+            url: "${widget.homeAssistant.connection.oauthUrl}",
             appBar: new AppBar(
-              title: new Text("Login"),
+              leading: IconButton(
+                  icon: Icon(Icons.help),
+                  onPressed: () => HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/docs#authentication")
+              ),
+              title: new Text("Login to your Home Assistant"),
             ),
           ),
         )
     );
-  }
-
-  _refreshData() async {
-    //widget.homeAssistant.updateSettings(_webSocketApiEndpoint, _password, _useLovelaceUI);
-    _hideBottomBar();
-    _showInfoBottomBar(progress: true,);
-    Logger.d("Calling fetch()");
-    await widget.homeAssistant.fetch().then((result) {
-      _hideBottomBar();
-      int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
-      if (_previousViewCount != currentViewCount) {
-        Logger.d("Views count changed ($_previousViewCount->$currentViewCount). Creating new tabs controller.");
-        _viewsTabController = TabController(vsync: this, length: currentViewCount);
-        _previousViewCount = currentViewCount;
-      }
-    }).catchError((e) {
-      _setErrorState(e);
-    });
-    eventBus.fire(RefreshDataFinishedEvent());
   }
 
   _setErrorState(e) {
@@ -318,12 +329,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
 
-  void _callService(String domain, String service, String entityId, Map<String, dynamic> additionalParams) {
+  void _callService(String domain, String service, String entityId, Map additionalParams) {
     _showInfoBottomBar(
       message: "Calling $domain.$service",
       duration: Duration(seconds: 3)
     );
-    widget.homeAssistant.callService(domain, service, entityId, additionalParams).catchError((e) => _setErrorState(e));
+    widget.homeAssistant.connection.callService(domain: domain, service: service, entityId: entityId, additionalServiceData: additionalParams).catchError((e) => _setErrorState(e));
   }
 
   void _showEntityPage(String entityId) {
@@ -381,15 +392,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           }
         });
       }
-      if (widget.homeAssistant.isSettingsLoaded) {
-        menuItems.add(
+      //TODO check for loaded
+      menuItems.add(
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(widget.homeAssistant.httpWebHost),
+            onTap: () => HAUtils.launchURL(widget.homeAssistant.connection.httpWebHost),
           )
-        );
-      }
+      );
       menuItems.addAll([
         Divider(),
         ListTile(
@@ -500,7 +510,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                 child: Text("Retry", style: textStyle),
                 onPressed: () {
                   //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-                  _refreshData();
+                  _reLoad();
                 },
             );
             break;
@@ -522,7 +532,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
               child: Text("Login", style: textStyle),
             onPressed: () {
-              _refreshData();
+              _reLoad();
             },
           );
           break;
@@ -533,7 +543,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
             child: Text("Try again", style: textStyle),
             onPressed: () {
-              _refreshData();
+              _reLoad();
             },
           );
           break;
@@ -543,7 +553,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
             child: Text("Login again", style: textStyle),
             onPressed: () {
-              _refreshData();
+              _reLoad();
             },
           );
           break;
@@ -554,31 +564,26 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
               child: Text("Refresh", style: textStyle),
             onPressed: () {
               //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              _refreshData();
+              _reLoad();
             },
           );
           break;
         }
 
+        case 82:
+        case 81:
         case 8: {
           _bottomBarAction = FlatButton(
               child: Text("Reconnect", style: textStyle),
             onPressed: () {
-              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              _refreshData();
+              _reLoad();
             },
           );
           break;
         }
 
         default: {
-          _bottomBarAction = FlatButton(
-              child: Text("Reload", style: textStyle),
-            onPressed: () {
-              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              _refreshData();
-            },
-          );
+          _bottomBarAction = Container(width: 0.0, height: 0.0,);
           break;
         }
       }
@@ -593,22 +598,16 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   Widget _buildScaffoldBody(bool empty) {
     List<PopupMenuItem<String>> popupMenuItems = [];
-    if (widget.homeAssistant.isAuthenticated) {
-      popupMenuItems.addAll([
-          PopupMenuItem<String>(
-            child: new Text("Reload"),
-            value: "reload",
-          ),
+    popupMenuItems.add(PopupMenuItem<String>(
+      child: new Text("Reload"),
+      value: "reload",
+    ));
+    if (widget.homeAssistant.connection.isAuthenticated) {
+      popupMenuItems.add(
           PopupMenuItem<String>(
             child: new Text("Logout"),
             value: "logout",
-          )]);
-    } else {
-      popupMenuItems.addAll([
-        PopupMenuItem<String>(
-          child: new Text("Connect"),
-          value: "reload",
-        )]);
+          ));
     }
     return NestedScrollView(
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -629,14 +628,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                     items: popupMenuItems
                   ).then((String val) {
                     if (val == "reload") {
-                      _refreshData();
+                      _reLoad();
                     } else if (val == "logout") {
-                      widget.homeAssistant.disconnect().then((_) {
-                        widget.homeAssistant.logout().then((_) {
-                          setState(() {
-                            _refreshData();
-                          });
-                        });
+                      widget.homeAssistant.logout().then((_) {
+                        _reLoad();
                       });
                     }
                   });
@@ -764,7 +759,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _showErrorSubscription?.cancel();
     _startAuthSubscription?.cancel();
     _reloadUISubscription?.cancel();
-    widget.homeAssistant?.disconnect();
+    //TODO disconnect
+    //widget.homeAssistant?.disconnect();
     super.dispose();
   }
 }
