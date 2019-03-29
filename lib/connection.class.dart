@@ -16,6 +16,7 @@ class Connection {
   String _token;
   String _tempToken;
   String oauthUrl;
+  String deviceName;
   bool get isAuthenticated => _token != null;
   StreamSubscription _socketSubscription;
   Duration connectTimeout = Duration(seconds: 15);
@@ -51,6 +52,9 @@ class Connection {
         (domain.length == 0) || (port.length == 0)) {
       completer.completeError({"errorCode": 5, "errorMessage": "Check connection settings"});
     } else {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      deviceName = androidInfo.model;
       oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
       if (_token == null) {
         await AuthManager().getTempToken(
@@ -97,10 +101,7 @@ class Connection {
             Logger.d("[Received] <== ${data.toString()}");
             _messageResolver["auth"]?.complete();
             _messageResolver.remove("auth");
-            if (!connecting.isCompleted) connecting.complete(sendSocketMessage(
-              type: "subscribe_events",
-              additionalData: {"event_type": "state_changed"},
-            ));
+            if (!connecting.isCompleted) connecting.complete();
           } else if (data["type"] == "auth_invalid") {
             Logger.d("[Received] <== ${data.toString()}");
             _messageResolver["auth"]?.completeError({"errorCode": 62, "errorMessage": "${data["message"]}"});
@@ -119,12 +120,16 @@ class Connection {
     return connecting.future;
   }
 
-  Future _disconnect() async {
+  _disconnect() async {
     Logger.d( "Socket disconnecting...");
-    await _socketSubscription?.cancel();
-    await _socket?.sink?.close()?.timeout(Duration(seconds: 4),
-        onTimeout: () => Logger.d( "Socket sink close timeout")
-    );
+    if (_socketSubscription != null) {
+      await _socketSubscription?.cancel();
+    }
+    if (_socket != null && _socket.sink != null) {
+      await _socket.sink.close().timeout(Duration(seconds: 5),
+          onTimeout: () => Logger.d("Socket sink close timeout")
+      );
+    }
     Logger.d( "..Disconnected");
   }
 
@@ -335,7 +340,6 @@ class Connection {
     }).catchError((e) {
       completer.completeError(e);
     });
-
     return completer.future;
   }
 

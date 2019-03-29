@@ -76,6 +76,10 @@ class HomeAssistant {
     futures.add(_getPanels());
     Future.wait(futures).then((_) {
       _createUI();
+      Connection().sendSocketMessage(
+        type: "subscribe_events",
+        additionalData: {"event_type": "state_changed"},
+      );
       _fetchCompleter.complete();
     }).catchError((e) {
       _fetchCompleter.completeError(e);

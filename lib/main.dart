@@ -20,6 +20,7 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:device_info/device_info.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -104,6 +105,7 @@ part 'ui_widgets/config_panel_widget.dart';
 
 
 EventBus eventBus = new EventBus();
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 const String appName = "HA Client";
 const appVersion = "0.6.0-alpha1";
 
@@ -168,7 +170,6 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _startAuthSubscription;
   StreamSubscription _reloadUISubscription;
   int _previousViewCount;
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
@@ -199,8 +200,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
   void _initialLoad() async {
     _showInfoBottomBar(progress: true,);
-    await _subscribe();
     widget.homeAssistant.init().then((_){
+      _subscribe();
       _fetchData();
     }, onError: (e) {
       _setErrorState(e);
@@ -285,12 +286,15 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
 
     _firebaseMessaging.getToken().then((String token) {
-      //Logger.d("FCM token: $token");
+      Logger.d("Device name: ${json.encode(Connection().deviceName)}");
       widget.homeAssistant.connection.sendHTTPPost(
-          endPoint: '/api/notify.fcm-android',
-          data:  '{"token": "$token"}'
+          endPoint: '/api/notify.ha-client',
+          data:  '{"token": "$token", "device": ${json.encode(Connection().deviceName)}}'
       ).then((_) {
         Logger.d("Notificatin listener registered.");
+        completer.complete();
+      }).catchError((e) {
+        Logger.e("Error registering notification listener: ${e.toString()}");
         completer.complete();
       });
     }).catchError((e) {
@@ -319,9 +323,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   _setErrorState(e) {
-    if (e is Error) {
-      Logger.e(e.toString());
-      Logger.e("${e.stackTrace}");
+    if (e["errorCode"] == null) {
       _showErrorBottomBar(
           message: "Unknown error",
           errorCode: 13
@@ -566,7 +568,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
         case 10: {
           _bottomBarAction = FlatButton(
-              child: Text("Refresh", style: textStyle),
+              child: Text("Reload", style: textStyle),
             onPressed: () {
               //_scaffoldKey?.currentState?.hideCurrentSnackBar();
               _reLoad();
@@ -588,7 +590,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         }
 
         default: {
-          _bottomBarAction = Container(width: 0.0, height: 0.0,);
+          _bottomBarAction = FlatButton(
+            child: Text("Try again", style: textStyle),
+            onPressed: () {
+              _reLoad();
+            },
+          );
           break;
         }
       }
