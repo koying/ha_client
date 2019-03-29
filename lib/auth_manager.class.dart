@@ -10,7 +10,7 @@ class AuthManager {
 
   AuthManager._internal();
 
-  Future getTempToken({String httpWebHost, String oauthUrl}) {
+  Future getTempToken({String oauthUrl}) {
     Completer completer = Completer();
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
     flutterWebviewPlugin.onUrlChanged.listen((String url) {
@@ -18,7 +18,6 @@ class AuthManager {
         String authCode = url.split("=")[1];
         Logger.d("We have auth code. Getting temporary access token...");
         Connection().sendHTTPPost(
-            host: httpWebHost,
             endPoint: "/auth/token",
             contentType: "application/x-www-form-urlencoded",
             includeAuthHeader: false,

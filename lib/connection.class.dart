@@ -54,7 +54,6 @@ class Connection {
       oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
       if (_token == null) {
         await AuthManager().getTempToken(
-            httpWebHost: httpWebHost,
             oauthUrl: oauthUrl
         ).then((token) {
           Logger.d("Token from AuthManager recived");
@@ -311,16 +310,16 @@ class Connection {
     }
   }
 
-  Future sendHTTPPost({String host, String endPoint, String data, String contentType: "application/json", bool includeAuthHeader: true, String authToken}) async {
+  Future sendHTTPPost({String endPoint, String data, String contentType: "application/json", bool includeAuthHeader: true}) async {
     Completer completer = Completer();
-    String url = "$host$endPoint";
+    String url = "$httpWebHost$endPoint";
     Logger.d("[Sending] ==> $url");
     Map<String, String> headers = {};
     if (contentType != null) {
       headers["Content-Type"] = contentType;
     }
     if (includeAuthHeader) {
-      headers["authorization"] = "Bearer $authToken";
+      headers["authorization"] = "Bearer $_token";
     }
     http.post(
         url,

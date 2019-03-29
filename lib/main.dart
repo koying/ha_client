@@ -168,14 +168,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _startAuthSubscription;
   StreamSubscription _reloadUISubscription;
   int _previousViewCount;
-  //final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
   @override
   void initState() {
     super.initState();
-    //widget.homeAssistant = HomeAssistant();
-    //_settingsLoaded = false;
     WidgetsBinding.instance.addObserver(this);
+
+    _firebaseMessaging.configure(
+        onLaunch: (data) {
+          Logger.d("Notification [onLaunch]: $data");
+        },
+        onMessage: (data) {
+          Logger.d("Notification [onMessage]: $data");
+        },
+        onResume: (data) {
+          Logger.d("Notification [onResume]: $data");
+        }
+    );
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
@@ -187,9 +197,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _initialLoad();
   }
 
-  void _initialLoad() {
+  void _initialLoad() async {
     _showInfoBottomBar(progress: true,);
-    _subscribe();
+    await _subscribe();
     widget.homeAssistant.init().then((_){
       _fetchData();
     }, onError: (e) {
@@ -230,7 +240,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
 
-  _subscribe() {
+  Future _subscribe() {
+    Completer completer = Completer();
     if (_stateSubscription == null) {
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
         if (event.needToRebuildUI) {
@@ -273,26 +284,20 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       });
     }
 
-
-
-    /*_firebaseMessaging.getToken().then((String token) {
+    _firebaseMessaging.getToken().then((String token) {
       //Logger.d("FCM token: $token");
-      widget.homeAssistant.sendHTTPPost(
+      widget.homeAssistant.connection.sendHTTPPost(
           endPoint: '/api/notify.fcm-android',
-          jsonData:  '{"token": "$token"}'
-      );
+          data:  '{"token": "$token"}'
+      ).then((_) {
+        Logger.d("Notificatin listener registered.");
+        completer.complete();
+      });
+    }).catchError((e) {
+      Logger.e("Error registering notification listener: ${e.toString()}");
+      completer.complete();
     });
-    _firebaseMessaging.configure(
-        onLaunch: (data) {
-          Logger.d("Notification [onLaunch]: $data");
-        },
-        onMessage: (data) {
-          Logger.d("Notification [onMessage]: $data");
-        },
-        onResume: (data) {
-          Logger.d("Notification [onResume]: $data");
-        }
-    );*/
+    return completer.future;
   }
 
   void _showOAuth() {
