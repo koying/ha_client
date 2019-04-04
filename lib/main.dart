@@ -415,6 +415,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                 ),
               ),
             ),
+            Container(
+              height: 10.0,
+            ),
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
@@ -427,6 +430,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                     decoration: TextDecoration.underline
                 ),
               ),
+            ),
+            Container(
+              height: 10.0,
             ),
             GestureDetector(
               onTap: () {
