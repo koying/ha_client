@@ -452,6 +452,38 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                   decoration: TextDecoration.underline
                 ),
               ),
+            ),
+            Container(
+              height: 10.0,
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/terms_and_conditions");
+              },
+              child: Text(
+                "Terms and Conditions",
+                style: TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline
+                ),
+              ),
+            ),
+            Container(
+              height: 10.0,
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/privacy_policy");
+              },
+              child: Text(
+                "Privacy Policy",
+                style: TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline
+                ),
+              ),
             )
           ],
           applicationName: appName,
