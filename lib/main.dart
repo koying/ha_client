@@ -105,7 +105,7 @@ part 'ui_widgets/config_panel_widget.dart';
 
 EventBus eventBus = new EventBus();
 const String appName = "HA Client";
-const appVersion = "0.6.0-alpha1";
+const appVersion = "0.6.0-alpha2";
 
 void main() {
   FlutterError.onError = (errorDetails) {
