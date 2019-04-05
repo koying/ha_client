@@ -75,6 +75,7 @@ class HomeAssistant {
     await connection.logout().then((_) {
       ui?.clear();
       entities?.clear();
+      panels?.clear();
     });
   }
 
