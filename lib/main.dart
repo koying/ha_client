@@ -203,9 +203,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _subscribe().then((_) {
       Connection().init(loadSettings: true, forceReconnect: true).then((__){
         _fetchData();
+      }, onError: (e) {
+        _setErrorState(e);
       });
-    }, onError: (e) {
-      _setErrorState(e);
     });
   }
 
