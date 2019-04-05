@@ -100,44 +100,48 @@ class Connection {
 
   Future _connect() async {
     if (connecting != null && !connecting.isCompleted) {
-      Logger.w("");
+      Logger.w("Previous connection attempt pending...");
+      return connecting.future;
+    } else {
+      connecting = Completer();
+      await _disconnect();
+      Logger.d("Socket connecting...");
+      _socket = IOWebSocketChannel.connect(
+          _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
+      _socketSubscription = _socket.stream.listen(
+              (message) {
+            isConnected = true;
+            var data = json.decode(message);
+            if (data["type"] == "auth_required") {
+              Logger.d("[Received] <== ${data.toString()}");
+              _authenticate().then((_) => connecting.complete()).catchError((
+                  e) {
+                if (!connecting.isCompleted) connecting.completeError(e);
+              });
+            } else if (data["type"] == "auth_ok") {
+              Logger.d("[Received] <== ${data.toString()}");
+              _messageResolver["auth"]?.complete();
+              _messageResolver.remove("auth");
+              if (!connecting.isCompleted) connecting.complete();
+            } else if (data["type"] == "auth_invalid") {
+              Logger.d("[Received] <== ${data.toString()}");
+              _messageResolver["auth"]?.completeError(
+                  {"errorCode": 62, "errorMessage": "${data["message"]}"});
+              _messageResolver.remove("auth");
+              logout().then((_) {
+                if (!connecting.isCompleted) connecting.completeError(
+                    {"errorCode": 62, "errorMessage": "${data["message"]}"});
+              });
+            } else {
+              _handleMessage(data);
+            }
+          },
+          cancelOnError: true,
+          onDone: () => _handleSocketClose(connecting),
+          onError: (e) => _handleSocketError(e, connecting)
+      );
       return connecting.future;
     }
-    connecting = Completer();
-    await _disconnect();
-    Logger.d( "Socket connecting...");
-    _socket = IOWebSocketChannel.connect(
-        _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
-    _socketSubscription = _socket.stream.listen(
-            (message) {
-          isConnected = true;
-          var data = json.decode(message);
-          if (data["type"] == "auth_required") {
-            Logger.d("[Received] <== ${data.toString()}");
-            _authenticate().then((_) => connecting.complete()).catchError((e) {
-              if (!connecting.isCompleted) connecting.completeError(e);
-            });
-          } else if (data["type"] == "auth_ok") {
-            Logger.d("[Received] <== ${data.toString()}");
-            _messageResolver["auth"]?.complete();
-            _messageResolver.remove("auth");
-            if (!connecting.isCompleted) connecting.complete();
-          } else if (data["type"] == "auth_invalid") {
-            Logger.d("[Received] <== ${data.toString()}");
-            _messageResolver["auth"]?.completeError({"errorCode": 62, "errorMessage": "${data["message"]}"});
-            _messageResolver.remove("auth");
-            logout().then((_) {
-              if (!connecting.isCompleted) connecting.completeError({"errorCode": 62, "errorMessage": "${data["message"]}"});
-            });
-          } else {
-            _handleMessage(data);
-          }
-        },
-        cancelOnError: true,
-        onDone: () => _handleSocketClose(connecting),
-        onError: (e) => _handleSocketError(e, connecting)
-    );
-    return connecting.future;
   }
 
   _disconnect() async {
@@ -147,7 +151,7 @@ class Connection {
       await _socketSubscription?.cancel();
     }
     if (_socket != null && _socket.sink != null) {
-      await _socket.sink.close().timeout(Duration(seconds: 5),
+      await _socket.sink.close().timeout(Duration(seconds: 3),
           onTimeout: () => Logger.d("Socket sink close timeout")
       );
     }
@@ -187,7 +191,9 @@ class Connection {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
-          _connect();
+          _connect().catchError((e) {
+            eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
+          });
         });
       });
     }
@@ -202,7 +208,9 @@ class Connection {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
-          _connect();
+          _connect().catchError((e) {
+            eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
+          });
         });
       });
     }
@@ -283,16 +291,17 @@ class Connection {
     }
     _messageResolver[callbackName] = _completer;
     String rawMessage = json.encode(dataObject);
-    Logger.d("[Sending] ==> $rawMessage");
     if (!isConnected) {
       _connect().timeout(connectTimeout, onTimeout: (){
         _completer.completeError({"errorCode": 8, "errorMessage": "No connection to Home Assistant"});
       }).then((_) {
+        Logger.d("[Sending] ==> $rawMessage");
         _socket.sink.add(rawMessage);
       }).catchError((e) {
         _completer.completeError(e);
       });
     } else {
+      Logger.d("[Sending] ==> $rawMessage");
       _socket.sink.add(rawMessage);
     }
     return _completer.future;
