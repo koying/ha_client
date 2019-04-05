@@ -170,6 +170,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _startAuthSubscription;
   StreamSubscription _reloadUISubscription;
   int _previousViewCount;
+  bool _showLoginButton = false;
 
   @override
   void initState() {
@@ -282,7 +283,9 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
-        _showOAuth();
+        setState(() {
+          _showLoginButton = true;
+        });
       });
     }
 
@@ -647,12 +650,29 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       child: new Text("Reload"),
       value: "reload",
     ));
+    List<Widget> emptyBody = [
+      Icon(
+        MaterialDesignIcons.getIconDataFromIconName("mdi:border-none-variant"),
+        size: 100.0,
+        color: Colors.black26,
+      ),
+    ];
     if (Connection().isAuthenticated) {
+      _showLoginButton = false;
       popupMenuItems.add(
           PopupMenuItem<String>(
             child: new Text("Logout"),
             value: "logout",
           ));
+    }
+    if (_showLoginButton) {
+      emptyBody = [
+        FlatButton(
+          child: Text("Login with Home Assistant", style: TextStyle(fontSize: 16.0, color: Colors.white)),
+          color: Colors.blue,
+          onPressed: () => _showOAuth(),
+        )
+      ];
     }
     return NestedScrollView(
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -702,13 +722,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       Center(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                MaterialDesignIcons.getIconDataFromIconName("mdi:border-none-variant"),
-                size: 100.0,
-                color: Colors.black26,
-              ),
-            ]
+            children: emptyBody
         ),
       )
           :
