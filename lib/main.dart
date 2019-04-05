@@ -191,27 +191,28 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
       if (event.reconnect) {
-        _reLoad();
+        _fullLoad();
       }
     });
 
-    _initialLoad();
+    _fullLoad();
   }
 
-  void _initialLoad() async {
+  void _fullLoad() async {
     _showInfoBottomBar(progress: true,);
-    widget.homeAssistant.init().then((_){
-      _subscribe();
-      _fetchData();
+    _subscribe().then((_) {
+      Connection().init(loadSettings: true, forceReconnect: true).then((__){
+        _fetchData();
+      });
     }, onError: (e) {
       _setErrorState(e);
     });
   }
 
-  void _reLoad() {
+  void _quickLoad() {
     _hideBottomBar();
     _showInfoBottomBar(progress: true,);
-    widget.homeAssistant.init().then((_){
+    Connection().init(loadSettings: false, forceReconnect: false).then((_){
       _fetchData();
     }, onError: (e) {
       _setErrorState(e);
@@ -219,7 +220,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   _fetchData() async {
-    await widget.homeAssistant.fetch().then((_) {
+    await widget.homeAssistant.fetchData().then((_) {
       _hideBottomBar();
       int currentViewCount = widget.homeAssistant.ui?.views?.length ?? 0;
       if (_previousViewCount != currentViewCount) {
@@ -236,8 +237,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     Logger.d("$state");
-    if (state == AppLifecycleState.resumed) {
-      _reLoad();
+    if (state == AppLifecycleState.resumed && Connection().settingsLoaded) {
+      _quickLoad();
     }
   }
 
@@ -247,7 +248,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       _stateSubscription = eventBus.on<StateChangedEvent>().listen((event) {
         if (event.needToRebuildUI) {
           Logger.d("New entity. Need to rebuild UI");
-          _reLoad();
+          _quickLoad();
         } else {
           setState(() {});
         }
@@ -255,7 +256,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
     if (_reloadUISubscription == null) {
       _reloadUISubscription = eventBus.on<ReloadUIEvent>().listen((event){
-        _reLoad();
+        _quickLoad();
       });
     }
     if (_serviceCallSubscription == null) {
@@ -549,7 +550,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                 child: Text("Retry", style: textStyle),
                 onPressed: () {
                   //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-                  _reLoad();
+                  _quickLoad();
                 },
             );
             break;
@@ -571,7 +572,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
               child: Text("Login", style: textStyle),
             onPressed: () {
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -582,7 +583,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
             child: Text("Try again", style: textStyle),
             onPressed: () {
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -592,7 +593,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
             child: Text("Login again", style: textStyle),
             onPressed: () {
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -603,7 +604,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
               child: Text("Reload", style: textStyle),
             onPressed: () {
               //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -615,7 +616,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
               child: Text("Reconnect", style: textStyle),
             onPressed: () {
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -625,7 +626,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           _bottomBarAction = FlatButton(
             child: Text("Try again", style: textStyle),
             onPressed: () {
-              _reLoad();
+              _fullLoad();
             },
           );
           break;
@@ -672,10 +673,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                     items: popupMenuItems
                   ).then((String val) {
                     if (val == "reload") {
-                      _reLoad();
+                      _quickLoad();
                     } else if (val == "logout") {
                       widget.homeAssistant.logout().then((_) {
-                        _reLoad();
+                        _quickLoad();
                       });
                     }
                   });

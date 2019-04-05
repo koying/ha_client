@@ -10,6 +10,8 @@ class Connection {
 
   Connection._internal();
 
+  String _domain;
+  String _port;
   String displayHostname;
   String _webSocketAPIEndpoint;
   String httpWebHost;
@@ -17,6 +19,8 @@ class Connection {
   String _tempToken;
   String oauthUrl;
   String deviceName;
+  bool useLovelace = true;
+  bool settingsLoaded = false;
   bool get isAuthenticated => _token != null;
   StreamSubscription _socketSubscription;
   Duration connectTimeout = Duration(seconds: 15);
@@ -30,40 +34,55 @@ class Connection {
   int _currentMessageId = 0;
   Map<String, Completer> _messageResolver = {};
 
-  Future init(onStateChange) async {
+  Future init({bool loadSettings, bool forceReconnect: false}) async {
     Completer completer = Completer();
-    onStateChangeCallback = onStateChange;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String domain = prefs.getString('hassio-domain');
-    String port = prefs.getString('hassio-port');
-    displayHostname = "$domain:$port";
-    _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$domain:$port/api/websocket";
-    httpWebHost = "${prefs.getString('hassio-res-protocol')}://$domain:$port";
-    //_token = prefs.getString('hassio-token');
-    final storage = new FlutterSecureStorage();
-    try {
-      _token = await storage.read(key: "hacl_llt");
-    } catch (e) {
-      Logger.e("Cannt read secure storage. Need to relogin.");
-      _token = null;
-      await storage.delete(key: "hacl_llt");
-    }
-    if ((domain == null) || (port == null) ||
-        (domain.length == 0) || (port.length == 0)) {
-      completer.completeError({"errorCode": 5, "errorMessage": "Check connection settings"});
-    } else {
+    if (loadSettings) {
+      Logger.e("Loading settings...");
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      useLovelace = prefs.getBool('use-lovelace') ?? true;
+      _domain = prefs.getString('hassio-domain');
+      _port = prefs.getString('hassio-port');
+      displayHostname = "$_domain:$_port";
+      _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$_domain:$_port/api/websocket";
+      httpWebHost = "${prefs.getString('hassio-res-protocol')}://$_domain:$_port";
+      //_token = prefs.getString('hassio-token');
+      final storage = new FlutterSecureStorage();
+      try {
+        _token = await storage.read(key: "hacl_llt");
+        Logger.e("Long-lived token read successful");
+      } catch (e) {
+        Logger.e("Cannt read secure storage. Need to relogin.");
+        _token = null;
+        await storage.delete(key: "hacl_llt");
+      }
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
       deviceName = androidInfo.model;
       oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
-      if (_token == null) {
-        await AuthManager().getTempToken(
-            oauthUrl: oauthUrl
-        ).then((token) {
-          Logger.d("Token from AuthManager recived");
-          _tempToken = token;
-        });
-      }
+      settingsLoaded = true;
+    }
+    if ((_domain == null) || (_port == null) ||
+        (_domain.isEmpty) || (_port.isEmpty)) {
+      completer.completeError({"errorCode": 5, "errorMessage": "Check connection settings"});
+    }
+
+    if (_token == null) {
+      AuthManager().getTempToken(
+          oauthUrl: oauthUrl
+      ).then((token) {
+        Logger.d("Token from AuthManager recived");
+        _tempToken = token;
+        _doConnect(completer: completer, forceReconnect: forceReconnect);
+      });
+    } else {
+      _doConnect(completer: completer, forceReconnect: forceReconnect);
+    }
+
+    return completer.future;
+  }
+
+  void _doConnect({Completer completer, bool forceReconnect}) {
+    if (forceReconnect || !isConnected) {
       _connect().timeout(connectTimeout, onTimeout: () {
         _disconnect().then((_) {
           completer.completeError(
@@ -72,8 +91,9 @@ class Connection {
       }).then((_) => completer.complete()).catchError((e) {
         completer.completeError(e);
       });
+    } else {
+      completer.complete();
     }
-    return completer.future;
   }
 
   Completer connecting;
@@ -121,6 +141,7 @@ class Connection {
   }
 
   _disconnect() async {
+    isConnected = false;
     Logger.d( "Socket disconnecting...");
     if (_socketSubscription != null) {
       await _socketSubscription?.cancel();

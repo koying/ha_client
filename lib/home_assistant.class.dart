@@ -4,7 +4,7 @@ class HomeAssistant {
 
   final Connection connection = Connection();
 
-  bool _useLovelace = false;
+  //bool _useLovelace = false;
   //bool isSettingsLoaded = false;
 
 
@@ -24,7 +24,7 @@ class HomeAssistant {
   Duration fetchTimeout = Duration(seconds: 30);
 
   String get locationName {
-    if (_useLovelace) {
+    if (Connection().useLovelace) {
       return ui?.title ?? "";
     } else {
       return _instanceConfig["location_name"] ?? "";
@@ -36,38 +36,22 @@ class HomeAssistant {
   bool get isNoViews => ui == null || ui.isEmpty;
   //int get viewsCount => entities.views.length ?? 0;
 
-  HomeAssistant();
-
-  Completer _connectCompleter;
-
-  Future init() {
-    if (_connectCompleter != null && !_connectCompleter.isCompleted) {
-      Logger.w("Previous connection pending...");
-      return _connectCompleter.future;
-    }
-    Logger.d("init...");
-    _connectCompleter = Completer();
-    connection.init(_handleEntityStateChange).then((_) {
-      SharedPreferences.getInstance().then((prefs) {
-        if (entities == null) entities = EntityCollection(connection.httpWebHost);
-        _useLovelace = prefs.getBool('use-lovelace') ?? true;
-        _connectCompleter.complete();
-      }).catchError((e) => _connectCompleter.completeError(e));
-    }).catchError((e) => _connectCompleter.completeError(e));
-    return _connectCompleter.future;
+  HomeAssistant() {
+    Connection().onStateChangeCallback = _handleEntityStateChange;
   }
 
   Completer _fetchCompleter;
 
-  Future fetch() {
+  Future fetchData() {
     if (_fetchCompleter != null && !_fetchCompleter.isCompleted) {
       Logger.w("Previous data fetch is not completed yet");
       return _fetchCompleter.future;
     }
+    if (entities == null) entities = EntityCollection(connection.httpWebHost);
     _fetchCompleter = Completer();
     List<Future> futures = [];
     futures.add(_getStates());
-    if (_useLovelace) {
+    if (Connection().useLovelace) {
       futures.add(_getLovelace());
     }
     futures.add(_getConfig());
@@ -319,7 +303,7 @@ class HomeAssistant {
 
   void _createUI() {
     ui = HomeAssistantUI();
-    if ((_useLovelace) && (_rawLovelaceData != null)) {
+    if ((Connection().useLovelace) && (_rawLovelaceData != null)) {
       Logger.d("Creating Lovelace UI");
       _parseLovelace();
     } else {
