@@ -2,14 +2,6 @@ part of 'main.dart';
 
 class HomeAssistant {
 
-  final Connection connection = Connection();
-
-  //bool _useLovelace = false;
-  //bool isSettingsLoaded = false;
-
-
-
-
   EntityCollection entities;
   HomeAssistantUI ui;
   Map _instanceConfig = {};
@@ -33,7 +25,6 @@ class HomeAssistant {
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
   bool get isNoEntities => entities == null || entities.isEmpty;
   bool get isNoViews => ui == null || ui.isEmpty;
-  //int get viewsCount => entities.views.length ?? 0;
 
   HomeAssistant() {
     Connection().onStateChangeCallback = _handleEntityStateChange;
@@ -46,7 +37,7 @@ class HomeAssistant {
       Logger.w("Previous data fetch is not completed yet");
       return _fetchCompleter.future;
     }
-    if (entities == null) entities = EntityCollection(connection.httpWebHost);
+    if (entities == null) entities = EntityCollection(Connection().httpWebHost);
     _fetchCompleter = Completer();
     List<Future> futures = [];
     futures.add(_getStates());
@@ -72,7 +63,7 @@ class HomeAssistant {
 
   Future logout() async {
     Logger.d("Logging out...");
-    await connection.logout().then((_) {
+    await Connection().logout().then((_) {
       ui?.clear();
       entities?.clear();
       panels?.clear();
@@ -80,7 +71,7 @@ class HomeAssistant {
   }
 
   Future _getConfig() async {
-    await connection.sendSocketMessage(type: "get_config").then((data) {
+    await Connection().sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting config: $e"};
@@ -88,7 +79,7 @@ class HomeAssistant {
   }
 
   Future _getStates() async {
-    await connection.sendSocketMessage(type: "get_states").then(
+    await Connection().sendSocketMessage(type: "get_states").then(
             (data) => entities.parse(data)
     ).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting states: $e"};
@@ -96,27 +87,27 @@ class HomeAssistant {
   }
 
   Future _getLovelace() async {
-    await connection.sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
+    await Connection().sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
       throw {"errorCode": 1, "errorMessage": "Error getting lovelace config: $e"};
     });
   }
 
   Future _getUserInfo() async {
     _userName = null;
-    await connection.sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
+    await Connection().sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
       Logger.w("Can't get user info: ${e}");
     });
   }
 
   Future _getServices() async {
-    await connection.sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
+    await Connection().sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
       Logger.w("Can't get services: ${e}");
     });
   }
 
   Future _getPanels() async {
     panels.clear();
-    await connection.sendSocketMessage(type: "get_panels").then((data) {
+    await Connection().sendSocketMessage(type: "get_panels").then((data) {
       data.forEach((k,v) {
         String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
         panels.add(Panel(

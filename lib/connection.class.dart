@@ -250,10 +250,16 @@ class Connection {
   }
 
   Future logout() {
-    _token = null;
-    _tempToken = null;
-    final storage = new FlutterSecureStorage();
-    return storage.delete(key: "hacl_llt");
+    Completer completer = Completer();
+    _disconnect().whenComplete(() {
+      _token = null;
+      _tempToken = null;
+      final storage = new FlutterSecureStorage();
+      storage.delete(key: "hacl_llt").whenComplete((){
+        completer.complete();
+      });
+    });
+    return completer.future;
   }
 
   Future _getLongLivedToken() {

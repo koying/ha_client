@@ -40,14 +40,14 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
     _needToUpdateHistory = true;
   }
 
-  void _loadHistory(HomeAssistant ha, String entityId) {
+  void _loadHistory(String entityId) {
     DateTime now = DateTime.now();
     if (_historyLastUpdated != null) {
       Logger.d("History was updated ${now.difference(_historyLastUpdated).inSeconds} seconds ago");
     }
     if (_historyLastUpdated == null || now.difference(_historyLastUpdated).inSeconds > 30) {
       _historyLastUpdated = now;
-      ha.connection.getHistory(entityId).then((history){
+      Connection().getHistory(entityId).then((history){
         if (!_disposed) {
           setState(() {
             _history = history.isNotEmpty ? history[0] : [];
@@ -68,13 +68,12 @@ class _EntityHistoryWidgetState extends State<EntityHistoryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final HomeAssistantModel homeAssistantModel = HomeAssistantModel.of(context);
     final EntityModel entityModel = EntityModel.of(context);
     final Entity entity = entityModel.entityWrapper.entity;
     if (!_needToUpdateHistory) {
       _needToUpdateHistory = true;
     } else {
-      _loadHistory(homeAssistantModel.homeAssistant, entity.entityId);
+      _loadHistory(entity.entityId);
     }
     return _buildChart();
   }

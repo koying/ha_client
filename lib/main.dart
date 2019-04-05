@@ -288,7 +288,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     _firebaseMessaging.getToken().then((String token) {
       Logger.d("Device name: ${json.encode(Connection().deviceName)}");
-      widget.homeAssistant.connection.sendHTTPPost(
+      Connection().sendHTTPPost(
           endPoint: '/api/notify.ha-client',
           data:  '{"token": "$token", "device": ${json.encode(Connection().deviceName)}}'
       ).then((_) {
@@ -310,7 +310,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         context,
         MaterialPageRoute(
           builder: (context) => WebviewScaffold(
-            url: "${widget.homeAssistant.connection.oauthUrl}",
+            url: "${Connection().oauthUrl}",
             appBar: new AppBar(
               leading: IconButton(
                   icon: Icon(Icons.help),
@@ -342,7 +342,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       message: "Calling $domain.$service",
       duration: Duration(seconds: 3)
     );
-    widget.homeAssistant.connection.callService(domain: domain, service: service, entityId: entityId, additionalServiceData: additionalParams).catchError((e) => _setErrorState(e));
+    Connection().callService(domain: domain, service: service, entityId: entityId, additionalServiceData: additionalParams).catchError((e) => _setErrorState(e));
   }
 
   void _showEntityPage(String entityId) {
@@ -405,7 +405,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
-            onTap: () => HAUtils.launchURL(widget.homeAssistant.connection.httpWebHost),
+            onTap: () => HAUtils.launchURL(Connection().httpWebHost),
           )
       );
       menuItems.addAll([
@@ -647,7 +647,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       child: new Text("Reload"),
       value: "reload",
     ));
-    if (widget.homeAssistant.connection.isAuthenticated) {
+    if (Connection().isAuthenticated) {
       popupMenuItems.add(
           PopupMenuItem<String>(
             child: new Text("Logout"),
