@@ -371,7 +371,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     menuItems.add(
         UserAccountsDrawerHeader(
           accountName: Text(widget.homeAssistant.userName),
-          accountEmail: Text(widget.homeAssistant.hostname ?? "Not configured"),
+          accountEmail: Text(Connection().displayHostname ?? "Not configured"),
           /*onDetailsPressed: () {
             setState(() {
               _accountMenuExpanded = !_accountMenuExpanded;
