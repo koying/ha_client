@@ -284,7 +284,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
         setState(() {
-          _showLoginButton = true;
+          _showLoginButton = event.showButton;
         });
       });
     }
@@ -651,11 +651,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       value: "reload",
     ));
     List<Widget> emptyBody = [
-      Icon(
-        MaterialDesignIcons.getIconDataFromIconName("mdi:border-none-variant"),
-        size: 100.0,
-        color: Colors.black26,
-      ),
+      Text("."),
     ];
     if (Connection().isAuthenticated) {
       _showLoginButton = false;

@@ -73,6 +73,8 @@ class Connection {
         Logger.d("Token from AuthManager recived");
         _tempToken = token;
         _doConnect(completer: completer, forceReconnect: forceReconnect);
+      }).catchError((e) {
+        completer.completeError(e);
       });
     } else {
       _doConnect(completer: completer, forceReconnect: forceReconnect);

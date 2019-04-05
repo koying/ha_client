@@ -115,8 +115,9 @@ class ReloadUIEvent {
 
 class StartAuthEvent {
   String oauthUrl;
+  bool showButton;
 
-  StartAuthEvent(this.oauthUrl);
+  StartAuthEvent(this.oauthUrl, this.showButton);
 }
 
 class ServiceCallEvent {

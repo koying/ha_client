@@ -27,16 +27,18 @@ class AuthManager {
           String tempToken = json.decode(response)['access_token'];
           Logger.d("Closing webview...");
           flutterWebviewPlugin.close();
+          eventBus.fire(StartAuthEvent(oauthUrl, false));
           completer.complete(tempToken);
         }).catchError((e) {
           flutterWebviewPlugin.close();
-          completer.completeError({"errorCode": 61, "errorMessage": "Error getting temp token"});
           Logger.e("Error getting temp token: ${e.toString()}");
+          eventBus.fire(StartAuthEvent(oauthUrl, false));
+          completer.completeError({"errorCode": 61, "errorMessage": "Error getting temp token"});
         });
       }
     });
     Logger.d("Launching OAuth...");
-    eventBus.fire(StartAuthEvent(oauthUrl));
+    eventBus.fire(StartAuthEvent(oauthUrl, true));
     return completer.future;
   }
 
