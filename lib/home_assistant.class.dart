@@ -25,6 +25,7 @@ class HomeAssistant {
   String get userAvatarText => userName.length > 0 ? userName[0] : "";
   bool get isNoEntities => entities == null || entities.isEmpty;
   bool get isNoViews => ui == null || ui.isEmpty;
+  bool get isMobileAppEnabled => _instanceConfig["components"] != null && (_instanceConfig["components"] as List).contains("mobile_app");
 
   HomeAssistant() {
     Connection().onStateChangeCallback = _handleEntityStateChange;
@@ -48,12 +49,12 @@ class HomeAssistant {
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
+    futures.add(Connection().sendSocketMessage(
+      type: "subscribe_events",
+      additionalData: {"event_type": "state_changed"},
+    ));
     Future.wait(futures).then((_) {
       _createUI();
-      Connection().sendSocketMessage(
-        type: "subscribe_events",
-        additionalData: {"event_type": "state_changed"},
-      );
       _fetchCompleter.complete();
     }).catchError((e) {
       _fetchCompleter.completeError(e);
@@ -127,11 +128,13 @@ class HomeAssistant {
 
   void _handleEntityStateChange(Map eventData) {
     //TheLogger.debug( "New state for ${eventData['entity_id']}");
-    Map data = Map.from(eventData);
-    eventBus.fire(new StateChangedEvent(
-      entityId: data["entity_id"],
-      needToRebuildUI: entities.updateState(data)
-    ));
+    if (_fetchCompleter == null || _fetchCompleter.isCompleted) {
+      Map data = Map.from(eventData);
+      eventBus.fire(new StateChangedEvent(
+          entityId: data["entity_id"],
+          needToRebuildUI: entities.updateState(data)
+      ));
+    }
   }
 
   void _parseLovelace() {
