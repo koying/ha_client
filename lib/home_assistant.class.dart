@@ -128,7 +128,7 @@ class HomeAssistant {
 
   void _handleEntityStateChange(Map eventData) {
     //TheLogger.debug( "New state for ${eventData['entity_id']}");
-    if (_fetchCompleter == null || _fetchCompleter.isCompleted) {
+    if (_fetchCompleter.isCompleted) {
       Map data = Map.from(eventData);
       eventBus.fire(new StateChangedEvent(
           entityId: data["entity_id"],
