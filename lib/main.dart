@@ -277,7 +277,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_showErrorSubscription == null) {
       _showErrorSubscription = eventBus.on<ShowErrorEvent>().listen((event){
-        _showErrorBottomBar(message: event.text, errorCode: event.errorCode);
+        _showErrorBottomBar(event.error);
       });
     }
 
@@ -326,17 +326,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     );
   }
 
-  _setErrorState(e) {
-    if (e["errorCode"] == null) {
+  _setErrorState(HAError e) {
+    if (e == null) {
       _showErrorBottomBar(
-          message: "Unknown error",
-          errorCode: 13
+        HAError("Unknown error")
       );
     } else {
-      _showErrorBottomBar(
-          message: e != null ? e["errorMessage"] ?? "$e" : "Unknown error",
-          errorCode: e["errorCode"] != null ? e["errorCode"] : 99
-      );
+      _showErrorBottomBar(e);
     }
   }
 
@@ -538,108 +534,70 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }
   }
 
-  void _showErrorBottomBar({Key key, @required String message, @required int errorCode}) {
+  void _showErrorBottomBar(HAError error) {
     TextStyle textStyle = TextStyle(
-      color: Colors.blue,
-      fontSize: Sizes.nameFontSize
+        color: Colors.blue,
+        fontSize: Sizes.nameFontSize
     );
     _bottomBarColor = Colors.red.shade100;
-      switch (errorCode) {
-        case 9:
-        case 11:
-        case 7:
-        case 1: {
-        _bottomBarAction = FlatButton(
-                child: Text("Retry", style: textStyle),
-                onPressed: () {
-                  //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-                  _quickLoad();
-                },
-            );
-            break;
-          }
-
-        case 5: {
-          message = "Check connection settings";
-          _bottomBarAction = FlatButton(
-              child: Text("Open", style: textStyle),
+    List<Widget> actions = [];
+    error.actions.forEach((HAErrorAction action) {
+      switch (action.type) {
+        case HAErrorActionType.FULL_RELOAD: {
+          actions.add(FlatButton(
+            child: Text("${action.title}", style: textStyle),
             onPressed: () {
-              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
+              _fullLoad();
+            },
+          ));
+          break;
+        }
+
+        case HAErrorActionType.QUICK_RELOAD: {
+          actions.add(FlatButton(
+            child: Text("${action.title}", style: textStyle),
+            onPressed: () {
+              _quickLoad();
+            },
+          ));
+          break;
+        }
+
+        case HAErrorActionType.URL: {
+          actions.add(FlatButton(
+            child: Text("${action.title}", style: textStyle),
+            onPressed: () {
+              HAUtils.launchURLInCustomTab(context, "${action.url}");
+            },
+          ));
+          break;
+        }
+
+        case HAErrorActionType.OPEN_CONNECTION_SETTINGS: {
+          actions.add(FlatButton(
+            child: Text("${action.title}", style: textStyle),
+            onPressed: () {
               Navigator.pushNamed(context, '/connection-settings');
             },
-          );
-          break;
-        }
-
-        case 60: {
-          _bottomBarAction = FlatButton(
-              child: Text("Login", style: textStyle),
-            onPressed: () {
-              _fullLoad();
-            },
-          );
-          break;
-        }
-
-        case 63:
-        case 61: {
-          _bottomBarAction = FlatButton(
-            child: Text("Try again", style: textStyle),
-            onPressed: () {
-              _fullLoad();
-            },
-          );
-          break;
-        }
-
-        case 62: {
-          _bottomBarAction = FlatButton(
-            child: Text("Login again", style: textStyle),
-            onPressed: () {
-              _fullLoad();
-            },
-          );
-          break;
-        }
-
-        case 10: {
-          _bottomBarAction = FlatButton(
-              child: Text("Reload", style: textStyle),
-            onPressed: () {
-              //_scaffoldKey?.currentState?.hideCurrentSnackBar();
-              _fullLoad();
-            },
-          );
-          break;
-        }
-
-        case 82:
-        case 81:
-        case 8: {
-          _bottomBarAction = FlatButton(
-              child: Text("Reconnect", style: textStyle),
-            onPressed: () {
-              _fullLoad();
-            },
-          );
-          break;
-        }
-
-        default: {
-          _bottomBarAction = FlatButton(
-            child: Text("Try again", style: textStyle),
-            onPressed: () {
-              _fullLoad();
-            },
-          );
+          ));
           break;
         }
       }
-      setState(() {
-        _bottomBarProgress = false;
-        _bottomBarText = "$message";
-        _showBottomBar = true;
-      });
+    });
+    if (actions.isNotEmpty) {
+      _bottomBarAction = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: actions,
+        mainAxisAlignment: MainAxisAlignment.end,
+      );
+    } else {
+      _bottomBarAction = Container(height: 0.0, width: 0.0,);
+    }
+    setState(() {
+      _bottomBarProgress = false;
+      _bottomBarText = "${error.message}";
+      _showBottomBar = true;
+    });
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();

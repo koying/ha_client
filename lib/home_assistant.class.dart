@@ -54,8 +54,12 @@ class HomeAssistant {
       additionalData: {"event_type": "state_changed"},
     ));
     Future.wait(futures).then((_) {
-      _createUI();
-      _fetchCompleter.complete();
+      if (isMobileAppEnabled) {
+        _createUI();
+        _fetchCompleter.complete();
+      } else {
+        _fetchCompleter.completeError(HAError("Mobile app component not found", actions: [HAErrorAction.tryAgain(), HAErrorAction(type: HAErrorActionType.URL ,title: "Help",url: "http://ha-client.homemade.systems/docs#mobile-app")]));
+      }
     }).catchError((e) {
       _fetchCompleter.completeError(e);
     });
@@ -75,7 +79,7 @@ class HomeAssistant {
     await Connection().sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
-      throw {"errorCode": 1, "errorMessage": "Error getting config: $e"};
+      throw HAError("Error getting config: ${e}");
     });
   }
 
@@ -83,13 +87,13 @@ class HomeAssistant {
     await Connection().sendSocketMessage(type: "get_states").then(
             (data) => entities.parse(data)
     ).catchError((e) {
-      throw {"errorCode": 1, "errorMessage": "Error getting states: $e"};
+      throw HAError("Error getting states: $e");
     });
   }
 
   Future _getLovelace() async {
     await Connection().sendSocketMessage(type: "lovelace/config").then((data) => _rawLovelaceData = data).catchError((e) {
-      throw {"errorCode": 1, "errorMessage": "Error getting lovelace config: $e"};
+      throw HAError("Error getting lovelace config: $e");
     });
   }
 
@@ -122,7 +126,7 @@ class HomeAssistant {
         );
       });
     }).catchError((e) {
-      throw {"errorCode": 1, "errorMessage": "Error getting panels list: $e"};
+      throw HAError("Error getting panels list: $e");
     });
   }
 

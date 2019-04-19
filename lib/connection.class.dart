@@ -63,7 +63,7 @@ class Connection {
     }
     if ((_domain == null) || (_port == null) ||
         (_domain.isEmpty) || (_port.isEmpty)) {
-      completer.completeError({"errorCode": 5, "errorMessage": "Check connection settings"});
+      completer.completeError(HAError.checkConnectionSettings());
     }
 
     if (_token == null) {
@@ -87,8 +87,7 @@ class Connection {
     if (forceReconnect || !isConnected) {
       _connect().timeout(connectTimeout, onTimeout: () {
         _disconnect().then((_) {
-          completer?.completeError(
-              {"errorCode": 1, "errorMessage": "Connection timeout"});
+          completer?.completeError(HAError("Connection timeout"));
         });
       }).then((_) => completer?.complete()).catchError((e) {
         completer?.completeError(e);
@@ -127,12 +126,10 @@ class Connection {
               if (!connecting.isCompleted) connecting.complete();
             } else if (data["type"] == "auth_invalid") {
               Logger.d("[Received] <== ${data.toString()}");
-              _messageResolver["auth"]?.completeError(
-                  {"errorCode": 62, "errorMessage": "${data["message"]}"});
+              _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
               _messageResolver.remove("auth");
               logout().then((_) {
-                if (!connecting.isCompleted) connecting.completeError(
-                    {"errorCode": 62, "errorMessage": "${data["message"]}"});
+                if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
               });
             } else {
               _handleMessage(data);
@@ -145,6 +142,8 @@ class Connection {
       return connecting.future;
     }
   }
+
+
 
   Future _disconnect() {
     Completer completer = Completer();
@@ -173,7 +172,7 @@ class Connection {
         _messageResolver["${data["id"]}"]?.complete(data["result"]);
       } else if (data["id"] != null) {
         Logger.e("[Received] <== Error received on request id ${data['id']}: ${data['error']}");
-        _messageResolver["${data["id"]}"]?.completeError({"errorMessage": "${data['error']["message"]}"});
+        _messageResolver["${data["id"]}"]?.completeError("${data['error']["message"]}");
       }
       _messageResolver.remove("${data["id"]}");
     } else if (data["type"] == "event") {
@@ -194,14 +193,14 @@ class Connection {
     Logger.d("Socket disconnected.");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError({"errorCode": 82, "errorMessage": "Disconnected"});
+      connectionCompleter.completeError(HAError("Disconnected", actions: [HAErrorAction.reconnect()]));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
+            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
           });
         });
       });
@@ -212,14 +211,14 @@ class Connection {
     Logger.e("Socket stream Error: $e");
     if (!connectionCompleter.isCompleted) {
       isConnected = false;
-      connectionCompleter.completeError({"errorCode": 81, "errorMessage": "Unable to connect to Home Assistant"});
+      connectionCompleter.completeError(HAError("Unable to connect to Home Assistant"));
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
             isConnected = false;
-            eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
+            eventBus.fire(ShowErrorEvent(HAError("Unable to connect to Home Assistant")));
           });
         });
       });
@@ -254,7 +253,7 @@ class Connection {
         });
       }).catchError((e) => completer.completeError(e));
     } else {
-      completer.completeError({"errorCode": 63, "errorMessage": "General login error"});
+      completer.completeError(HAError("General login error"));
     }
     return completer.future;
   }
@@ -286,7 +285,7 @@ class Connection {
       });
     }).catchError((e) {
       logout();
-      completer.completeError({"errorCode": 63, "errorMessage": "Authentication error: $e"});
+      completer.completeError(HAError("Authentication error: $e", actions: [HAErrorAction.loginAgain()]));
     });
     return completer.future;
   }
@@ -309,7 +308,7 @@ class Connection {
     String rawMessage = json.encode(dataObject);
     if (!isConnected) {
       _connect().timeout(connectTimeout, onTimeout: (){
-        _completer.completeError({"errorCode": 8, "errorMessage": "No connection to Home Assistant"});
+        _completer.completeError(HAError("No connection to Home Assistant", actions: [HAErrorAction.reconnect()]));
       }).then((_) {
         Logger.d("[Sending] ==> $rawMessage");
         _socket.sink.add(rawMessage);
