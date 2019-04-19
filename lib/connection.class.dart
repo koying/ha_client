@@ -87,14 +87,14 @@ class Connection {
     if (forceReconnect || !isConnected) {
       _connect().timeout(connectTimeout, onTimeout: () {
         _disconnect().then((_) {
-          completer.completeError(
+          completer?.completeError(
               {"errorCode": 1, "errorMessage": "Connection timeout"});
         });
-      }).then((_) => completer.complete()).catchError((e) {
-        completer.completeError(e);
+      }).then((_) => completer?.complete()).catchError((e) {
+        completer?.completeError(e);
       });
     } else {
-      completer.complete();
+      completer?.complete();
     }
   }
 
@@ -146,18 +146,24 @@ class Connection {
     }
   }
 
-  _disconnect() async {
-    isConnected = false;
-    Logger.d( "Socket disconnecting...");
-    if (_socketSubscription != null) {
-      await _socketSubscription?.cancel();
+  Future _disconnect() {
+    Completer completer = Completer();
+    if (!isConnected) {
+      completer.complete();
+    } else {
+      isConnected = false;
+      List<Future> fl = [];
+      Logger.d("Socket disconnecting...");
+      if (_socketSubscription != null) {
+        fl.add(_socketSubscription.cancel());
+      }
+      if (_socket != null && _socket.sink != null &&
+          _socket.closeCode == null) {
+        fl.add(_socket.sink.close().timeout(Duration(seconds: 3)));
+      }
+      Future.wait(fl).whenComplete(() => completer.complete());
     }
-    if (_socket != null && _socket.sink != null) {
-      await _socket.sink.close().timeout(Duration(seconds: 3),
-          onTimeout: () => Logger.d("Socket sink close timeout")
-      );
-    }
-    Logger.d( "..Disconnected");
+    return completer.future;
   }
 
   _handleMessage(data) {
@@ -185,15 +191,16 @@ class Connection {
   }
 
   void _handleSocketClose(Completer connectionCompleter) {
-    isConnected = false;
     Logger.d("Socket disconnected.");
     if (!connectionCompleter.isCompleted) {
+      isConnected = false;
       connectionCompleter.completeError({"errorCode": 82, "errorMessage": "Disconnected"});
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
+            isConnected = false;
             eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
           });
         });
@@ -202,15 +209,16 @@ class Connection {
   }
 
   void _handleSocketError(e, Completer connectionCompleter) {
-    isConnected = false;
     Logger.e("Socket stream Error: $e");
     if (!connectionCompleter.isCompleted) {
+      isConnected = false;
       connectionCompleter.completeError({"errorCode": 81, "errorMessage": "Unable to connect to Home Assistant"});
     } else {
       _disconnect().then((_) {
         Timer(Duration(seconds: 5), () {
           Logger.d("Trying to reconnect...");
           _connect().catchError((e) {
+            isConnected = false;
             eventBus.fire(ShowErrorEvent("Unable to connect to Home Assistant", 81));
           });
         });
