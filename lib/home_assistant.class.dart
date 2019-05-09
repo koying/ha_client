@@ -262,7 +262,7 @@ class HomeAssistant {
     await _sendInitialMessage("get_panels").then((data) {
       if (data["success"]) {
         data["result"].forEach((k,v) {
-            String title = v['title'] == null ? "${k[0].toUpperCase()}${k.substring(1)}" : "${v['title'][0].toUpperCase()}${v['title'].substring(1)}";
+            String title = v['title'] == null ? "${k[0]?.toUpperCase()}${k?.substring(1)}" : "${v['title'][0]?.toUpperCase()}${v['title']?.substring(1)}";
             panels.add(Panel(
                 id: k,
                 type: v["component_name"],

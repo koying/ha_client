@@ -243,7 +243,7 @@ class CardWidget extends StatelessWidget {
 
   Widget _buildEntityButtonCard(BuildContext context) {
     card.linkedEntityWrapper.displayName = card.name?.toUpperCase() ??
-        card.linkedEntityWrapper.displayName.toUpperCase();
+        card.linkedEntityWrapper.displayName?.toUpperCase();
     return Card(
         child: EntityModel(
             entityWrapper: card.linkedEntityWrapper,

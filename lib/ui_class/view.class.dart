@@ -85,7 +85,7 @@ class HAView {
       } else {
         return
           Tab(
-              text: name.toUpperCase(),
+              text: "${name?.toUpperCase()}",
           );
       }
     } else {
@@ -99,7 +99,7 @@ class HAView {
         );
       } else {
         return Tab(
-            text: linkedEntity.displayName.toUpperCase(),
+            text: "${linkedEntity?.displayName?.toUpperCase()}",
         );
       }
 
