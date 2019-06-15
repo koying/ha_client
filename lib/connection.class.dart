@@ -36,6 +36,7 @@ class Connection {
 
   Future init({bool loadSettings, bool forceReconnect: false}) async {
     Completer completer = Completer();
+    bool stopInit = false;
     if (loadSettings) {
       Logger.e("Loading settings...");
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -43,41 +44,56 @@ class Connection {
       _domain = prefs.getString('hassio-domain');
       _port = prefs.getString('hassio-port');
       displayHostname = "$_domain:$_port";
-      _webSocketAPIEndpoint = "${prefs.getString('hassio-protocol')}://$_domain:$_port/api/websocket";
-      httpWebHost = "${prefs.getString('hassio-res-protocol')}://$_domain:$_port";
-      //_token = prefs.getString('hassio-token');
-      final storage = new FlutterSecureStorage();
-      try {
-        _token = await storage.read(key: "hacl_llt");
-        Logger.e("Long-lived token read successful");
-      } catch (e) {
-        Logger.e("Cannt read secure storage. Need to relogin.");
-        _token = null;
-        await storage.delete(key: "hacl_llt");
+      _webSocketAPIEndpoint =
+      "${prefs.getString('hassio-protocol')}://$_domain:$_port/api/websocket";
+      httpWebHost =
+      "${prefs.getString('hassio-res-protocol')}://$_domain${(_port == '433' || _port == '80') ? '' : ':'+_port}";
+      if ((_domain == null) || (_port == null) ||
+          (_domain.isEmpty) || (_port.isEmpty)) {
+        completer.completeError(HAError.checkConnectionSettings());
+        stopInit = true;
+      } else {
+        //_token = prefs.getString('hassio-token');
+        final storage = new FlutterSecureStorage();
+        try {
+          _token = await storage.read(key: "hacl_llt");
+          Logger.e("Long-lived token read successful: $_token");
+        } catch (e) {
+          Logger.e("Cannt read secure storage. Need to relogin.");
+          _token = null;
+          await storage.delete(key: "hacl_llt");
+        }
+        DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        deviceName = androidInfo.model;
+        oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
+            'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
+            .encodeComponent(
+            'http://ha-client.homemade.systems/service/auth_callback.html')}";
+        settingsLoaded = true;
       }
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      deviceName = androidInfo.model;
-      oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent('http://ha-client.homemade.systems/')}&redirect_uri=${Uri.encodeComponent('http://ha-client.homemade.systems/service/auth_callback.html')}";
-      settingsLoaded = true;
-    }
-    if ((_domain == null) || (_port == null) ||
-        (_domain.isEmpty) || (_port.isEmpty)) {
-      completer.completeError(HAError.checkConnectionSettings());
+    } else {
+      if ((_domain == null) || (_port == null) ||
+          (_domain.isEmpty) || (_port.isEmpty)) {
+        completer.completeError(HAError.checkConnectionSettings());
+        stopInit = true;
+      }
     }
 
-    if (_token == null) {
-      AuthManager().getTempToken(
-          oauthUrl: oauthUrl
-      ).then((token) {
-        Logger.d("Token from AuthManager recived");
-        _tempToken = token;
+    if (!stopInit) {
+      if (_token == null) {
+        AuthManager().getTempToken(
+            oauthUrl: oauthUrl
+        ).then((token) {
+          Logger.d("Token from AuthManager recived");
+          _tempToken = token;
+          _doConnect(completer: completer, forceReconnect: forceReconnect);
+        }).catchError((e) {
+          completer.completeError(e);
+        });
+      } else {
         _doConnect(completer: completer, forceReconnect: forceReconnect);
-      }).catchError((e) {
-        completer.completeError(e);
-      });
-    } else {
-      _doConnect(completer: completer, forceReconnect: forceReconnect);
+      }
     }
 
     return completer.future;
@@ -106,7 +122,7 @@ class Connection {
     } else {
       connecting = Completer();
       await _disconnect();
-      Logger.d("Socket connecting...");
+      Logger.d("Socket connecting: $_webSocketAPIEndpoint...");
       _socket = IOWebSocketChannel.connect(
           _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
       _socketSubscription = _socket.stream.listen(

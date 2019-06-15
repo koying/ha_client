@@ -309,6 +309,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _showOAuth() {
+    Logger.d("_showOAuth: ${Connection().oauthUrl}");
     Navigator.push(
         context,
         MaterialPageRoute(

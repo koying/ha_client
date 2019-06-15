@@ -37,7 +37,7 @@ class AuthManager {
         });
       }
     });
-    Logger.d("Launching OAuth...");
+    Logger.d("Launching OAuth: $oauthUrl");
     eventBus.fire(StartAuthEvent(oauthUrl, true));
     return completer.future;
   }
