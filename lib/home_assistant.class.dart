@@ -119,8 +119,19 @@ class HomeAssistant {
             var responseObject = json.decode(response);
             SharedPreferences.getInstance().then((prefs) {
               prefs.setString("app-webhook-id", responseObject["webhook_id"]);
+              Connection().webhookId = responseObject["webhook_id"];
               prefs.setString("registered-app-version", "$appVersion");
+              Connection().registeredAppVersion = "$appVersion";
               completer.complete();
+              eventBus.fire(ShowDialogEvent(
+                title: "App was registered with your Home Assistant",
+                body: "To start using notifications you need to restart your Home Assistant",
+                positiveText: "Restart now",
+                negativeText: "Later",
+                onPositive: () {
+                  Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+                },
+              ));
             });
           }).catchError((e) {
             completer.complete();
