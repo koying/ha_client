@@ -14,6 +14,8 @@ class HomeAssistant {
   String _userName;
   HSVColor savedColor;
 
+  String fcmToken;
+
   Map _rawLovelaceData;
 
   List<Panel> panels = [];
@@ -83,9 +85,8 @@ class HomeAssistant {
     });
   }
 
-  Future checkAppRegistration({bool forceRegister: false, bool forceUpdate: false}) {
-    Completer completer = Completer();
-    var registrationData = {
+  Map _getAppRegistrationData() {
+    return {
       "app_version": "$appVersion",
       "device_name": "$userName's ${Device().model}",
       "manufacturer": Device().manufacturer,
@@ -93,11 +94,17 @@ class HomeAssistant {
       "os_name": Device().osName,
       "os_version": Device().osVersion,
       "app_data": {
-        "push_notification_key": "d"
+        "push_token": "$fcmToken",
+        "push_url": "https://us-central1-ha-client-c73c4.cloudfunctions.net/sendPushNotification"
       }
     };
+  }
+
+  Future checkAppRegistration({bool forceRegister: false, bool forceUpdate: false}) {
+    Completer completer = Completer();
     if (Connection().webhookId == null || forceRegister) {
       Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
+      var registrationData = _getAppRegistrationData();
       registrationData.addAll({
         "app_id": "ha_client",
         "app_name": "$appName",
@@ -110,7 +117,6 @@ class HomeAssistant {
           ).then((response) {
             Logger.d("Processing registration responce...");
             var responseObject = json.decode(response);
-            Logger.d(responseObject.toString());
             SharedPreferences.getInstance().then((prefs) {
               prefs.setString("app-webhook-id", responseObject["webhook_id"]);
               prefs.setString("registered-app-version", "$appVersion");
@@ -125,7 +131,7 @@ class HomeAssistant {
       Logger.d("Registered app version is old. Registration need to be updated");
       var updateData = {
         "type": "update_registration",
-        "data": registrationData
+        "data": _getAppRegistrationData()
       };
       Connection().sendHTTPPost(
           endPoint: "/api/webhook/${Connection().webhookId}",

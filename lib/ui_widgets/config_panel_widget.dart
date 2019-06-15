@@ -91,11 +91,33 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   resetRegistration() {
-    HomeAssistant().checkAppRegistration(forceRegister: true).then((_) => Navigator.of(context).pop());
+    HomeAssistant().checkAppRegistration(forceRegister: true).then((_) {
+      Navigator.of(context).pop();
+      eventBus.fire(ShowDialogEvent(
+        title: "App registered",
+        body: "To start using notifications you need to restart your Home Assistant",
+        positiveText: "Restart now",
+        negativeText: "Later",
+        onPositive: () {
+          Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+        },
+      ));
+    });
   }
 
   updateRegistration() {
-    HomeAssistant().checkAppRegistration(forceUpdate: true).then((_) => Navigator.of(context).pop());
+    HomeAssistant().checkAppRegistration(forceUpdate: true).then((_) {
+      Navigator.of(context).pop();
+      eventBus.fire(ShowDialogEvent(
+        title: "App registration updated",
+        body: "To start using notifications you need to restart your Home Assistant",
+        positiveText: "Restart now",
+        negativeText: "Later",
+        onPositive: () {
+          Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+        },
+      ));
+    });
   }
 
   @override

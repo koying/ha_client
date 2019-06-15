@@ -173,6 +173,17 @@ class ServiceCallEvent {
   ServiceCallEvent(this.domain, this.service, this.entityId, this.additionalParams);
 }
 
+class ShowDialogEvent {
+  final String title;
+  final String body;
+  final String positiveText;
+  final String negativeText;
+  final  onPositive;
+  final  onNegative;
+
+  ShowDialogEvent({this.title, this.body, this.positiveText: "Ok", this.negativeText: "Cancel", this.onPositive, this.onNegative});
+}
+
 class ShowEntityPageEvent {
   Entity entity;
 

@@ -169,6 +169,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   StreamSubscription _showEntityPageSubscription;
   StreamSubscription _showErrorSubscription;
   StreamSubscription _startAuthSubscription;
+  StreamSubscription _showDialogSubscription;
   StreamSubscription _reloadUISubscription;
   int _previousViewCount;
   bool _showLoginButton = false;
@@ -265,6 +266,18 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         _quickLoad();
       });
     }
+    if (_showDialogSubscription == null) {
+      _showDialogSubscription = eventBus.on<ShowDialogEvent>().listen((event){
+        _showDialog(
+          title: event.title,
+          body: event.body,
+          onPositive: event.onPositive,
+          onNegative: event.onNegative,
+          positiveText: event.positiveText,
+          negativeText: event.negativeText
+        );
+      });
+    }
     if (_serviceCallSubscription == null) {
       _serviceCallSubscription =
           eventBus.on<ServiceCallEvent>().listen((event) {
@@ -294,23 +307,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       });
     }
 
-    /*_firebaseMessaging.getToken().then((String token) {
-      Logger.d("Device name: ${json.encode(Connection().unicDeviceName)}");
-      Connection().sendHTTPPost(
-          endPoint: '/api/notify.ha-client',
-          data:  '{"token": "$token", "device": ${json.encode(Connection().unicDeviceName)}}'
-      ).then((_) {
-        Logger.d("Notificatin listener registered.");
-        completer.complete();
-      }).catchError((e) {
-        Logger.e("Error registering notification listener: ${e.toString()}");
-        completer.complete();
-      });
-    }).catchError((e) {
-      Logger.e("Error registering notification listener: ${e.toString()}");
+    _firebaseMessaging.getToken().then((String token) {
+      HomeAssistant().fcmToken = token;
       completer.complete();
-    });*/
-    completer.complete();
+    });
+    //completer.complete();
     return completer.future;
   }
 
@@ -341,6 +342,41 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     } else {
       _showErrorBottomBar(e);
     }
+  }
+
+  void _showDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("$title"),
+          content: new Text("$body"),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("$positiveText"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (onPositive != null) {
+                  onPositive();
+                }
+              },
+            ),
+            new FlatButton(
+              child: new Text("$negativeText"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (onNegative != null) {
+                  onNegative();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _callService(String domain, String service, String entityId, Map additionalParams) {
