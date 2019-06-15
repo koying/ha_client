@@ -18,7 +18,8 @@ class Connection {
   String _token;
   String _tempToken;
   String oauthUrl;
-  String deviceName;
+  String webhookId;
+  String registeredAppVersion;
   bool useLovelace = true;
   bool settingsLoaded = false;
   bool get isAuthenticated => _token != null;
@@ -43,11 +44,13 @@ class Connection {
       useLovelace = prefs.getBool('use-lovelace') ?? true;
       _domain = prefs.getString('hassio-domain');
       _port = prefs.getString('hassio-port');
+      webhookId = prefs.getString('app-webhook-id');
+      registeredAppVersion = prefs.getString('registered-app-version');
       displayHostname = "$_domain:$_port";
       _webSocketAPIEndpoint =
       "${prefs.getString('hassio-protocol')}://$_domain:$_port/api/websocket";
       httpWebHost =
-      "${prefs.getString('hassio-res-protocol')}://$_domain${(_port == '433' || _port == '80') ? '' : ':'+_port}";
+      "${prefs.getString('hassio-res-protocol')}://$_domain:$_port";
       if ((_domain == null) || (_port == null) ||
           (_domain.isEmpty) || (_port.isEmpty)) {
         completer.completeError(HAError.checkConnectionSettings());
@@ -57,15 +60,12 @@ class Connection {
         final storage = new FlutterSecureStorage();
         try {
           _token = await storage.read(key: "hacl_llt");
-          Logger.e("Long-lived token read successful: $_token");
+          Logger.e("Long-lived token read successful");
         } catch (e) {
           Logger.e("Cannt read secure storage. Need to relogin.");
           _token = null;
           await storage.delete(key: "hacl_llt");
         }
-        DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        deviceName = androidInfo.model;
         oauthUrl = "$httpWebHost/auth/authorize?client_id=${Uri.encodeComponent(
             'http://ha-client.homemade.systems/')}&redirect_uri=${Uri
             .encodeComponent(
@@ -393,7 +393,7 @@ class Connection {
         body: data
     ).then((response) {
       Logger.d("[Received] <== ${response.statusCode}, ${response.body}");
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300 ) {
         completer.complete(response.body);
       } else {
         completer.completeError({"code": response.statusCode, "message": "${response.body}"});

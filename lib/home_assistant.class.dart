@@ -2,6 +2,12 @@ part of 'main.dart';
 
 class HomeAssistant {
 
+  static final HomeAssistant _instance = HomeAssistant._internal();
+
+  factory HomeAssistant() {
+    return _instance;
+  }
+
   EntityCollection entities;
   HomeAssistantUI ui;
   Map _instanceConfig = {};
@@ -27,8 +33,9 @@ class HomeAssistant {
   bool get isNoViews => ui == null || ui.isEmpty;
   bool get isMobileAppEnabled => _instanceConfig["components"] != null && (_instanceConfig["components"] as List).contains("mobile_app");
 
-  HomeAssistant() {
+  HomeAssistant._internal() {
     Connection().onStateChangeCallback = _handleEntityStateChange;
+    Device().loadDeviceInfo();
   }
 
   Completer _fetchCompleter;
@@ -49,6 +56,7 @@ class HomeAssistant {
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
+    futures.add(checkAppRegistration());
     futures.add(Connection().sendSocketMessage(
       type: "subscribe_events",
       additionalData: {"event_type": "state_changed"},
@@ -73,6 +81,71 @@ class HomeAssistant {
       entities?.clear();
       panels?.clear();
     });
+  }
+
+  Future checkAppRegistration({bool forceRegister: false, bool forceUpdate: false}) {
+    Completer completer = Completer();
+    var registrationData = {
+      "app_version": "$appVersion",
+      "device_name": "$userName's ${Device().model}",
+      "manufacturer": Device().manufacturer,
+      "model": Device().model,
+      "os_name": Device().osName,
+      "os_version": Device().osVersion,
+      "app_data": {
+        "push_notification_key": "d"
+      }
+    };
+    if (Connection().webhookId == null || forceRegister) {
+      Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
+      registrationData.addAll({
+        "app_id": "ha_client",
+        "app_name": "$appName",
+        "supports_encryption": false,
+      });
+      Connection().sendHTTPPost(
+              endPoint: "/api/mobile_app/registrations",
+              includeAuthHeader: true,
+              data: json.encode(registrationData)
+          ).then((response) {
+            Logger.d("Processing registration responce...");
+            var responseObject = json.decode(response);
+            Logger.d(responseObject.toString());
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setString("app-webhook-id", responseObject["webhook_id"]);
+              prefs.setString("registered-app-version", "$appVersion");
+              completer.complete();
+            });
+          }).catchError((e) {
+            completer.complete();
+            Logger.e("Error registering the app: ${e.toString()}");
+          });
+      return completer.future;
+    } else if (Connection().registeredAppVersion != appVersion || forceUpdate) {
+      Logger.d("Registered app version is old. Registration need to be updated");
+      var updateData = {
+        "type": "update_registration",
+        "data": registrationData
+      };
+      Connection().sendHTTPPost(
+          endPoint: "/api/webhook/${Connection().webhookId}",
+          includeAuthHeader: false,
+          data: json.encode(updateData)
+      ).then((response) {
+        Logger.d("App registration updated");
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setString("registered-app-version", "$appVersion");
+          completer.complete();
+        });
+      }).catchError((e) {
+        completer.complete();
+        Logger.e("Error updating app registering: ${e.toString()}");
+      });
+      return completer.future;
+    } else {
+      Logger.d("App is registered");
+      return Future.value();
+    }
   }
 
   Future _getConfig() async {

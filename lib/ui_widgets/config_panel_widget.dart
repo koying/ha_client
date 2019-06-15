@@ -55,8 +55,47 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
               ],
             ),
           )
+      ),
+      ConfigurationItem(
+          header: 'Mobile app',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text("Registration", style: TextStyle(fontSize: Sizes.largeFontSize)),
+                Container(height: Sizes.rowPadding,),
+                Text("${HomeAssistant().userName}'s ${Device().model}, ${Device().osName} ${Device().osVersion}"),
+                Container(height: 6.0,),
+                Text("Reseting mobile app registration will not remove integration from Home Assistant but creates a new one with different device. If you want to reset mobile app registration completally you need to remove MobileApp from Configuretion -> Integrations of your Home Assistant."),
+                Divider(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    FlatButton(
+                        onPressed: () => resetRegistration(),
+                        child: Text("Reset registration")
+                    ),
+                    FlatButton(
+                        onPressed: () => updateRegistration(),
+                        child: Text("Update registration")
+                    )
+                  ],
+                )
+              ],
+            ),
+          )
       )
     ];
+  }
+
+  resetRegistration() {
+    HomeAssistant().checkAppRegistration(forceRegister: true).then((_) => Navigator.of(context).pop());
+  }
+
+  updateRegistration() {
+    HomeAssistant().checkAppRegistration(forceUpdate: true).then((_) => Navigator.of(context).pop());
   }
 
   @override

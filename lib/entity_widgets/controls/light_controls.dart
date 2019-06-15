@@ -171,7 +171,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
 
   Widget _buildColorControl(LightEntity entity) {
     if (entity.supportColor) {
-      HSVColor savedColor = HomeAssistantModel.of(context)?.homeAssistant?.savedColor;
+      HSVColor savedColor = HomeAssistant().savedColor;
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -187,10 +187,7 @@ class _LightControlsWidgetState extends State<LightControlsWidget> {
                 child: Text('Copy color'),
                 onPressed: _tmpColor == null ? null : () {
                   setState(() {
-                    HomeAssistantModel
-                        .of(context)
-                        .homeAssistant
-                        .savedColor = _tmpColor;
+                    HomeAssistant().savedColor = _tmpColor;
                   });
                 },
               ),

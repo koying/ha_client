@@ -93,6 +93,7 @@ part 'mdi.class.dart';
 part 'entity_collection.class.dart';
 part 'auth_manager.class.dart';
 part 'connection.class.dart';
+part 'device.class.dart';
 part 'ui_class/ui.dart';
 part 'ui_class/view.class.dart';
 part 'ui_class/card.class.dart';
@@ -230,7 +231,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         _previousViewCount = currentViewCount;
       }
     }).catchError((e) {
-      _setErrorState(e);
+      if (e is HAError) {
+        _setErrorState(e);
+      } else {
+        _setErrorState(HAError(e.toString()));
+      }
     });
     eventBus.fire(RefreshDataFinishedEvent());
   }
@@ -289,11 +294,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       });
     }
 
-    _firebaseMessaging.getToken().then((String token) {
-      Logger.d("Device name: ${json.encode(Connection().deviceName)}");
+    /*_firebaseMessaging.getToken().then((String token) {
+      Logger.d("Device name: ${json.encode(Connection().unicDeviceName)}");
       Connection().sendHTTPPost(
           endPoint: '/api/notify.ha-client',
-          data:  '{"token": "$token", "device": ${json.encode(Connection().deviceName)}}'
+          data:  '{"token": "$token", "device": ${json.encode(Connection().unicDeviceName)}}'
       ).then((_) {
         Logger.d("Notificatin listener registered.");
         completer.complete();
@@ -304,7 +309,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     }).catchError((e) {
       Logger.e("Error registering notification listener: ${e.toString()}");
       completer.complete();
-    });
+    });*/
+    completer.complete();
     return completer.future;
   }
 
@@ -394,7 +400,10 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
                 new ListTile(
                     leading: Icon(MaterialDesignIcons.getIconDataFromIconName(panel.icon)),
                     title: Text("${panel.title}"),
-                    onTap: () => panel.handleOpen(context)
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      panel.handleOpen(context);
+                    }
                 )
             );
           }
@@ -752,10 +761,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         drawer: _buildAppDrawer(),
         primary: false,
         bottomNavigationBar: bottomBar,
-        body: HomeAssistantModel(
-          child: _buildScaffoldBody(false),
-          homeAssistant: widget.homeAssistant
-        ),
+        body: _buildScaffoldBody(false),
       );
     }
   }
