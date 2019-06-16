@@ -347,6 +347,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   void _showDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
     // flutter defined function
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog

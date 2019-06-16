@@ -105,56 +105,65 @@ class Connection {
         _disconnect().then((_) {
           completer?.completeError(HAError("Connection timeout"));
         });
-      }).then((_) => completer?.complete()).catchError((e) {
+      }).then((_) {
+        Logger.d("doConnect is finished 1");
+        completer?.complete();
+      }).catchError((e) {
         completer?.completeError(e);
       });
     } else {
+      Logger.d("doConnect is finished 2");
       completer?.complete();
     }
   }
 
   Completer connecting;
 
-  Future _connect() async {
+  Future _connect() {
     if (connecting != null && !connecting.isCompleted) {
       Logger.w("Previous connection attempt pending...");
       return connecting.future;
     } else {
       connecting = Completer();
-      await _disconnect();
-      Logger.d("Socket connecting: $_webSocketAPIEndpoint...");
-      _socket = IOWebSocketChannel.connect(
-          _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
-      _socketSubscription = _socket.stream.listen(
-              (message) {
-            isConnected = true;
-            var data = json.decode(message);
-            if (data["type"] == "auth_required") {
-              Logger.d("[Received] <== ${data.toString()}");
-              _authenticate().then((_) => connecting.complete()).catchError((
-                  e) {
-                if (!connecting.isCompleted) connecting.completeError(e);
-              });
-            } else if (data["type"] == "auth_ok") {
-              Logger.d("[Received] <== ${data.toString()}");
-              _messageResolver["auth"]?.complete();
-              _messageResolver.remove("auth");
-              if (!connecting.isCompleted) connecting.complete();
-            } else if (data["type"] == "auth_invalid") {
-              Logger.d("[Received] <== ${data.toString()}");
-              _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
-              _messageResolver.remove("auth");
-              logout().then((_) {
-                if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
-              });
-            } else {
-              _handleMessage(data);
-            }
-          },
-          cancelOnError: true,
-          onDone: () => _handleSocketClose(connecting),
-          onError: (e) => _handleSocketError(e, connecting)
-      );
+      _disconnect().then((_) {
+        Logger.d("Socket connecting: $_webSocketAPIEndpoint...");
+        _socket = IOWebSocketChannel.connect(
+            _webSocketAPIEndpoint, pingInterval: Duration(seconds: 15));
+        _socketSubscription = _socket.stream.listen(
+                (message) {
+              isConnected = true;
+              var data = json.decode(message);
+              if (data["type"] == "auth_required") {
+                Logger.d("[Received] <== ${data.toString()}");
+                _authenticate().then((_) {
+                  Logger.d('Authentication complete');
+                  connecting.complete();
+                }).catchError((e) {
+                  if (!connecting.isCompleted) connecting.completeError(e);
+                });
+              } else if (data["type"] == "auth_ok") {
+                Logger.d("[Received] <== ${data.toString()}");
+                _messageResolver["auth"]?.complete();
+                _messageResolver.remove("auth");
+                if (_token != null) {
+                  if (!connecting.isCompleted) connecting.complete();
+                }
+              } else if (data["type"] == "auth_invalid") {
+                Logger.d("[Received] <== ${data.toString()}");
+                _messageResolver["auth"]?.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
+                _messageResolver.remove("auth");
+                logout().then((_) {
+                  if (!connecting.isCompleted) connecting.completeError(HAError("${data["message"]}", actions: [HAErrorAction.loginAgain()]));
+                });
+              } else {
+                _handleMessage(data);
+              }
+            },
+            cancelOnError: true,
+            onDone: () => _handleSocketClose(connecting),
+            onError: (e) => _handleSocketError(e, connecting)
+        );
+      });
       return connecting.future;
     }
   }
@@ -262,6 +271,7 @@ class Connection {
       ).then((_) {
         Logger.d("Requesting long-lived token...");
         _getLongLivedToken().then((_) {
+          Logger.d("getLongLivedToken finished");
           completer.complete();
         }).catchError((e) {
           Logger.e("Can't get long-lived token: $e");

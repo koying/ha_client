@@ -58,7 +58,6 @@ class HomeAssistant {
     futures.add(_getServices());
     futures.add(_getUserInfo());
     futures.add(_getPanels());
-    futures.add(checkAppRegistration());
     futures.add(Connection().sendSocketMessage(
       type: "subscribe_events",
       additionalData: {"event_type": "state_changed"},
@@ -67,6 +66,7 @@ class HomeAssistant {
       if (isMobileAppEnabled) {
         _createUI();
         _fetchCompleter.complete();
+        checkAppRegistration();
       } else {
         _fetchCompleter.completeError(HAError("Mobile app component not found", actions: [HAErrorAction.tryAgain(), HAErrorAction(type: HAErrorActionType.URL ,title: "Help",url: "http://ha-client.homemade.systems/docs#mobile-app")]));
       }
