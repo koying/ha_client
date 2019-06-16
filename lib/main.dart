@@ -147,7 +147,17 @@ class HAClientApp extends StatelessWidget {
         "/": (context) => MainPage(title: 'HA Client', homeAssistant: homeAssistant,),
         "/connection-settings": (context) => ConnectionSettingsPage(title: "Settings"),
         "/configuration": (context) => PanelPage(title: "Configuration"),
-        "/log-view": (context) => LogViewPage(title: "Log")
+        "/log-view": (context) => LogViewPage(title: "Log"),
+        "/login": (_) => WebviewScaffold(
+          url: "${Connection().oauthUrl}",
+          appBar: new AppBar(
+            leading: IconButton(
+                icon: Icon(Icons.help),
+                onPressed: () => HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/docs#authentication")
+            ),
+            title: new Text("Login to your Home Assistant"),
+          ),
+        )
       },
     );
   }
@@ -337,10 +347,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
-        //TODO _showOAuth
         setState(() {
           _showLoginButton = event.showButton;
         });
+        if (event.showButton) {
+          _showOAuth();
+        }
       });
     }
 
@@ -348,27 +360,12 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       HomeAssistant().fcmToken = token;
       completer.complete();
     });
-    //completer.complete();
     return completer.future;
   }
 
   void _showOAuth() {
     Logger.d("_showOAuth: ${Connection().oauthUrl}");
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WebviewScaffold(
-            url: "${Connection().oauthUrl}",
-            appBar: new AppBar(
-              leading: IconButton(
-                  icon: Icon(Icons.help),
-                  onPressed: () => HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/docs#authentication")
-              ),
-              title: new Text("Login to your Home Assistant"),
-            ),
-          ),
-        )
-    );
+    Navigator.of(context).pushNamed('/login');
   }
 
   _setErrorState(HAError e) {
@@ -708,7 +705,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         FlatButton(
           child: Text("Login with Home Assistant", style: TextStyle(fontSize: 16.0, color: Colors.white)),
           color: Colors.blue,
-          onPressed: () => _showOAuth(),
+          onPressed: () => _fullLoad(),
         )
       ];
     }
@@ -849,6 +846,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     _stateSubscription?.cancel();
     _settingsSubscription?.cancel();
     _serviceCallSubscription?.cancel();
+    _showDialogSubscription?.cancel();
     _showEntityPageSubscription?.cancel();
     _showErrorSubscription?.cancel();
     _startAuthSubscription?.cancel();

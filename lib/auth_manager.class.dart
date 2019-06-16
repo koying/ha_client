@@ -14,6 +14,7 @@ class AuthManager {
     Completer completer = Completer();
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
     flutterWebviewPlugin.onUrlChanged.listen((String url) {
+      Logger.d("Webview url changed to $url");
       if (url.startsWith("http://ha-client.homemade.systems/service/auth_callback.html")) {
         String authCode = url.split("=")[1];
         Logger.d("We have auth code. Getting temporary access token...");
