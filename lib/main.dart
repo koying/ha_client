@@ -21,6 +21,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info/device_info.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 part 'entity_class/const.dart';
 part 'entity_class/entity.class.dart';
@@ -107,6 +108,7 @@ part 'ui_widgets/config_panel_widget.dart';
 
 EventBus eventBus = new EventBus();
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
 const String appName = "HA Client";
 const appVersion = "0.6.0-alpha2";
 
@@ -185,11 +187,24 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         },
         onMessage: (data) {
           Logger.d("Notification [onMessage]: $data");
+          _showNotification(title: data["notification"]["title"], text: data["notification"]["body"]);
         },
         onResume: (data) {
           Logger.d("Notification [onResume]: $data");
         }
     );
+
+    _firebaseMessaging.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true));
+
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    var initializationSettingsAndroid =
+    new AndroidInitializationSettings('mini_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings(
+        onDidReceiveLocalNotification: null);
+    var initializationSettings = new InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
 
     _settingsSubscription = eventBus.on<SettingsChangedEvent>().listen((event) {
       Logger.d("Settings change event: reconnect=${event.reconnect}");
@@ -199,6 +214,27 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
     });
 
     _fullLoad();
+  }
+
+  Future onSelectNotification(String payload) async {
+    if (payload != null) {
+      Logger.d('Notification clicked: ' + payload);
+    }
+  }
+
+  Future _showNotification({String title, String text}) async {
+    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
+        'ha_notify', 'Home Assistant notifications', 'Notifications from Home Assistant notify service',
+        importance: Importance.Max, priority: Priority.High);
+    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
+    var platformChannelSpecifics = new NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title ?? appName,
+      text,
+      platformChannelSpecifics
+    );
   }
 
   void _fullLoad() async {
@@ -301,6 +337,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
 
     if (_startAuthSubscription == null) {
       _startAuthSubscription = eventBus.on<StartAuthEvent>().listen((event){
+        //TODO _showOAuth
         setState(() {
           _showLoginButton = event.showButton;
         });
