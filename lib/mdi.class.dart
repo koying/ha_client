@@ -3479,6 +3479,7 @@ class MaterialDesignIcons {
     "mdi:vector-triangle": 0xf563,
     "mdi:vector-union": 0xf564,
     "mdi:venmo": 0xf578,
+    "mdi:verified": 0xf565,
     "mdi:vhs": 0xfa1a,
     "mdi:vibrate": 0xf566,
     "mdi:vibrate-off": 0xfcb5,
