@@ -57,16 +57,25 @@ class BadgeWidget extends StatelessWidget {
           } else if (entityModel.entityWrapper.entity.displayState.length <= 10) {
             stateFontSize = 8.0;
           }
-          onBadgeTextValue = entityModel.entityWrapper.entity.unitOfMeasurement;
-          badgeIcon = Center(
-            child: Text(
-              "${entityModel.entityWrapper.entity.displayState}",
-              overflow: TextOverflow.fade,
-              softWrap: false,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: stateFontSize),
-            ),
-          );
+          if (entityModel.entityWrapper.entity.entityPicture != null) {
+            badgeIcon = Image(
+              image: CachedNetworkImageProvider("${entityModel.entityWrapper.entity.entityPicture}"),
+              height: iconSize,
+              fit: BoxFit.contain,
+            );
+          } else {
+            onBadgeTextValue =
+                entityModel.entityWrapper.entity.unitOfMeasurement;
+            badgeIcon = Center(
+              child: Text(
+                "${entityModel.entityWrapper.entity.state}",
+                overflow: TextOverflow.fade,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: stateFontSize),
+              ),
+            );
+          }
           break;
         }
     }
