@@ -98,15 +98,15 @@ class HAUtils {
     }
   }
 
-  static void launchURLInCustomTab(BuildContext context, String url) async {
+  static void launchURLInCustomTab({BuildContext context, String url, bool enableDefaultShare: true, bool showPageTitle: true}) async {
     try {
       await launch(
         "$url",
         option: new CustomTabsOption(
           toolbarColor: Theme.of(context).primaryColor,
-          enableDefaultShare: true,
+          enableDefaultShare: enableDefaultShare,
           enableUrlBarHiding: true,
-          showPageTitle: true,
+          showPageTitle: showPageTitle,
           animation: new CustomTabsAnimation.slideIn()
           // or user defined animation.
           /*animation: new CustomTabsAnimation(

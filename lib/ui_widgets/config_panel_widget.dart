@@ -34,7 +34,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/cloud/account");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/cloud/account");
                   },
                 )
               ],
@@ -52,7 +52,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/integrations/dashboard");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/integrations/dashboard");
                   },
                 )
               ],
@@ -70,7 +70,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/users/picker");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/users/picker");
                   },
                 )
               ],
@@ -88,7 +88,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/core");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/core");
                   },
                 ),
                 Container(height: Sizes.rowPadding,),
@@ -124,7 +124,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/person");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/person");
                   },
                 )
               ],
@@ -142,7 +142,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/entity_registry");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/entity_registry");
                   },
                 )
               ],
@@ -160,7 +160,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/area_registry");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/area_registry");
                   },
                 )
               ],
@@ -178,7 +178,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/automation");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/automation");
                   },
                 )
               ],
@@ -196,7 +196,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/script");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/script");
                   },
                 )
               ],
@@ -214,7 +214,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 FlatButton(
                   child: Text('Open web version', style: TextStyle(color: Colors.blue)),
                   onPressed: () {
-                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/customize");
+                    HAUtils.launchURLInCustomTab(context: context, url: Connection().httpWebHost+"/config/customize");
                   },
                 )
               ],

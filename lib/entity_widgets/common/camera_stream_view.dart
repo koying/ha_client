@@ -17,10 +17,15 @@ class _CameraStreamViewState extends State<CameraStreamView> {
 
   CameraEntity _entity;
   bool started = false;
+  String streamUrl = "";
 
   launchStream() {
-    HAUtils.launchURLInCustomTab(context, '${Connection().httpWebHost}/api/camera_proxy_stream/${_entity
-        .entityId}?token=${_entity.attributes['access_token']}');
+    HAUtils.launchURLInCustomTab(
+        context: context,
+        url: streamUrl,
+      enableDefaultShare: false,
+      showPageTitle: false
+    );
   }
 
   @override
@@ -32,13 +37,15 @@ class _CameraStreamViewState extends State<CameraStreamView> {
           .entity;
       started = true;
     }
+    streamUrl = '${Connection().httpWebHost}/api/camera_proxy_stream/${_entity
+        .entityId}?token=${_entity.attributes['access_token']}';
     return Column(
       children: <Widget>[
         Container(
             padding: const EdgeInsets.all(20.0),
-            child: FlatButton(
-              child: Text("View camera stream"),
-              onPressed: () => launchStream(),
+            child: IconButton(
+              icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:monitor-screenshot"), color: Colors.amber),
+              iconSize: 50.0
             )
         )
       ],

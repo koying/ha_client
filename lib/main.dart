@@ -153,7 +153,7 @@ class HAClientApp extends StatelessWidget {
           appBar: new AppBar(
             leading: IconButton(
                 icon: Icon(Icons.help),
-                onPressed: () => HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/docs#authentication")
+                onPressed: () => HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/docs#authentication")
             ),
             title: new Text("Login to your Home Assistant"),
           ),
@@ -548,7 +548,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/terms_and_conditions");
+                HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/terms_and_conditions");
               },
               child: Text(
                 "Terms and Conditions",
@@ -564,7 +564,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
             GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
-                HAUtils.launchURLInCustomTab(context, "http://ha-client.homemade.systems/privacy_policy");
+                HAUtils.launchURLInCustomTab(context: context, url: "http://ha-client.homemade.systems/privacy_policy");
               },
               child: Text(
                 "Privacy Policy",
@@ -649,7 +649,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           actions.add(FlatButton(
             child: Text("${action.title}", style: textStyle),
             onPressed: () {
-              HAUtils.launchURLInCustomTab(context, "${action.url}");
+              HAUtils.launchURLInCustomTab(context: context, url: "${action.url}");
             },
           ));
           break;

@@ -28,7 +28,7 @@ class Panel {
   void handleOpen(BuildContext context) {
     if (type == "iframe") {
       Logger.d("Launching custom tab with ${config["url"]}");
-      HAUtils.launchURLInCustomTab(context, config["url"]);
+      HAUtils.launchURLInCustomTab(context: context, url: config["url"]);
     } else if (type == "config") {
       Navigator.of(context).push(
           MaterialPageRoute(
@@ -38,7 +38,7 @@ class Panel {
     } else {
       String url = "${Connection().httpWebHost}/$urlPath";
       Logger.d("Launching custom tab with $url");
-      HAUtils.launchURLInCustomTab(context, url);
+      HAUtils.launchURLInCustomTab(context: context, url: url);
     }
   }
 
