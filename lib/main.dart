@@ -379,6 +379,27 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   }
 
   void _showDialog({String title, String body, var onPositive, var onNegative, String positiveText, String negativeText}) {
+    List<Widget> buttons = [];
+    buttons.add(FlatButton(
+      child: new Text("$positiveText"),
+      onPressed: () {
+        Navigator.of(context).pop();
+        if (onPositive != null) {
+          onPositive();
+        }
+      },
+    ));
+    if (negativeText != null) {
+      buttons.add(FlatButton(
+        child: new Text("$negativeText"),
+        onPressed: () {
+          Navigator.of(context).pop();
+          if (onNegative != null) {
+            onNegative();
+          }
+        },
+      ));
+    }
     // flutter defined function
     showDialog(
       barrierDismissible: false,
@@ -388,27 +409,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         return AlertDialog(
           title: new Text("$title"),
           content: new Text("$body"),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            new FlatButton(
-              child: new Text("$positiveText"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (onPositive != null) {
-                  onPositive();
-                }
-              },
-            ),
-            new FlatButton(
-              child: new Text("$negativeText"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (onNegative != null) {
-                  onNegative();
-                }
-              },
-            ),
-          ],
+          actions: buttons,
         );
       },
     );

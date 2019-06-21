@@ -100,7 +100,7 @@ class HomeAssistant {
     };
   }
 
-  Future checkAppRegistration({bool forceRegister: false}) {
+  Future checkAppRegistration({bool forceRegister: false, bool showOkDialog: false}) {
     Completer completer = Completer();
     if (Connection().webhookId == null || forceRegister) {
       Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
@@ -148,12 +148,19 @@ class HomeAssistant {
           data: json.encode(updateData)
       ).then((response) {
         Logger.d("App registration works fine");
+        if (showOkDialog) {
+          eventBus.fire(ShowDialogEvent(
+            title: "All good",
+            body: "HA Client integration with your Home Assistant server works fine",
+            positiveText: "Nice!"
+          ));
+        }
         completer.complete();
       }).catchError((e) {
         if (e['code'] != null && e['code'] == 410) {
-          Logger.e("This integration was removed.");
+          Logger.e("MobileApp integration was removed");
           eventBus.fire(ShowDialogEvent(
-            title: "App registration was removed or something went wrong",
+            title: "App integration was removed",
             body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
             positiveText: "Register now",
             negativeText: "Cancel",
@@ -167,6 +174,19 @@ class HomeAssistant {
           ));
         } else {
           Logger.e("Error updating app registration: ${e.toString()}");
+          eventBus.fire(ShowDialogEvent(
+            title: "App integration is not working properly",
+            body: "Something wrong with HA Client integration on your Home Assistant server. Try to remove current app integration from Configuration -> Integrationds using web UI, restart your Home Assistant and go back to the app. NOTE that after clicking 'Ok' current integration data will be removed from the app and new integration wll be created on Home Assistant side on next app launch.",
+            positiveText: "Ok",
+            negativeText: "I'll handle it",
+            onPositive: () {
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.remove("app-webhook-id");
+                Connection().webhookId = null;
+                HAUtils.launchURL(Connection().httpWebHost+"/config/integrations/dashboard");
+              });
+            },
+          ));
         }
         completer.complete();
       });
