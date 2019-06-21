@@ -100,7 +100,7 @@ class HomeAssistant {
     };
   }
 
-  Future checkAppRegistration({bool forceRegister: false, bool forceUpdate: false}) {
+  Future checkAppRegistration({bool forceRegister: false}) {
     Completer completer = Completer();
     if (Connection().webhookId == null || forceRegister) {
       Logger.d("Mobile app was not registered yet or need to be reseted. Registering...");
@@ -120,8 +120,6 @@ class HomeAssistant {
             SharedPreferences.getInstance().then((prefs) {
               prefs.setString("app-webhook-id", responseObject["webhook_id"]);
               Connection().webhookId = responseObject["webhook_id"];
-              prefs.setString("registered-app-version", "$appVersion");
-              Connection().registeredAppVersion = "$appVersion";
               completer.complete();
               eventBus.fire(ShowDialogEvent(
                 title: "App was registered with your Home Assistant",
@@ -138,8 +136,8 @@ class HomeAssistant {
             Logger.e("Error registering the app: ${e.toString()}");
           });
       return completer.future;
-    } else if (Connection().registeredAppVersion != appVersion || forceUpdate) {
-      Logger.d("Registered app version is old. Registration need to be updated");
+    } else {
+      Logger.d("App was previously registered. Checking...");
       var updateData = {
         "type": "update_registration",
         "data": _getAppRegistrationData()
@@ -149,19 +147,30 @@ class HomeAssistant {
           includeAuthHeader: false,
           data: json.encode(updateData)
       ).then((response) {
-        Logger.d("App registration updated");
-        SharedPreferences.getInstance().then((prefs) {
-          prefs.setString("registered-app-version", "$appVersion");
-          completer.complete();
-        });
-      }).catchError((e) {
+        Logger.d("App registration works fine");
         completer.complete();
-        Logger.e("Error updating app registering: ${e.toString()}");
+      }).catchError((e) {
+        if (e['code'] != null && e['code'] == 410) {
+          Logger.e("This integration was removed.");
+          eventBus.fire(ShowDialogEvent(
+            title: "App registration was removed or something went wrong",
+            body: "Looks like app integration was removed from your Home Assistant. HA Client needs to be registered on your Home Assistant server to make it possible to use notifications and other useful stuff.",
+            positiveText: "Register now",
+            negativeText: "Cancel",
+            onPositive: () {
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.remove("app-webhook-id");
+                Connection().webhookId = null;
+                HomeAssistant().checkAppRegistration();
+              });
+            },
+          ));
+        } else {
+          Logger.e("Error updating app registration: ${e.toString()}");
+        }
+        completer.complete();
       });
       return completer.future;
-    } else {
-      Logger.d("App is registered");
-      return Future.value();
     }
   }
 

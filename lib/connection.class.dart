@@ -19,7 +19,6 @@ class Connection {
   String _tempToken;
   String oauthUrl;
   String webhookId;
-  String registeredAppVersion;
   bool useLovelace = true;
   bool settingsLoaded = false;
   bool get isAuthenticated => _token != null;
@@ -45,7 +44,6 @@ class Connection {
       _domain = prefs.getString('hassio-domain');
       _port = prefs.getString('hassio-port');
       webhookId = prefs.getString('app-webhook-id');
-      registeredAppVersion = prefs.getString('registered-app-version');
       displayHostname = "$_domain:$_port";
       _webSocketAPIEndpoint =
       "${prefs.getString('hassio-protocol')}://$_domain:$_port/api/websocket";
