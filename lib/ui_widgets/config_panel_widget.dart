@@ -24,6 +24,60 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
     super.initState();
     _items = <ConfigurationItem>[
       ConfigurationItem(
+          header: 'Home Assistant Cloud',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/cloud/account");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Integrations',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/integrations/dashboard");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Users',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/users/picker");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
           header: 'General',
           body: Padding(
             padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
@@ -31,6 +85,13 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/core");
+                  },
+                ),
+                Container(height: Sizes.rowPadding,),
                 Text("Server management", style: TextStyle(fontSize: Sizes.largeFontSize)),
                 Container(height: Sizes.rowPadding,),
                 Text("Control your Home Assistant server from HA Client."),
@@ -47,6 +108,114 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                       onPressed: () => stop(),
                     ),
                   ],
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Persons',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/person");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Entity Registry',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/entity_registry");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Area Registry',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/area_registry");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Automation',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/automation");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Script',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/script");
+                  },
+                )
+              ],
+            ),
+          )
+      ),
+      ConfigurationItem(
+          header: 'Customization',
+          body: Padding(
+            padding: EdgeInsets.fromLTRB(Sizes.leftWidgetPadding, 0.0, Sizes.rightWidgetPadding, Sizes.rowPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('Open web version', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    HAUtils.launchURLInCustomTab(context, Connection().httpWebHost+"/config/customize");
+                  },
                 )
               ],
             ),
