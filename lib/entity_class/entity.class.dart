@@ -27,7 +27,7 @@ class Entity {
     "cold.on": "Cold",
     "cold.off": "Normal",
     "connectivity.on": "Connected",
-    "connectivity.off": "Diconnected",
+    "connectivity.off": "Disconnected",
     "door.on": "Open",
     "door.off": "Closed",
     "garage_door.on": "Open",
