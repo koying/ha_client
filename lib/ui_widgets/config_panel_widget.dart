@@ -38,17 +38,13 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    FlatServiceButton(
-                      text: "Restart",
-                      serviceName: "restart",
-                      serviceDomain: "homeassistant",
-                      entityId: null,
+                    FlatButton(
+                      child: Text('Restart', style: TextStyle(color: Colors.blue)),
+                      onPressed: () => restart(),
                     ),
-                    FlatServiceButton(
-                      text: "Stop",
-                      serviceName: "stop",
-                      serviceDomain: "homeassistant",
-                      entityId: null,
+                    FlatButton(
+                      child: Text("Stop", style: TextStyle(color: Colors.blue)),
+                      onPressed: () => stop(),
                     ),
                   ],
                 )
@@ -68,18 +64,14 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 Container(height: Sizes.rowPadding,),
                 Text("${HomeAssistant().userName}'s ${Device().model}, ${Device().osName} ${Device().osVersion}"),
                 Container(height: 6.0,),
-                Text("Reseting mobile app registration will not remove integration from Home Assistant but creates a new one with different device. If you want to reset mobile app registration completally you need to remove MobileApp from Configuretion -> Integrations of your Home Assistant."),
+                Text("Here you can manually check if HA Client integration with your Home Assistant works fine."),
                 Divider(),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     FlatButton(
-                        onPressed: () => resetRegistration(),
-                        child: Text("Reset registration")
-                    ),
-                    FlatButton(
                         onPressed: () => updateRegistration(),
-                        child: Text("Update registration")
+                        child: Text("Check registration", style: TextStyle(color: Colors.blue))
                     )
                   ],
                 )
@@ -90,34 +82,32 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
     ];
   }
 
-  resetRegistration() {
-    HomeAssistant().checkAppRegistration(forceRegister: true).then((_) {
-      Navigator.of(context).pop();
-      eventBus.fire(ShowDialogEvent(
-        title: "App registered",
-        body: "To start using notifications you need to restart your Home Assistant",
-        positiveText: "Restart now",
-        negativeText: "Later",
-        onPositive: () {
-          Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
-        },
-      ));
-    });
+  restart() {
+    eventBus.fire(ShowDialogEvent(
+      title: "Are you sure you want to restart Home Assistant?",
+      body: "This will restart your Home Assistant server.",
+      positiveText: "Sure. Make it so",
+      negativeText: "What?? No!",
+      onPositive: () {
+        Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
+      },
+    ));
+  }
+
+  stop() {
+    eventBus.fire(ShowDialogEvent(
+      title: "Are you sure you wanr to STOP Home Assistant?",
+      body: "This will STOP your Home Assistant server. It means that your web interface as well as HA Client will not work untill you'll find a way to start your server using ssh or something.",
+      positiveText: "Sure. Make it so",
+      negativeText: "What?? No!",
+      onPositive: () {
+        Connection().callService(domain: "homeassistant", service: "stop", entityId: null);
+      },
+    ));
   }
 
   updateRegistration() {
-    HomeAssistant().checkAppRegistration().then((_) {
-      //Navigator.of(context).pop();
-      /*eventBus.fire(ShowDialogEvent(
-        title: "App registration updated",
-        body: "To start using notifications you need to restart your Home Assistant",
-        positiveText: "Restart now",
-        negativeText: "Later",
-        onPositive: () {
-          Connection().callService(domain: "homeassistant", service: "restart", entityId: null);
-        },
-      ));*/
-    });
+    HomeAssistant().checkAppRegistration();
   }
 
   @override

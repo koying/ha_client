@@ -122,8 +122,8 @@ class HomeAssistant {
               Connection().webhookId = responseObject["webhook_id"];
               completer.complete();
               eventBus.fire(ShowDialogEvent(
-                title: "App was registered with your Home Assistant",
-                body: "To start using notifications you need to restart your Home Assistant",
+                title: "Mobile app Integration was created",
+                body: "HA Client was registered as MobileApp in your Home Assistant. To start using notifications you need to restart your Home Assistant",
                 positiveText: "Restart now",
                 negativeText: "Later",
                 onPositive: () {
