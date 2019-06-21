@@ -1,0 +1,93 @@
+swagger: "2.0"
+info:
+  description: "This is the OpenAPI specification of the mobile_app api of HA"
+  version: "1.0.0"
+  title: "HA mobile_app"
+  contact:
+    email: "cbro@semperpax.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "ha.mine"
+basePath: "/api"
+tags:
+- name: "mobile_app"
+  description: "Write back to HA"
+schemes:
+- "https"
+- "http"
+paths:
+  /webhook/{webhookId}:
+    post:
+      tags:
+      - "mobile_app"
+      summary: "Send info to HA"
+      description: ""
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "webhookId"
+        in: "path"
+        description: "Webhook ID"
+        required: true
+        type: "string"
+      - name: "body"
+        in: "body"
+        description: "json body"
+        required: true
+        schema:
+          $ref: "#/definitions/Webhook"
+      responses:
+        405:
+          description: "Invalid input"
+definitions:
+  Webhook:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+        description: "Update topic"
+        enum:
+        - "update_location"
+        - "call_service"
+        - "render_template"
+        - "fire_event"
+        - "update_registration"
+        - "get_zones"
+        - "get_config"
+        - "register_sensor"
+        - "update_sensor_states"
+      data:
+        $ref: '#/definitions/WebhookData'
+    required:
+      - type
+  WebhookData:
+    type: "object"
+    properties:
+      gps:
+        type: "array"
+        description: "GPS position (in lat, lon)"
+        items:
+            type: number
+        minItems: 2
+        maxItems: 2
+      gps_accuracy:
+        description: "GPS accuracy (in meters)"
+        type: "integer"
+      battery:
+        description: "Battery level (in %)"
+        type: "integer"
+      speed:
+        description: "Speed (in m/s)"
+        type: "integer"
+      altitude:
+        description: "Altitude (in meters)"
+        type: "integer"
+      course:
+        description: "Bearing (in degrees)"
+        type: "integer"
+      vertical_accuracy:
+        description: "Vertical accuracy (in meters)"
+        type: "integer"
