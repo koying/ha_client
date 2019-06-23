@@ -112,7 +112,7 @@ class CardWidget extends StatelessWidget {
       if (!entity.entity.isHidden) {
         body.add(
             Padding(
-              padding: EdgeInsets.fromLTRB(10.0, 4.0, 0.0, 4.0),
+              padding: EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 4.0),
               child: EntityModel(
                   entityWrapper: entity,
                   handleTap: true,
@@ -122,7 +122,10 @@ class CardWidget extends StatelessWidget {
       }
     });
     return Card(
-        child: new Column(mainAxisSize: MainAxisSize.min, children: body)
+        child: Padding(
+          padding: EdgeInsets.only(right: Sizes.rightWidgetPadding, left: Sizes.leftWidgetPadding),
+          child: Column(mainAxisSize: MainAxisSize.min, children: body),
+        )
     );
   }
 

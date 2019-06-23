@@ -15,14 +15,18 @@ class DefaultEntityContainer extends StatelessWidget {
       return MissedEntityWidget();
     }
     if (entityModel.entityWrapper.entity.statelessType == StatelessEntityType.DIVIDER) {
-      return Divider();
+      return Divider(
+        color: Colors.black45,
+      );
     }
     if (entityModel.entityWrapper.entity.statelessType == StatelessEntityType.SECTION) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Divider(),
+          Divider(
+            color: Colors.black45,
+          ),
           Text(
               "${entityModel.entityWrapper.entity.displayName}",
             style: TextStyle(color: Colors.blue),
