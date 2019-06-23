@@ -28,6 +28,7 @@ class MaterialDesignIcons {
     "lock.locked": "mdi:lock",
     "lock.unlocked": "mdi:lock-open",
     "fan": "mdi:fan",
+    "remote": "mdi:remote",
     "alarm_control_panel.disarmed" : "mdi:bell-outline",
     "alarm_control_panel.armed_home" : "mdi:bell-plus",
     "alarm_control_panel.armed_away" : "mdi:bell",
