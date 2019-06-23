@@ -520,6 +520,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         ),
         Divider(),
         new ListTile(
+          leading: Icon(Icons.help),
+          title: Text("Help"),
+          onTap: () {
+            Navigator.of(context).pop();
+            HAUtils.launchURL("http://ha-client.homemade.systems/docs");
+          },
+        ),
+        new ListTile(
           leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:discord")),
           title: Text("Join Discord channel"),
           onTap: () {
