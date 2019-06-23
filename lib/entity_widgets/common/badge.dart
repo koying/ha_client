@@ -35,6 +35,7 @@ class BadgeWidget extends StatelessWidget {
           break;
         }
       case "device_tracker":
+      case "person":
         {
           badgeIcon = EntityIcon(
               padding: EdgeInsets.all(0.0),
@@ -46,6 +47,16 @@ class BadgeWidget extends StatelessWidget {
         }
       default:
         {
+          double stateFontSize;
+          if (entityModel.entityWrapper.entity.state.length <= 3) {
+            stateFontSize = 18.0;
+          } else if (entityModel.entityWrapper.entity.state.length <= 4) {
+            stateFontSize = 15.0;
+          } else if (entityModel.entityWrapper.entity.state.length <= 6) {
+            stateFontSize = 10.0;
+          } else if (entityModel.entityWrapper.entity.state.length <= 10) {
+            stateFontSize = 8.0;
+          }
           onBadgeTextValue = entityModel.entityWrapper.entity.unitOfMeasurement;
           badgeIcon = Center(
             child: Text(
@@ -53,7 +64,7 @@ class BadgeWidget extends StatelessWidget {
               overflow: TextOverflow.fade,
               softWrap: false,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 17.0),
+              style: TextStyle(fontSize: stateFontSize),
             ),
           );
           break;
