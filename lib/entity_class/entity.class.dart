@@ -154,7 +154,7 @@ class Entity {
     entityId = rawData["entity_id"];
     deviceClass = attributes["device_class"];
     state = rawData["state"];
-    displayState = Entity.StateByDeviceClass["$deviceClass.$state"] ?? state;
+    displayState = Entity.StateByDeviceClass["$deviceClass.$state"] ?? (state.toLowerCase() == 'unknown' ? '-' : state);
     _lastUpdated = DateTime.tryParse(rawData["last_updated"]);
     entityPicture = _getEntityPictureUrl(webHost);
   }
