@@ -20,11 +20,21 @@ class _CameraStreamViewState extends State<CameraStreamView> {
   String streamUrl = "";
 
   launchStream() {
-    HAUtils.launchURLInCustomTab(
-        context: context,
-        url: streamUrl,
-      enableDefaultShare: false,
-      showPageTitle: false
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WebviewScaffold(
+            url: "$streamUrl",
+            withZoom: true,
+            appBar: new AppBar(
+              leading: IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context)
+              ),
+              title: new Text("${_entity.displayName}"),
+            ),
+          ),
+        )
     );
   }
 
@@ -45,7 +55,8 @@ class _CameraStreamViewState extends State<CameraStreamView> {
             padding: const EdgeInsets.all(20.0),
             child: IconButton(
               icon: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:monitor-screenshot"), color: Colors.amber),
-              iconSize: 50.0
+              iconSize: 50.0,
+              onPressed: () => launchStream(),
             )
         )
       ],
