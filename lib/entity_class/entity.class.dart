@@ -216,7 +216,7 @@ class Entity {
       entityWrapper: EntityWrapper(entity: this),
       child: EntityPageContainer(children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(top: Sizes.rowPadding),
+          padding: EdgeInsets.only(top: Sizes.rowPadding, left: Sizes.leftWidgetPadding),
           child: DefaultEntityContainer(state: _buildStatePartForPage(context)),
         ),
         LastUpdatedWidget(),
