@@ -521,7 +521,7 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         Divider(),
         new ListTile(
           leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:discord")),
-          title: Text("Join Discord server"),
+          title: Text("Join Discord channel"),
           onTap: () {
             Navigator.of(context).pop();
             HAUtils.launchURL("https://discord.gg/AUzEvwn");
