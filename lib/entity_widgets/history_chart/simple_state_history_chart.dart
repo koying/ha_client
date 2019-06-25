@@ -101,7 +101,7 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
         colorId: data.last.colorId
     ));
     if (_selectedId == -1) {
-      _selectedId = 0;
+      _selectedId = data.length - 1;
     }
     return [
       new charts.Series<EntityHistoryMoment, DateTime>(

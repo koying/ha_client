@@ -148,7 +148,7 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
     });
 
     if ((_selectedId == -1) && (numericDataLists.isNotEmpty)) {
-      _selectedId = 0;
+      _selectedId = numericDataLists.length -1;
     }
     List<charts.Series<EntityHistoryMoment, DateTime>> result = [];
     numericDataLists.forEach((attrName, dataList) {
