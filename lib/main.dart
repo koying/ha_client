@@ -486,6 +486,13 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
       //TODO check for loaded
       menuItems.add(
           new ListTile(
+            leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:map")),
+            title: Text("Map"),
+            onTap: () => HAUtils.launchActivity("com.keyboardcrumbs.hassclient.MapActivity"),
+          )
+      );
+      menuItems.add(
+          new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
             title: Text("Open Web UI"),
             onTap: () => HAUtils.launchURL(Connection().httpWebHost),
