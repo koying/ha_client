@@ -103,7 +103,7 @@ class _NumericStateHistoryChartWidgetState extends State<NumericStateHistoryChar
         id: widget.rawHistory.length
     ));
     if (_selectedId == -1) {
-      _selectedId = 0;
+      _selectedId = data.length - 1;
     }
     return [
       new charts.Series<EntityHistoryMoment, DateTime>(
