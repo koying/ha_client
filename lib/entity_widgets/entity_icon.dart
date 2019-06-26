@@ -28,6 +28,13 @@ class EntityIcon extends StatelessWidget {
       return null;
     }
     if (data.entityPicture != null) {
+      if (path.extension(data.entityPicture).toLowerCase() == ".svg") {
+        final Widget svgIcon = new SvgPicture.network(
+            data.entityPicture,
+            color: Colors.black
+        );
+        return svgIcon;
+      }
       return Container(
         height: size+12,
         width: size+12,
