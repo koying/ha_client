@@ -102,6 +102,10 @@ class HAUtils {
     await urlLauncher.launchActivity(sClass);
   }
 
+  static void launchMap() async {
+    await urlLauncher.launchMap();
+  }
+
   static void launchURLInCustomTab({BuildContext context, String url, bool enableDefaultShare: true, bool showPageTitle: true}) async {
     try {
       await launch(

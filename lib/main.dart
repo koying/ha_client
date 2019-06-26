@@ -484,14 +484,14 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           }
         });
       }
-      //TODO check for loaded
       menuItems.add(
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:map")),
             title: Text("Map"),
-            onTap: () => HAUtils.launchActivity("com.keyboardcrumbs.hassclient.MapActivity"),
+            onTap: () => HAUtils.launchMap(),
           )
       );
+    //TODO check for loaded
       menuItems.add(
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:home-assistant")),
