@@ -58,10 +58,10 @@ class BadgeWidget extends StatelessWidget {
             stateFontSize = 8.0;
           }
           if (entityModel.entityWrapper.entity.entityPicture != null) {
-            badgeIcon = Image(
-              image: CachedNetworkImageProvider("${entityModel.entityWrapper.entity.entityPicture}"),
-              height: iconSize,
-              fit: BoxFit.contain,
+            badgeIcon = EntityIcon(
+                padding: EdgeInsets.all(0.0),
+                size: iconSize,
+                color: Colors.black
             );
           } else {
             onBadgeTextValue =
