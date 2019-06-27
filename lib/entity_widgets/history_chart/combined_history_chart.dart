@@ -202,6 +202,11 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
         _selectedId -= 1;
       });
     }
+    else {
+      setState(() {
+        _selectedId = _parsedHistory.first.data.length - 1;
+      });
+    }
   }
 
   void _selectNext() {
@@ -209,6 +214,12 @@ class _CombinedHistoryChartWidgetState extends State<CombinedHistoryChartWidget>
       setState(() {
         _selectedId += 1;
       });
+    }
+    else {
+      setState(() {
+        _selectedId = 0;
+      });
+
     }
   }
 

@@ -137,13 +137,24 @@ class _SimpleStateHistoryChartWidgetState extends State<SimpleStateHistoryChartW
         _selectedId -= 1;
       });
     }
+    else {
+      setState(() {
+        _selectedId = _parsedHistory.first.data.length - 1;
+      });
+    }
   }
 
   void _selectNext() {
-    if (_selectedId < (_parsedHistory.first.data.length - 2)) {
+    if (_selectedId < (_parsedHistory.first.data.length - 1)) {
       setState(() {
         _selectedId += 1;
       });
+    }
+    else {
+      setState(() {
+        _selectedId = 0;
+      });
+
     }
   }
 
