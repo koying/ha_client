@@ -32,6 +32,7 @@ keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
     compileSdkVersion 28
+    useLibrary 'org.apache.http.legacy'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -40,6 +41,7 @@ android {
 
     lintOptions {
         disable 'InvalidPackage'
+        abortOnError false
     }
 
     defaultConfig {
