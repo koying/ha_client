@@ -90,6 +90,8 @@ class HAErrorActionType {
 }
 
 class HAUtils {
+  static const _channel = const MethodChannel('com.keyboardcrumbs.hassclient/main');
+
   static void launchURL(String url) async {
     if (await urlLauncher.canLaunch(url)) {
       await urlLauncher.launch(url);
@@ -98,12 +100,43 @@ class HAUtils {
     }
   }
 
-  static void launchActivity(String sClass) async {
-    await urlLauncher.launchActivity(sClass);
+  //Launch an activity
+  static Future<bool> launchActivity(
+      String classString) async {
+    assert(classString != null);
+    final bool result = await _channel.invokeMethod<bool>(
+      'launch',
+      <String, Object>{
+        'class': classString,
+      },
+    );
+    return result;
   }
 
-  static void launchMap() async {
-    await urlLauncher.launchMap();
+  //Launch Map Activity
+  static Future<bool> launchMap() async {
+    final bool result = await _channel.invokeMethod<bool>(
+      'launchMap',
+      <String, Object>{
+      },
+    );
+    return result;
+  }
+
+  //Launch Update Tracker intent
+  static Future<bool> updateTracker(TrackerEntity tracker) async {
+    final bool result = await _channel.invokeMethod<bool>(
+      'updateTracker',
+      <String, Object>{
+        "id": tracker.entityId,
+        "description": tracker.displayName,
+        "longitude": tracker.longitude,
+        "latitude": tracker.latitude,
+        "accuracy": tracker.accuracy,
+        "picture_url": tracker.entityPicture
+      },
+    );
+    return result;
   }
 
   static void launchURLInCustomTab({BuildContext context, String url, bool enableDefaultShare: true, bool showPageTitle: true}) async {

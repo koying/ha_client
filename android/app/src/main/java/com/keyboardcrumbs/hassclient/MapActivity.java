@@ -3,27 +3,47 @@ package com.keyboardcrumbs.hassclient;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.maps.android.ui.IconGenerator;
+
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.ItemizedOverlayWithFocus;
+import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapActivity extends Activity
 {
   private static String TAG = "MapActivity";
+
+  public static boolean isRunning = false;
   private MapView mMapView = null;
   private MyLocationNewOverlay mLocationOverlay;
+  private ItemizedOverlayWithFocus<OverlayItem> mOverlay = null;
+
+  private static String update_tracker_action = "ACTION_UPDATE_TRACKER";
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -61,11 +81,26 @@ public class MapActivity extends Activity
       mapController.setCenter(startPoint);
     }
 
-/*
-    this.mLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(ctx),mMapView);
-    this.mLocationOverlay.enableMyLocation();
-    mMapView.getOverlays().add(this.mLocationOverlay);
-*/
+    mOverlay = new ItemizedOverlayWithFocus<OverlayItem>(new ArrayList<OverlayItem>(),
+        new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+          @Override
+          public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+            //do something
+            return true;
+          }
+          @Override
+          public boolean onItemLongPress(final int index, final OverlayItem item) {
+            return false;
+          }
+        }, this);
+    mOverlay.setFocusItemsOnTap(true);
+
+    Bundle bundle = getIntent().getExtras();
+    ArrayList<Bundle> trackers = bundle.getParcelableArrayList("trackers");
+    for (Bundle b : trackers)
+      Update_Tracker(b);
+
+    mMapView.getOverlays().add(mOverlay);
   }
 
   @Override
@@ -73,6 +108,7 @@ public class MapActivity extends Activity
   {
     super.onPause();
     Log.d(TAG, "onPause: ");
+    isRunning = false;
     mMapView.onPause();  //needed for compass, my location overlays, v6.0.0 and up
   }
 
@@ -82,5 +118,37 @@ public class MapActivity extends Activity
     super.onResume();
     Log.d(TAG, "onResume: ");
     mMapView.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+    isRunning = true;
+  }
+
+  @Override
+  protected void onNewIntent(Intent intent)
+  {
+    super.onNewIntent(intent);
+
+    if (intent.getAction() == MainActivity.ACTION_UPDATE_TRACKER)
+    {
+      Update_Tracker(intent.getExtras());
+    }
+  }
+
+  void Update_Tracker(Bundle bundle)
+  {
+    String id = bundle.getString("id");
+    for(int i = 0; i < mOverlay.size(); ++i)
+    {
+      if (mOverlay.getItem(i).getUid().equals(id))
+      {
+        mOverlay.removeItem(i);
+        break;
+      }
+    }
+    OverlayItem new_tracker = new OverlayItem(id, bundle.getString("description"), "", new GeoPoint(bundle.getDouble("latitude"), bundle.getDouble("longitude")));
+    IconGenerator tc = new IconGenerator(this);
+    tc.setColor(Color.YELLOW);
+    Bitmap bmp = tc.makeIcon(bundle.getString("description"));
+    new_tracker.setMarker(new BitmapDrawable(getResources(), bmp));
+    Log.d(TAG, "Update_Tracker: " + new_tracker.getTitle() + ", " + new_tracker.getPoint().toString());
+    mOverlay.addItem(new_tracker);
   }
 }

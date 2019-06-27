@@ -9,6 +9,7 @@ class EntityCollection {
 
   bool get isEmpty => _allEntities.isEmpty;
   List<Entity> get viewEntities => _allEntities.values.where((entity) => entity.isView).toList();
+  List<Entity> get trackerEntities => _allEntities.values.where((entity) => entity is TrackerEntity).toList();
 
   EntityCollection(this.homeAssistantWebHost) {
     _allEntities = {};
@@ -60,6 +61,9 @@ class EntityCollection {
       case "input_boolean":
       case "switch": {
         return SwitchEntity(rawEntityData, homeAssistantWebHost);
+      }
+      case "device_tracker": {
+        return TrackerEntity(rawEntityData, homeAssistantWebHost);
       }
       case "light": {
         return LightEntity(rawEntityData, homeAssistantWebHost);

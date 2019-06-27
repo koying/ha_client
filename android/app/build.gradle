@@ -103,6 +103,7 @@ dependencies {
                 transitive true
             }
     implementation 'org.osmdroid:osmdroid-android:6.1.0'
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     // ha_client_api
     api "io.swagger:swagger-annotations:$swagger_annotations_version"

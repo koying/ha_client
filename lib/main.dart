@@ -45,6 +45,7 @@ part 'entity_class/fan_entity.class.dart';
 part 'entity_class/automation_entity.dart';
 part 'entity_class/camera_entity.class.dart';
 part 'entity_class/alarm_control_panel.class.dart';
+part 'entity_class/tracker_entity.class.dart';
 part 'entity_widgets/common/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
@@ -488,7 +489,11 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
           new ListTile(
             leading: Icon(MaterialDesignIcons.getIconDataFromIconName("mdi:map")),
             title: Text("Map"),
-            onTap: () => HAUtils.launchMap(),
+            onTap: () {
+              HAUtils.launchMap();
+              HomeAssistant().entities.trackerEntities.forEach((t) => HAUtils.updateTracker(t));
+            }
+
           )
       );
     //TODO check for loaded
