@@ -100,6 +100,15 @@ class Entity {
   String get lastUpdated => _getLastUpdatedFormatted();
   bool get isHidden => attributes["hidden"] ?? false;
   double get doubleState => double.tryParse(state) ?? 0.0;
+  String get badgeState {
+    double dState = double.tryParse(state);
+    if (dState != null)
+      if (dState == dState.truncateToDouble())
+        return dState.toStringAsFixed(0);
+      else
+        return dState.toStringAsFixed(1);
+    return state;
+  }
   int get supportedFeatures => attributes["supported_features"] ?? 0;
 
   String _getEntityPictureUrl(String webHost) {

@@ -48,13 +48,13 @@ class BadgeWidget extends StatelessWidget {
       default:
         {
           double stateFontSize;
-          if (entityModel.entityWrapper.entity.displayState.length <= 3) {
+          if (entityModel.entityWrapper.entity.badgeState.length <= 3) {
             stateFontSize = 18.0;
-          } else if (entityModel.entityWrapper.entity.displayState.length <= 4) {
+          } else if (entityModel.entityWrapper.entity.badgeState.length <= 4) {
             stateFontSize = 15.0;
-          } else if (entityModel.entityWrapper.entity.displayState.length <= 6) {
+          } else if (entityModel.entityWrapper.entity.badgeState.length <= 6) {
             stateFontSize = 10.0;
-          } else if (entityModel.entityWrapper.entity.displayState.length <= 10) {
+          } else if (entityModel.entityWrapper.entity.badgeState.length <= 10) {
             stateFontSize = 8.0;
           }
           if (entityModel.entityWrapper.entity.entityPicture != null) {
@@ -68,7 +68,7 @@ class BadgeWidget extends StatelessWidget {
                 entityModel.entityWrapper.entity.unitOfMeasurement;
             badgeIcon = Center(
               child: Text(
-                "${entityModel.entityWrapper.entity.state}",
+                "${entityModel.entityWrapper.entity.badgeState}",
                 overflow: TextOverflow.fade,
                 softWrap: false,
                 textAlign: TextAlign.center,
