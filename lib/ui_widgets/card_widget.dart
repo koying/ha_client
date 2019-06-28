@@ -50,6 +50,10 @@ class CardWidget extends StatelessWidget {
         return _buildAlarmPanelCard(context);
       }
 
+      case CardType.weatherForecast: {
+        return _buildWeatherForecastCard(context);
+      }
+
       case CardType.horizontalStack: {
         if (card.childCards.isNotEmpty) {
           List<Widget> children = [];
@@ -252,6 +256,28 @@ class CardWidget extends StatelessWidget {
             entityWrapper: card.linkedEntityWrapper,
             child: ButtonEntityContainer(),
             handleTap: true
+        )
+    );
+  }
+
+  Widget _buildWeatherForecastCard(BuildContext context) {
+    List<Widget> body = [];
+    body.add(CardHeaderWidget(name: card.name ?? ""));
+    List<Widget> result = [];
+    if (card.linkedEntityWrapper != null) {
+      result.add(EntityModel(
+              entityWrapper: card.linkedEntityWrapper,
+              handleTap: null,
+              child: WeatherForecastWidget()
+          ),
+      );
+    }
+    body.addAll(result);
+    return Card(
+        child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: body
         )
     );
   }
