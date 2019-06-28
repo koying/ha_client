@@ -105,6 +105,9 @@ class EntityCollection {
       case "timer": {
         return TimerEntity(rawEntityData, homeAssistantWebHost);
       }
+      case "weather": {
+        return WeatherEntity(rawEntityData, homeAssistantWebHost);
+      }
       default: {
         return Entity(rawEntityData, homeAssistantWebHost);
       }
