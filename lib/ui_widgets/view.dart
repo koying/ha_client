@@ -24,11 +24,14 @@ class ViewWidgetState extends State<ViewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(0.0),
-      //physics: const AlwaysScrollableScrollPhysics(),
-      children: _buildChildren(context),
-    );
+    return ScrollConfiguration(
+              behavior: NoOvershootBehavior(),
+              child: ListView(
+                padding: EdgeInsets.all(0.0),
+                //physics: const AlwaysScrollableScrollPhysics(),
+                children: _buildChildren(context),
+              ),
+      );
   }
 
   List<Widget> _buildChildren(BuildContext context) {

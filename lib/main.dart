@@ -136,6 +136,14 @@ void main() {
   });
 }
 
+class NoOvershootBehavior extends ScrollBehavior {
+  @override
+  Widget buildViewportChrome(
+      BuildContext context, Widget child, AxisDirection axisDirection) {
+    return child;
+  }
+}
+
 class HAClientApp extends StatelessWidget {
 
   final HomeAssistant homeAssistant = HomeAssistant();
