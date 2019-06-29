@@ -254,7 +254,10 @@ class CardWidget extends StatelessWidget {
     return Card(
         child: EntityModel(
             entityWrapper: card.linkedEntityWrapper,
-            child: ButtonEntityContainer(),
+            child: ButtonEntityContainer(
+              showName: card.showName,
+              showIcon: card.showIcon,
+            ),
             handleTap: true
         )
     );

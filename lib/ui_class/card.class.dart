@@ -8,6 +8,7 @@ class HACard {
   String id;
   String type;
   bool showName;
+  bool showIcon;
   bool showState;
   bool showEmpty;
   int columnsCount;
@@ -21,6 +22,7 @@ class HACard {
     this.linkedEntityWrapper,
     this.columnsCount: 4,
     this.showName: true,
+    this.showIcon: true,
     this.showState: true,
     this.stateFilter: const [],
     this.showEmpty: true,

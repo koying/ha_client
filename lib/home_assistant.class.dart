@@ -309,6 +309,8 @@ class HomeAssistant {
                 : rawCard['columns'] ?? 4,
             showName: isThereCardOptionsInside ? rawCard["card"]['show_name'] ??
                 true : rawCard['show_name'] ?? true,
+            showIcon: isThereCardOptionsInside ? rawCard["card"]['show_icon'] ??
+                true : rawCard['show_icon'] ?? true,
             showState: isThereCardOptionsInside
                 ? rawCard["card"]['show_state'] ?? true
                 : rawCard['show_state'] ?? true,
