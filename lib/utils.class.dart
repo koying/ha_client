@@ -133,7 +133,8 @@ class HAUtils {
         "longitude": tracker.longitude,
         "latitude": tracker.latitude,
         "accuracy": tracker.accuracy,
-        "picture_url": tracker.entityPicture
+        "picture_url": tracker.entityPicture,
+        "isThis": tracker.isThis,
       },
     );
     return result;

@@ -151,7 +151,8 @@ public class MapActivity extends Activity
     }
     OverlayItem new_tracker = new OverlayItem(id, bundle.getString("description"), "", new GeoPoint(bundle.getDouble("latitude"), bundle.getDouble("longitude")));
     IconGenerator tc = new IconGenerator(this);
-    tc.setColor(Color.YELLOW);
+    if (bundle.getBoolean("isThis"))
+      tc.setStyle(IconGenerator.STYLE_BLUE);
     Bitmap bmp = tc.makeIcon(bundle.getString("description"));
     new_tracker.setMarker(new BitmapDrawable(getResources(), bmp));
     Log.d(TAG, "Update_Tracker: " + new_tracker.getTitle() + ", " + new_tracker.getPoint().toString());

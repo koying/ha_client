@@ -1,10 +1,8 @@
 package com.keyboardcrumbs.hassclient;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -19,7 +17,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugins.urllauncher.UrlLauncherPlugin;
 
 import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -132,6 +129,7 @@ public class MainActivity extends FlutterActivity implements MethodCallHandler {
     bundle.putDouble("latitude", (Double) call.argument("latitude"));
     bundle.putInt("accuracy", (int) call.argument("accuracy"));
     bundle.putString("picture_url", (String) call.argument("picture_url"));
+    bundle.putBoolean("isThis", (Boolean) call.argument("isThis"));
 
     for (int i = 0; i < mTrackers.size(); ++i)
     {
