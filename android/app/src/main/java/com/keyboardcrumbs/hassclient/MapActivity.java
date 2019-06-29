@@ -17,7 +17,9 @@ import com.google.maps.android.ui.IconGenerator;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.ItemizedIconOverlay;
@@ -51,7 +53,17 @@ public class MapActivity extends Activity
     setContentView(R.layout.activity_map);
 
     mMapView = (MapView) findViewById(R.id.map);
-    mMapView.setTileSource(TileSourceFactory.MAPNIK);
+
+    // Create a custom tile source
+    final ITileSource tileSource = new XYTileSource( "Carto", 1, 30, 256, ".png",
+        new String[] {
+            "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/",
+            "https://cartodb-basemaps-b.global.ssl.fastly.net/light_all/",
+            "https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/",
+            },"Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.");
+    mMapView.setTileSource(tileSource);
+    //mMapView.setTileSource(TileSourceFactory.MAPNIK);
+
     mMapView.setBuiltInZoomControls(true);
     mMapView.setMultiTouchControls(true);
 
