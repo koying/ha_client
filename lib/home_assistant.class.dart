@@ -199,7 +199,7 @@ class HomeAssistant {
     await Connection().sendSocketMessage(type: "get_config").then((data) {
       _instanceConfig = Map.from(data);
     }).catchError((e) {
-      throw HAError("Error getting config: ${e}");
+      throw HAError("Error getting config: $e");
     });
   }
 
@@ -220,13 +220,13 @@ class HomeAssistant {
   Future _getUserInfo() async {
     _userName = null;
     await Connection().sendSocketMessage(type: "auth/current_user").then((data) => _userName = data["name"]).catchError((e) {
-      Logger.w("Can't get user info: ${e}");
+      Logger.w("Can't get user info: $e");
     });
   }
 
   Future _getServices() async {
     await Connection().sendSocketMessage(type: "get_services").then((data) => Logger.d("Services received")).catchError((e) {
-      Logger.w("Can't get services: ${e}");
+      Logger.w("Can't get services: $e");
     });
   }
 

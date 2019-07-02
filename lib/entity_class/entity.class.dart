@@ -21,7 +21,7 @@ class Entity {
     "sensor"
   ];
 
-  static Map StateByDeviceClass = {
+  static const Map StateByDeviceClass = {
     "battery.on": "Low",
     "battery.off": "Normal",
     "cold.on": "Cold",

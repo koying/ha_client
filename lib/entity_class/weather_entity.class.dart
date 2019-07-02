@@ -44,7 +44,7 @@ class WeatherEntity extends Entity {
     if (!(attributes['forecast'] != null && attributes['forecast'] is List && attributes['forecast'].isNotEmpty))
       return result;
 
-    var time_formatter = new DateFormat('Hm');
+    var timeFormatter = new DateFormat('Hm');
 
     attributes["forecast"].forEach((f){
       WeatherForecast forecast = new WeatherForecast();
@@ -52,7 +52,7 @@ class WeatherEntity extends Entity {
       if (datetime != null)
       {
         forecast.dow = dow[datetime.toLocal().weekday];
-        forecast.tod = datetime.hour != 0 ? time_formatter.format(datetime.toLocal()) : null;
+        forecast.tod = datetime.hour != 0 ? timeFormatter.format(datetime.toLocal()) : null;
       }
       forecast.temperature = f["temperature"]?.toDouble();
       forecast.condition = f["condition"];

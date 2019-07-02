@@ -53,20 +53,20 @@ class WeatherForecastWidget extends StatelessWidget {
       style: style.apply(fontSizeDelta: 20.0, fontWeightDelta: 50),
     ));
 
-    List<Widget> secondary_states = [];
+    List<Widget> secondaryStates = [];
 
     if (entity.attributes['pressure'] != null) {
-      secondary_states.add(Text("Pressure: ${entity.attributes['pressure']}", style: style.apply(color: Colors.grey),));
+      secondaryStates.add(Text("Pressure: ${entity.attributes['pressure']}", style: style.apply(color: Colors.grey),));
     }
     if (entity.attributes['humidity'] != null) {
-      secondary_states.add(Text("Humidity: ${entity.attributes['humidity']}", style: style.apply(color: Colors.grey),));
+      secondaryStates.add(Text("Humidity: ${entity.attributes['humidity']}", style: style.apply(color: Colors.grey),));
     }
     if (entity.attributes['wind_speed'] != null) {
-      secondary_states.add(Text("Wind speed: ${entity.attributes['wind_speed']}", style: style.apply(color: Colors.grey),));
+      secondaryStates.add(Text("Wind speed: ${entity.attributes['wind_speed']}", style: style.apply(color: Colors.grey),));
     }
 
     states.add(Column(
-      children: secondary_states,
+      children: secondaryStates,
     ));
 
     return Row(

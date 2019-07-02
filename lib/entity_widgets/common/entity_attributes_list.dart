@@ -38,7 +38,7 @@ class EntityAttributesList extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(
                 0.0, Sizes.rowPadding, Sizes.rightWidgetPadding, 0.0),
             child: Text(
-              "${value}",
+              "$value",
               textAlign: TextAlign.right,
             ),
           ),
