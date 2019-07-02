@@ -30,6 +30,10 @@ class CardWidget extends StatelessWidget {
         return _buildEntitiesCard(context);
       }
 
+      case CardType.sensor: {
+        return _buildSensorCard(context);
+      }
+
       case CardType.glance: {
         return _buildGlanceCard(context);
       }
@@ -129,6 +133,62 @@ class CardWidget extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(right: Sizes.rightWidgetPadding, left: Sizes.leftWidgetPadding),
           child: Column(mainAxisSize: MainAxisSize.min, children: body),
+        )
+    );
+  }
+
+  Widget _buildSensorCard(BuildContext context) {
+    List<Widget> body = [];
+
+    var state = card.linkedEntityWrapper.entity.displayState ?? "";
+    state = state.replaceAll("\n", "").replaceAll("\t", " ").trim();
+
+    TextStyle textStyle =  TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.w500
+    );
+
+    body.add(CardHeaderWidget(name: card.name));
+    body.add(InkWell(
+        onLongPress: () {
+          card.linkedEntityWrapper.handleHold();
+        },
+        onTap: () {
+          card.linkedEntityWrapper.handleTap();
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Row(children: <Widget>[
+              EntityIcon(size: Sizes.smallFontSize),
+
+              EntityName(
+                  fontSize: Sizes.smallFontSize,
+                  padding: EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+              )
+            ]),
+            Text(
+              "$state ${card.linkedEntityWrapper.entity.unitOfMeasurement}",
+              maxLines: 10,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              textAlign: TextAlign.center,
+              style: textStyle
+            )
+          ],
+        ),
+      )
+    );
+
+    return Card(
+        child: EntityModel(
+            entityWrapper: card.linkedEntityWrapper,
+            handleTap: true,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: body
+            )
         )
     );
   }
