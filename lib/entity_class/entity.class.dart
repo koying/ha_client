@@ -157,6 +157,8 @@ class Entity {
     attributes = {"hidden": false, "friendly_name": "${name ?? url}", "icon": "${icon ?? 'mdi:link'}"};
   }
 
+  void dtor() {}
+
   void update(Map rawData, String webHost) {
     attributes = rawData["attributes"] ?? {};
     domain = rawData["entity_id"].split(".")[0];

@@ -47,6 +47,7 @@ part 'entity_class/camera_entity.class.dart';
 part 'entity_class/alarm_control_panel.class.dart';
 part 'entity_class/tracker_entity.class.dart';
 part 'entity_class/weather_entity.class.dart';
+part 'entity_class/notification_entity.class.dart';
 part 'entity_widgets/common/badge.dart';
 part 'entity_widgets/model_widgets.dart';
 part 'entity_widgets/default_entity_container.dart';
@@ -241,6 +242,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
   Future onSelectNotification(String payload) async {
     if (payload != null) {
       Logger.d('Notification clicked: ' + payload);
+      NotificationEntity entity = HomeAssistant().entities.get(payload);
+      entity?._cancelNotification();
     }
   }
 

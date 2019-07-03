@@ -108,7 +108,11 @@ class EntityCollection {
       case "weather": {
         return WeatherEntity(rawEntityData, homeAssistantWebHost);
       }
+      case "persistent_notification": {
+        return NotificationEntity(rawEntityData, homeAssistantWebHost);
+      }
       default: {
+        //Logger.d("Generic entity: " + jsonEncode(rawEntityData));
         return Entity(rawEntityData, homeAssistantWebHost);
       }
     }
@@ -116,8 +120,13 @@ class EntityCollection {
 
   bool updateState(Map rawStateData) {
     if (isExist(rawStateData["entity_id"])) {
-      updateFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
-      return false;
+      if (rawStateData["new_state"] != null) {
+        updateFromRaw(rawStateData["new_state"]);
+        return false;
+      } else {
+        remove(rawStateData["entity_id"]);
+        return true;
+      }
     } else {
       addFromRaw(rawStateData["new_state"] ?? rawStateData["old_state"]);
       return true;
@@ -126,6 +135,11 @@ class EntityCollection {
 
   void add(Entity entity) {
     _allEntities[entity.entityId] = entity;
+  }
+
+  void remove(String entityId) {
+    get(entityId)?.dtor();
+    _allEntities.remove(entityId);
   }
 
   void addFromRaw(Map rawEntityData) {
