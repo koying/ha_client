@@ -24,6 +24,7 @@ class MaterialDesignIcons {
     "cover.opening": "mdi:window-open",
     "camera": "mdi:cctv",
     "calendar": "mdi:calendar",
+    "device_tracker": "mdi:account",
     "timer": "mdi:timer",
     "lock.locked": "mdi:lock",
     "lock.unlocked": "mdi:lock-open",
