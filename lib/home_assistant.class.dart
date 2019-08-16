@@ -152,7 +152,8 @@ class HomeAssistant {
           eventBus.fire(ShowDialogEvent(
             title: "All good",
             body: "HA Client integration with your Home Assistant server works fine",
-            positiveText: "Nice!"
+            positiveText: "Nice!",
+            negativeText: "Ok"
           ));
         }
         completer.complete();

@@ -27,11 +27,11 @@ class AuthManager {
           Logger.d("Gottemp token");
           String tempToken = json.decode(response)['access_token'];
           Logger.d("Closing webview...");
-          flutterWebviewPlugin.close();
+          //flutterWebviewPlugin.close();
           eventBus.fire(StartAuthEvent(oauthUrl, false));
           completer.complete(tempToken);
         }).catchError((e) {
-          flutterWebviewPlugin.close();
+          //flutterWebviewPlugin.close();
           Logger.e("Error getting temp token: ${e.toString()}");
           eventBus.fire(StartAuthEvent(oauthUrl, false));
           completer.completeError(HAError("Error getting temp token"));

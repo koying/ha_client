@@ -233,7 +233,7 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                 Container(height: Sizes.rowPadding,),
                 Text("${HomeAssistant().userName}'s ${Device().model}, ${Device().osName} ${Device().osVersion}"),
                 Container(height: 6.0,),
-                Text("Here you can manually check if HA Client integration with your Home Assistant works fine."),
+                Text("Here you can manually check if HA Client integration with your Home Assistant works fine. As mobileApp integration in Home Assistant is still in development, this is not 100% correct check."),
                 Divider(),
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -241,6 +241,10 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
                     FlatButton(
                         onPressed: () => updateRegistration(),
                         child: Text("Check registration", style: TextStyle(color: Colors.blue))
+                    ),
+                    FlatButton(
+                        onPressed: () => resetRegistration(),
+                        child: Text("Reset registration", style: TextStyle(color: Colors.red))
                     )
                   ],
                 )
@@ -276,7 +280,19 @@ class _ConfigPanelWidgetState extends State<ConfigPanelWidget> {
   }
 
   updateRegistration() {
-    HomeAssistant().checkAppRegistration();
+    HomeAssistant().checkAppRegistration(showOkDialog: true);
+  }
+
+  resetRegistration() {
+    eventBus.fire(ShowDialogEvent(
+      title: "Waaaait",
+      body: "If you don't whant to have duplicate integrations and entities in your HA for your current device, first you need to remove MobileApp integration from Integration settings in HA and restart server.",
+      positiveText: "Done it already",
+      negativeText: "Ok, I will",
+      onPositive: () {
+        HomeAssistant().checkAppRegistration(showOkDialog: true, forceRegister: true);
+      },
+    ));
   }
 
   @override

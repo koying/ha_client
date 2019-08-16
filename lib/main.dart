@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+//import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
@@ -352,6 +352,8 @@ class _MainPageState extends State<MainPage> with WidgetsBindingObserver, Ticker
         });
         if (event.showButton) {
           _showOAuth();
+        } else {
+          Navigator.of(context).pop();
         }
       });
     }
