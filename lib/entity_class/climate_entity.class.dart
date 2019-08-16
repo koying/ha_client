@@ -10,71 +10,57 @@ class ClimateEntity extends Entity {
   );
 
   static const SUPPORT_TARGET_TEMPERATURE = 1;
-  static const SUPPORT_TARGET_TEMPERATURE_HIGH = 2;
-  static const SUPPORT_TARGET_TEMPERATURE_LOW = 4;
-  static const SUPPORT_TARGET_HUMIDITY = 8;
-  static const SUPPORT_TARGET_HUMIDITY_HIGH = 16;
-  static const SUPPORT_TARGET_HUMIDITY_LOW = 32;
-  static const SUPPORT_FAN_MODE = 64;
-  static const SUPPORT_OPERATION_MODE = 128;
-  static const SUPPORT_HOLD_MODE = 256;
-  static const SUPPORT_SWING_MODE = 512;
-  static const SUPPORT_AWAY_MODE = 1024;
-  static const SUPPORT_AUX_HEAT = 2048;
-  static const SUPPORT_ON_OFF = 4096;
+  static const SUPPORT_TARGET_TEMPERATURE_RANGE = 2;
+  static const SUPPORT_TARGET_HUMIDITY = 4;
+  static const SUPPORT_FAN_MODE = 8;
+  static const SUPPORT_PRESET_MODE = 16;
+  static const SUPPORT_SWING_MODE = 32;
+  static const SUPPORT_AUX_HEAT = 64;
+
+
+  //static const SUPPORT_OPERATION_MODE = 16;
+  //static const SUPPORT_HOLD_MODE = 256;
+  //static const SUPPORT_AWAY_MODE = 1024;
+  //static const SUPPORT_ON_OFF = 4096;
 
   ClimateEntity(Map rawData, String webHost) : super(rawData, webHost);
 
   bool get supportTargetTemperature => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_TEMPERATURE) ==
       ClimateEntity.SUPPORT_TARGET_TEMPERATURE);
-  bool get supportTargetTemperatureHigh => ((supportedFeatures &
-  ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH) ==
-      ClimateEntity.SUPPORT_TARGET_TEMPERATURE_HIGH);
-  bool get supportTargetTemperatureLow => ((supportedFeatures &
-  ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW) ==
-      ClimateEntity.SUPPORT_TARGET_TEMPERATURE_LOW);
+  bool get supportTargetTemperatureRange => ((supportedFeatures &
+  ClimateEntity.SUPPORT_TARGET_TEMPERATURE_RANGE) ==
+      ClimateEntity.SUPPORT_TARGET_TEMPERATURE_RANGE);
   bool get supportTargetHumidity => ((supportedFeatures &
   ClimateEntity.SUPPORT_TARGET_HUMIDITY) ==
       ClimateEntity.SUPPORT_TARGET_HUMIDITY);
-  bool get supportTargetHumidityHigh => ((supportedFeatures &
-  ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH) ==
-      ClimateEntity.SUPPORT_TARGET_HUMIDITY_HIGH);
-  bool get supportTargetHumidityLow => ((supportedFeatures &
-  ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW) ==
-      ClimateEntity.SUPPORT_TARGET_HUMIDITY_LOW);
   bool get supportFanMode =>
       ((supportedFeatures & ClimateEntity.SUPPORT_FAN_MODE) ==
           ClimateEntity.SUPPORT_FAN_MODE);
-  bool get supportOperationMode => ((supportedFeatures &
-  ClimateEntity.SUPPORT_OPERATION_MODE) ==
-      ClimateEntity.SUPPORT_OPERATION_MODE);
-  bool get supportHoldMode =>
-      ((supportedFeatures & ClimateEntity.SUPPORT_HOLD_MODE) ==
-          ClimateEntity.SUPPORT_HOLD_MODE);
   bool get supportSwingMode =>
       ((supportedFeatures & ClimateEntity.SUPPORT_SWING_MODE) ==
           ClimateEntity.SUPPORT_SWING_MODE);
-  bool get supportAwayMode =>
-      ((supportedFeatures & ClimateEntity.SUPPORT_AWAY_MODE) ==
-          ClimateEntity.SUPPORT_AWAY_MODE);
+  bool get supportPresetMode =>
+      ((supportedFeatures & ClimateEntity.SUPPORT_PRESET_MODE) ==
+          ClimateEntity.SUPPORT_PRESET_MODE);
   bool get supportAuxHeat =>
       ((supportedFeatures & ClimateEntity.SUPPORT_AUX_HEAT) ==
           ClimateEntity.SUPPORT_AUX_HEAT);
-  bool get supportOnOff =>
-      ((supportedFeatures & ClimateEntity.SUPPORT_ON_OFF) ==
-          ClimateEntity.SUPPORT_ON_OFF);
 
-  List<String> get operationList => attributes["operation_list"] != null
-      ? (attributes["operation_list"] as List).cast<String>()
+  List<String> get hvacModes => attributes["hvac_modes"] != null
+      ? (attributes["hvac_modes"] as List).cast<String>()
       : null;
-  List<String> get fanList => attributes["fan_list"] != null
-      ? (attributes["fan_list"] as List).cast<String>()
+  List<String> get fanModes => attributes["fan_modes"] != null
+      ? (attributes["fan_modes"] as List).cast<String>()
       : null;
-  List<String> get swingList => attributes["swing_list"] != null
-      ? (attributes["swing_list"] as List).cast<String>()
+  List<String> get presetModes => attributes["preset_modes"] != null
+      ? (attributes["preset_modes"] as List).cast<String>()
+      : null;
+  List<String> get swingModes => attributes["swing_modes"] != null
+      ? (attributes["swing_modes"] as List).cast<String>()
       : null;
   double get temperature => _getDoubleAttributeValue('temperature');
+  double get currentTemperature => _getDoubleAttributeValue('current_temperature');
   double get targetHigh => _getDoubleAttributeValue('target_temp_high');
   double get targetLow => _getDoubleAttributeValue('target_temp_low');
   double get maxTemp => _getDoubleAttributeValue('max_temp') ?? 100.0;
@@ -83,11 +69,12 @@ class ClimateEntity extends Entity {
   double get maxHumidity => _getDoubleAttributeValue('max_humidity');
   double get minHumidity => _getDoubleAttributeValue('min_humidity');
   double get temperatureStep => _getDoubleAttributeValue('target_temp_step') ?? 0.5;
-  String get operationMode => attributes['operation_mode'];
+  String get hvacAction => attributes['hvac_action'];
   String get fanMode => attributes['fan_mode'];
+  String get presetMode => attributes['preset_mode'];
   String get swingMode => attributes['swing_mode'];
   bool get awayMode => attributes['away_mode'] == "on";
-  bool get isOff => state == EntityState.off;
+  //bool get isOff => state == EntityState.off;
   bool get auxHeat => attributes['aux_heat'] == "on";
 
   @override
@@ -96,10 +83,8 @@ class ClimateEntity extends Entity {
     if (supportTargetTemperature) {
       historyConfig.numericAttributesToShow.add("temperature");
     }
-    if (supportTargetTemperatureHigh) {
+    if (supportTargetTemperatureRange) {
       historyConfig.numericAttributesToShow.add("target_temp_high");
-    }
-    if (supportTargetTemperatureLow) {
       historyConfig.numericAttributesToShow.add("target_temp_low");
     }
   }

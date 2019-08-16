@@ -8,13 +8,19 @@ class ClimateStateWidget extends StatelessWidget {
     String targetTemp = "-";
     if ((entity.supportTargetTemperature) && (entity.temperature != null)) {
       targetTemp = "${entity.temperature}";
-    } else if ((entity.supportTargetTemperatureLow) &&
-        (entity.targetLow != null)) {
-      targetTemp = "${entity.targetLow}";
-      if ((entity.supportTargetTemperatureHigh) &&
-          (entity.targetHigh != null)) {
-        targetTemp += " - ${entity.targetHigh}";
-      }
+    } else if ((entity.supportTargetTemperatureRange) &&
+        (entity.targetLow != null) &&
+        (entity.targetHigh != null)) {
+      targetTemp = "${entity.targetLow} - ${entity.targetHigh}";
+    }
+    String displayState = '';
+    if (entity.hvacAction != null) {
+      displayState = "${entity.hvacAction} (${entity.displayState})";
+    } else {
+      displayState = "${entity.displayState}";
+    }
+    if (entity.presetMode != null) {
+      displayState += " - ${entity.presetMode}";
     }
     return Padding(
         padding: EdgeInsets.fromLTRB(
@@ -25,7 +31,7 @@ class ClimateStateWidget extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Text("${entity.state}",
+                Text("$displayState",
                     textAlign: TextAlign.right,
                     style: new TextStyle(
                       fontWeight: FontWeight.bold,
@@ -38,8 +44,8 @@ class ClimateStateWidget extends StatelessWidget {
                     ))
               ],
             ),
-            entity.attributes["current_temperature"] != null ?
-            Text("Currently: ${entity.attributes["current_temperature"]}",
+            entity.currentTemperature != null ?
+            Text("Currently: ${entity.currentTemperature}",
                 textAlign: TextAlign.right,
                 style: new TextStyle(
                     fontSize: Sizes.stateFontSize,

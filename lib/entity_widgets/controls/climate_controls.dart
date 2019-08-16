@@ -19,22 +19,22 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   double _tmpTargetLow = 0.0;
   double _tmpTargetHigh = 0.0;
   double _tmpTargetHumidity = 0.0;
-  String _tmpOperationMode;
+  String _tmpHVACMode;
   String _tmpFanMode;
   String _tmpSwingMode;
-  bool _tmpAwayMode = false;
-  bool _tmpIsOff = false;
+  String _tmpPresetMode;
+  //bool _tmpIsOff = false;
   bool _tmpAuxHeat = false;
 
   void _resetVars(ClimateEntity entity) {
     _tmpTemperature = entity.temperature;
     _tmpTargetHigh = entity.targetHigh;
     _tmpTargetLow = entity.targetLow;
-    _tmpOperationMode = entity.operationMode;
+    _tmpHVACMode = entity.state;
     _tmpFanMode = entity.fanMode;
     _tmpSwingMode = entity.swingMode;
-    _tmpAwayMode = entity.awayMode;
-    _tmpIsOff = entity.isOff;
+    _tmpPresetMode = entity.presetMode;
+    //_tmpIsOff = entity.isOff;
     _tmpAuxHeat = entity.auxHeat;
     _tmpTargetHumidity = entity.targetHumidity;
 
@@ -116,11 +116,11 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     });
   }
 
-  void _setOperationMode(ClimateEntity entity, value) {
+  void _setHVACMode(ClimateEntity entity, value) {
     setState(() {
-      _tmpOperationMode = value;
+      _tmpHVACMode = value;
       _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(entity.domain, "set_operation_mode", entity.entityId,{"operation_mode": "$_tmpOperationMode"}));
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_hvac_mode", entity.entityId,{"hvac_mode": "$_tmpHVACMode"}));
       _resetStateTimer(entity);
     });
   }
@@ -143,23 +143,23 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     });
   }
 
-  void _setAwayMode(ClimateEntity entity, value) {
+  void _setPresetMode(ClimateEntity entity, value) {
     setState(() {
-      _tmpAwayMode = value;
+      _tmpPresetMode = value;
       _changedHere = true;
-      eventBus.fire(new ServiceCallEvent(entity.domain, "set_away_mode", entity.entityId,{"away_mode": "${_tmpAwayMode ? 'on' : 'off'}"}));
+      eventBus.fire(new ServiceCallEvent(entity.domain, "set_preset_mode", entity.entityId,{"preset_mode": "$_tmpPresetMode"}));
       _resetStateTimer(entity);
     });
   }
 
-  void _setOnOf(ClimateEntity entity, value) {
+  /*void _setOnOf(ClimateEntity entity, value) {
     setState(() {
       _tmpIsOff = !value;
       _changedHere = true;
       eventBus.fire(new ServiceCallEvent(entity.domain, "${_tmpIsOff ? 'turn_off' : 'turn_on'}", entity.entityId, null));
       _resetStateTimer(entity);
     });
-  }
+  }*/
 
   void _setAuxHeat(ClimateEntity entity, value) {
     setState(() {
@@ -196,33 +196,34 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          _buildOnOffControl(entity),
+          //_buildOnOffControl(entity),
           _buildTemperatureControls(entity),
           _buildTargetTemperatureControls(entity),
           _buildHumidityControls(entity),
           _buildOperationControl(entity),
           _buildFanControl(entity),
           _buildSwingControl(entity),
-          _buildAwayModeControl(entity),
+          _buildPresetModeControl(entity),
           _buildAuxHeatControl(entity)
         ],
       ),
     );
   }
 
-  Widget _buildAwayModeControl(ClimateEntity entity) {
-    if (entity.supportAwayMode) {
-      return ModeSwitchWidget(
-        caption: "Away mode",
-        onChange: (value) => _setAwayMode(entity, value),
-        value: _tmpAwayMode,
+  Widget _buildPresetModeControl(ClimateEntity entity) {
+    if (entity.supportPresetMode) {
+      return ModeSelectorWidget(
+        options: entity.presetModes,
+        onChange: (mode) => _setPresetMode(entity, mode),
+        caption: "Preset",
+        value: _tmpPresetMode,
       );
     } else {
       return Container(height: 0.0, width: 0.0,);
     }
   }
 
-  Widget _buildOnOffControl(ClimateEntity entity) {
+  /*Widget _buildOnOffControl(ClimateEntity entity) {
     if (entity.supportOnOff) {
       return ModeSwitchWidget(
           onChange: (value) => _setOnOf(entity, value),
@@ -232,7 +233,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     } else {
       return Container(height: 0.0, width: 0.0,);
     }
-  }
+  }*/
 
   Widget _buildAuxHeatControl(ClimateEntity entity) {
     if (entity.supportAuxHeat ) {
@@ -247,12 +248,12 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   }
 
   Widget _buildOperationControl(ClimateEntity entity) {
-    if (entity.supportOperationMode) {
+    if (entity.hvacModes != null) {
       return ModeSelectorWidget(
-        onChange: (mode) => _setOperationMode(entity, mode),
-        options: entity.operationList,
+        onChange: (mode) => _setHVACMode(entity, mode),
+        options: entity.hvacModes,
         caption: "Operation",
-        value: _tmpOperationMode,
+        value: _tmpHVACMode,
       );
     } else {
       return Container(height: 0.0, width: 0.0);
@@ -262,7 +263,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
   Widget _buildFanControl(ClimateEntity entity) {
     if (entity.supportFanMode) {
       return ModeSelectorWidget(
-        options: entity.fanList,
+        options: entity.fanModes,
         onChange: (mode) => _setFanMode(entity, mode),
         caption: "Fan mode",
         value: _tmpFanMode,
@@ -276,7 +277,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
     if (entity.supportSwingMode) {
       return ModeSelectorWidget(
           onChange: (mode) => _setSwingMode(entity, mode),
-          options: entity.swingList,
+          options: entity.swingModes,
           value: _tmpSwingMode,
           caption: "Swing mode"
       );
@@ -308,7 +309,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
 
   Widget _buildTargetTemperatureControls(ClimateEntity entity) {
     List<Widget> controls = [];
-    if ((entity.supportTargetTemperatureLow) && (entity.targetLow != null)) {
+    if ((entity.supportTargetTemperatureRange) && (entity.targetLow != null)) {
       controls.addAll(<Widget>[
         TemperatureControlWidget(
           value: _tmpTargetLow,
@@ -321,7 +322,7 @@ class _ClimateControlWidgetState extends State<ClimateControlWidget> {
         )
       ]);
     }
-    if ((entity.supportTargetTemperatureHigh) && (entity.targetHigh != null)) {
+    if ((entity.supportTargetTemperatureRange) && (entity.targetHigh != null)) {
       controls.add(
           TemperatureControlWidget(
             value: _tmpTargetHigh,
