@@ -46,13 +46,16 @@ public class UpdateService extends Service implements LocationListener
   private static UpdateService sInstance = null;
   private static final String ACTION_CLOSE = "ACTION_CLOSE";
 
-  boolean isGPSEnabled = false;
-  boolean isNetworkEnabled = false;
   private static final String NOTIF_CHANNEL_ID = "haclient_channel_svc";
   private static final int NOTIF_NET_ERROR = 333;
 
+  boolean mIsGPSEnabled = false;
+  boolean mIsNetworkEnabled = false;
+  boolean mForcedGPS = false;
+
   private Location mLastLocation = null;
   private long mLastBatteryLevel = -1;
+  private boolean mIsCharging = false;
 
   private NotificationManager mNotificationManager = null;
   private TimerReceiver mReceiver = null;
@@ -77,7 +80,9 @@ public class UpdateService extends Service implements LocationListener
   public class UpdateLocationTask implements Runnable
   {
     private Context mContext;
+    private boolean mIsCharging;
     private Location mLocation;
+
     double latitude = 0.0; // Latitude
     double longitude = 0.0; // Longitude
     double accuracy = 0.0; // Accuracy in meters
@@ -87,10 +92,11 @@ public class UpdateService extends Service implements LocationListener
     double bearing = 0.0; // Bearing in degrees
     double battery_level = 0.0; // Battery percentage
 
-    public UpdateLocationTask(Context context, Location loc)
+    public UpdateLocationTask(Context context, Boolean isCharging, Location loc)
     {
       this.mContext = context;
       this.mLocation = loc;
+      this.mIsCharging = isCharging;
     }
 
     /**
@@ -289,11 +295,12 @@ public class UpdateService extends Service implements LocationListener
 
     locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
     // Getting GPS status
-    isGPSEnabled = locationManager
+    mIsGPSEnabled = locationManager
         .isProviderEnabled(LocationManager.GPS_PROVIDER);
     // Getting network status
-    isNetworkEnabled = locationManager
-        .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    mIsNetworkEnabled = locationManager
+        .isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        && !Build.FINGERPRINT.contains("generic") /* Emulator only work with GPS */;
   }
 
   static public UpdateService GetInstance()
@@ -314,8 +321,6 @@ public class UpdateService extends Service implements LocationListener
         }
       }
     }
-
-    StartLocation();
 
 /*
     Bitmap icon = BitmapFactory.decodeResource(getResources(),
@@ -374,12 +379,18 @@ public class UpdateService extends Service implements LocationListener
     Log.d(TAG, "Service destroyed.");
   }
 
-  synchronized public void StartLocation()
+  synchronized public void StartLocation(boolean forceGPS)
   {
     if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
         == PackageManager.PERMISSION_GRANTED)
     {
-      if (isNetworkEnabled)
+      if (forceGPS != mForcedGPS)
+      {
+        StopLocation();
+        mForcedGPS = forceGPS;
+      }
+
+      if (mIsNetworkEnabled && !(mIsGPSEnabled && mForcedGPS))
       {
         locationManager.requestLocationUpdates(
             LocationManager.NETWORK_PROVIDER,
@@ -387,7 +398,7 @@ public class UpdateService extends Service implements LocationListener
             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
         Log.d(TAG, "Network provider");
       }
-      else if (isGPSEnabled)
+      else
       {
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
@@ -398,16 +409,30 @@ public class UpdateService extends Service implements LocationListener
     }
   }
 
+  synchronized public void StopLocation()
+  {
+    locationManager.removeUpdates(this);
+  }
+
   synchronized public void UpdateLocation()
   {
-    FireAndForgetExecutor.exec(new UpdateLocationTask(getApplicationContext(), mLastLocation));
+    FireAndForgetExecutor.exec(new UpdateLocationTask(getApplicationContext(), false, mLastLocation));
   }
 
   synchronized public void UpdateLocation(long battery_level)
   {
     if (battery_level != mLastBatteryLevel)
     {
-      FireAndForgetExecutor.exec(new UpdateLocationTask(getApplicationContext(), mLastLocation));
+      FireAndForgetExecutor.exec(new UpdateLocationTask(getApplicationContext(), false, mLastLocation));
+      mLastBatteryLevel = battery_level;
+    }
+  }
+
+  synchronized public void UpdateLocation(boolean isCharging, long battery_level)
+  {
+    if (battery_level != mLastBatteryLevel || isCharging != mIsCharging)
+    {
+      FireAndForgetExecutor.exec(new UpdateLocationTask(getApplicationContext(), mIsCharging, mLastLocation));
       mLastBatteryLevel = battery_level;
     }
   }
