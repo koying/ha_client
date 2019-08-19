@@ -115,10 +115,16 @@ class WeatherForecastWidget extends StatelessWidget {
           f.temperatureLow.toStringAsFixed(1),
           style: style.apply(fontSizeDelta: 0.0, color: Colors.grey),
         ));
+      if (f.precipitation != null) wForecastElements.add(
+        Text(
+          f.precipitation.toStringAsFixed(1),
+          style: style.apply(fontSizeDelta: 0.0, color: Colors.grey),
+        ));
       wForecast.add(Column(children: wForecastElements));
     });
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: wForecast,
     );
