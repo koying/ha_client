@@ -3,6 +3,8 @@ package com.keyboardcrumbs.hassclient;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -29,10 +31,16 @@ public class MainActivity extends FlutterActivity implements MethodCallHandler {
 
   private ArrayList<Bundle> mTrackers = new ArrayList<Bundle>();
 
+  public static Typeface mMDIicons = null;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GeneratedPluginRegistrant.registerWith(this);
+
+    AssetManager assetManager = getAssets();
+    String fontKey = getFlutterView().getLookupKeyForAsset("fonts/materialdesignicons-webfont-3-6-95.ttf");
+    mMDIicons = Typeface.createFromAsset(assetManager, fontKey);
 
     Intent backgroundService = new Intent(getApplicationContext(), UpdateService.class);
     startService(backgroundService);
@@ -128,6 +136,7 @@ public class MainActivity extends FlutterActivity implements MethodCallHandler {
     bundle.putDouble("longitude", (Double) call.argument("longitude"));
     bundle.putDouble("latitude", (Double) call.argument("latitude"));
     bundle.putInt("accuracy", (int) call.argument("accuracy"));
+    bundle.putInt("icon", (int) call.argument("icon"));
     bundle.putString("picture_url", (String) call.argument("picture_url"));
     bundle.putBoolean("isThis", (Boolean) call.argument("isThis"));
 

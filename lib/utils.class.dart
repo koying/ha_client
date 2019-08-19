@@ -125,6 +125,9 @@ class HAUtils {
 
   //Launch Update Tracker intent
   static Future<bool> updateTracker(TrackerEntity tracker) async {
+    if (tracker.latitude == null || tracker.longitude == null || tracker.accuracy == null)
+      return false;
+
     final bool result = await _channel.invokeMethod<bool>(
       'updateTracker',
       <String, Object>{
@@ -133,6 +136,7 @@ class HAUtils {
         "longitude": tracker.longitude,
         "latitude": tracker.latitude,
         "accuracy": tracker.accuracy,
+        "icon": MaterialDesignIcons.getIconCodeByIconName(tracker.icon),
         "picture_url": tracker.entityPicture,
         "isThis": tracker.isThis,
       },

@@ -6,19 +6,39 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
+import android.text.style.AbsoluteSizeSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 import android.util.Log;
+import android.view.Gravity;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.maps.android.ui.IconGenerator;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.tileprovider.tilesource.XYTileSource;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -40,6 +60,51 @@ public class MapActivity extends Activity
   private ItemizedOverlayWithFocus<OverlayItem> mOverlay = null;
 
   private static String update_tracker_action = "ACTION_UPDATE_TRACKER";
+
+  public class CustomTypefaceSpan extends TypefaceSpan
+  {
+    private final Typeface newType;
+
+    public CustomTypefaceSpan(String family, Typeface type)
+    {
+      super(family);
+      newType = type;
+    }
+
+    @Override
+    public void updateDrawState(TextPaint ds)
+    {
+      applyCustomTypeFace(ds, newType);
+    }
+
+    @Override
+    public void updateMeasureState(TextPaint paint)
+    {
+      applyCustomTypeFace(paint, newType);
+    }
+
+    private  void applyCustomTypeFace(Paint paint, Typeface tf)
+    {
+      int oldStyle;
+      Typeface old = paint.getTypeface();
+      if (old == null) {
+        oldStyle = 0;
+      } else {
+        oldStyle = old.getStyle();
+      }
+
+      int fake = oldStyle & ~tf.getStyle();
+      if ((fake & Typeface.BOLD) != 0) {
+        paint.setFakeBoldText(true);
+      }
+
+      if ((fake & Typeface.ITALIC) != 0) {
+        paint.setTextSkewX(-0.25f);
+      }
+
+      paint.setTypeface(tf);
+    }
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -91,7 +156,21 @@ public class MapActivity extends Activity
         new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
           @Override
           public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
-            //do something
+
+            String sGeo = new StringBuilder().append(item.getPoint().getLatitude()).append(",").append(item.getPoint().getLongitude()).toString();
+            // Create google map intent.
+            Uri gmmIntentUri = Uri.parse(new StringBuilder()
+                .append("geo:")
+                .append(sGeo)
+                .append("?q=")
+                .append(sGeo)
+                .append("(" + item.getTitle() + ")")
+                .toString());
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+            Log.d(TAG, "onItemSingleTapUp: " + gmmIntentUri.toString());
+
             return true;
           }
           @Override
@@ -99,7 +178,6 @@ public class MapActivity extends Activity
             return false;
           }
         }, this);
-    mOverlay.setFocusItemsOnTap(true);
 
     Bundle bundle = getIntent().getExtras();
     ArrayList<Bundle> trackers = bundle.getParcelableArrayList("trackers");
@@ -151,10 +229,71 @@ public class MapActivity extends Activity
     }
     OverlayItem new_tracker = new OverlayItem(id, bundle.getString("description"), "", new GeoPoint(bundle.getDouble("latitude"), bundle.getDouble("longitude")));
     IconGenerator tc = new IconGenerator(this);
-    if (bundle.getBoolean("isThis"))
-      tc.setStyle(IconGenerator.STYLE_BLUE);
-    Bitmap bmp = tc.makeIcon(bundle.getString("description"));
-    new_tracker.setMarker(new BitmapDrawable(getResources(), bmp));
+
+    String pic_url = bundle.getString("picture_url");
+    if (pic_url != null && !pic_url.isEmpty())
+    {
+      Glide.with(this)
+          .load(pic_url)
+          .override(150, 150)
+          .fitCenter()
+          .into(new CustomTarget<Drawable>()
+          {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition)
+            {
+              ImageView view = new ImageView(MapActivity.this);
+              view.setImageDrawable(resource);
+              tc.setContentView(view);
+              Bitmap bmp = tc.makeIcon();
+              new_tracker.setMarker(new BitmapDrawable(getResources(), bmp));
+            }
+
+            @Override
+            public void onLoadCleared(@Nullable Drawable placeholder)
+            {
+              // Remove the Drawable provided in onResourceReady from any Views and ensure
+              // no references to it remain.
+            }
+          });
+    }
+    else
+    {
+      TextView view = new TextView(MapActivity.this);
+
+      SpannableStringBuilder builder = new SpannableStringBuilder();
+      int iIcon = bundle.getInt("icon");
+      if (iIcon > 0)
+      {
+        builder.append(new String(Character.toChars(iIcon)));
+        builder.setSpan(new CustomTypefaceSpan("", MainActivity.mMDIicons), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        builder.setSpan(new RelativeSizeSpan(2f), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        builder.append("\n");
+        builder.append(bundle.getString("description"));
+        builder.setSpan(new AbsoluteSizeSpan(15, true), 2, builder.length(), 0);
+      }
+      else
+      {
+        builder.append(bundle.getString("description"));
+        builder.setSpan(new AbsoluteSizeSpan(15, true), 0, builder.length(), 0);
+      }
+
+      view.setText(builder);
+      view.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+      tc.setContentView(view);
+      if (bundle.getBoolean("isThis"))
+      {
+        builder.setSpan(new ForegroundColorSpan(Color.parseColor("#ffeeeeee")), 0, builder.length(), 0);
+        tc.setStyle(IconGenerator.STYLE_BLUE);
+      }
+      else
+      {
+        builder.setSpan(new ForegroundColorSpan(Color.parseColor("#ff7f7f7f")), 0, builder.length(), 0);
+      }
+
+      Bitmap bmp = tc.makeIcon();
+      new_tracker.setMarker(new BitmapDrawable(getResources(), bmp));
+    }
     Log.d(TAG, "Update_Tracker: " + new_tracker.getTitle() + ", " + new_tracker.getPoint().toString());
     mOverlay.addItem(new_tracker);
   }

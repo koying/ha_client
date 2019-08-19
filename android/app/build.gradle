@@ -106,6 +106,8 @@ dependencies {
             }
     implementation 'org.osmdroid:osmdroid-android:6.1.0'
     implementation 'com.google.maps.android:android-maps-utils:0.5'
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 
     // ha_client_api
     api "io.swagger:swagger-annotations:$swagger_annotations_version"
