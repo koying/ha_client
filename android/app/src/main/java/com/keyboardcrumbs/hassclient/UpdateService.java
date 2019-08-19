@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -47,6 +48,8 @@ public class UpdateService extends Service implements LocationListener
 
   boolean isGPSEnabled = false;
   boolean isNetworkEnabled = false;
+  private static final String NOTIF_CHANNEL_ID = "haclient_channel_svc";
+  private static final int NOTIF_NET_ERROR = 333;
 
   private Location mLastLocation = null;
   private long mLastBatteryLevel = -1;
@@ -218,25 +221,53 @@ public class UpdateService extends Service implements LocationListener
 
       body.setData(data);
 
+      NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+      boolean ok = true;
+
       try {
         apiInstance.webhookWebhookIdPost(webhookId, body);
       } catch (ApiException e) {
-        System.err.println("Exception when calling MobileAppApi#webhookWebhookIdPost");
         e.printStackTrace();
+        ok = false;
       }
       catch (InterruptedException e)
       {
         e.printStackTrace();
+        ok = false;
       }
       catch (ExecutionException e)
       {
         e.printStackTrace();
+        ok = false;
       }
       catch (TimeoutException e)
       {
+        System.err.println("Exception when calling MobileAppApi#webhookWebhookIdPost");
         e.printStackTrace();
+
+        Notification.Builder builder = new Notification.Builder(getApplicationContext())
+            .setContentTitle("HA is unreachable")
+            .setSmallIcon(R.drawable.mini_icon)
+            ;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+          builder.setChannelId(NOTIF_CHANNEL_ID);
+        Notification notification = builder.build();
+
+        notificationManager.notify(NOTIF_NET_ERROR, builder.build());
+        ok = false;
+      }
+      catch (Exception e)
+      {
+        e.printStackTrace();
+        ok = false;
+      }
+
+      if (ok)
+      {
+        notificationManager.cancel(NOTIF_NET_ERROR);
       }
     }
+
   }
 
   @Override
@@ -312,20 +343,19 @@ public class UpdateService extends Service implements LocationListener
     {
       mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-      String id = "haclient_channel_svc";
       CharSequence name = getString(R.string.notif_channel_name);
 
       // The user-visible description of the channel.
       String description = getString(R.string.notif_channel_desc);
       int importance = NotificationManager.IMPORTANCE_LOW;
 
-      NotificationChannel mChannel = new NotificationChannel(id, name, importance);
+      NotificationChannel mChannel = new NotificationChannel(NOTIF_CHANNEL_ID, name, importance);
 
       // Configure the notification channel.
       mChannel.setDescription(description);
 
       mNotificationManager.createNotificationChannel(mChannel);
-      builder.setChannelId(id);
+      builder.setChannelId(NOTIF_CHANNEL_ID);
     }
 
     Notification notification = builder.build();
