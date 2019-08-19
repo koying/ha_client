@@ -61,7 +61,7 @@ public class MainActivity extends FlutterActivity implements MethodCallHandler {
         if (grantResults.length > 0
             && grantResults[0] == PERMISSION_GRANTED)
         {
-          UpdateService.GetInstance().StartLocation();
+          //UpdateService.GetInstance().StartLocation();
         }
       }
     }
