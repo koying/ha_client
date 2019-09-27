@@ -179,9 +179,12 @@ public class UpdateService extends Service implements LocationListener
       IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
       Intent batteryStatus = mContext.registerReceiver(null, ifilter);
 
+      int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
       int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
       int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
+      boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+          status == BatteryManager.BATTERY_STATUS_FULL;
       if (level > 0.0 && scale > 0.0)
         battery_level = level / (float)scale * 100.0;
 
